@@ -1,0 +1,200 @@
+2026-07-25 15:36:54,008 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using RTSP (model: [PRINTER])
+2026-07-25 15:36:56,065 INFO [backend.app.services.camera] [-] Successfully captured camera frame bytes: 257736 bytes
+2026-07-25 15:36:56,065 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 257736 bytes
+2026-07-25 15:37:33,589 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-25 15:42:04,579 INFO [uvicorn.access] [-] [IP]:55466 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-25 15:42:04,660 INFO [uvicorn.access] [-] [IP]:55596 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-25 15:42:04,775 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-25 15:42:04,776 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-25 15:42:04,777 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-25 15:42:04,910 INFO [backend.app.api.routes.printers] [6a8cc9dc] Cover: resolved plate 1 before download (subtask=Mescladora_de_resina_taladro)
+2026-07-25 15:42:04,917 INFO [backend.app.api.routes.cloud] [045c0d73] get_filament_info called with 3 IDs: ['GFG99', 'GFL99', 'GFU99']
+2026-07-25 15:42:05,275 INFO [uvicorn.access] [-] [IP]:55516 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-25 15:42:14,465 INFO [uvicorn.access] [-] [IP]:55494 - "POST /api/v1/library/files?generate_stl_thumbnails=true HTTP/1.1" 200
+2026-07-25 15:42:33,600 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-25 15:43:05,552 INFO [uvicorn.access] [-] [IP]:41024 - "POST /api/v1/slicer-pipelines/ HTTP/1.1" 201
+2026-07-25 15:43:07,455 INFO [uvicorn.access] [-] [IP]:41024 - "POST /api/v1/library/files/252/slice HTTP/1.1" 202
+2026-07-25 15:43:07,917 INFO [backend.app.api.routes.library] [2308d102] 3MF sanitiser: removed sentinel '-1' for keys ['raft_first_layer_expansion', 'tree_support_wall_count'] — slicer will use --load-settings defaults
+2026-07-25 15:43:14,175 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-25 15:43:14,175 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using RTSP (model: [PRINTER])
+2026-07-25 15:43:16,539 INFO [backend.app.services.camera] [-] Successfully captured camera frame bytes: 235220 bytes
+2026-07-25 15:43:16,539 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 235220 bytes
+2026-07-25 15:45:57,538 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-25 15:45:57,539 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using RTSP (model: [PRINTER])
+2026-07-25 15:45:59,567 INFO [backend.app.services.camera] [-] Successfully captured camera frame bytes: 243085 bytes
+2026-07-25 15:45:59,567 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 243085 bytes
+2026-07-25 15:47:33,606 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-25 15:48:59,881 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-25 15:48:59,882 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using RTSP (model: [PRINTER])
+2026-07-25 15:49:01,935 INFO [backend.app.services.camera] [-] Successfully captured camera frame bytes: 273190 bytes
+2026-07-25 15:49:01,936 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 273190 bytes
+2026-07-25 15:52:33,611 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-25 15:52:39,951 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-25 15:52:39,956 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-25 15:52:43,254 INFO [uvicorn.access] [-] [IP]:58140 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-25 15:52:43,258 INFO [uvicorn.access] [-] [IP]:58150 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-25 15:52:43,278 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-25 15:52:43,278 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-25 15:52:43,278 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-25 15:52:43,313 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-25 15:52:43,313 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-25 15:52:43,313 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-25 15:53:43,280 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-25 15:53:43,315 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-25 15:55:19,709 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-25 15:55:19,710 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using RTSP (model: [PRINTER])
+2026-07-25 15:55:22,016 INFO [backend.app.services.camera] [-] Successfully captured camera frame bytes: 242869 bytes
+2026-07-25 15:55:22,017 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 242869 bytes
+2026-07-25 15:56:10,023 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] PRINT COMPLETE detected - state: FAILED, status: failed, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro, was_running: True, timelapse_during_print: False
+2026-07-25 15:56:10,024 INFO [backend.app.main] [-] [CALLBACK] on_print_complete started for printer 1
+2026-07-25 15:56:10,025 INFO [backend.app.main] [-] [TIMING] WebSocket send_print_complete: 0.001s elapsed
+2026-07-25 15:56:10,025 INFO [backend.app.main] [-] Print complete - filename: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro, status: failed
+2026-07-25 15:56:10,026 INFO [backend.app.main] [-] Looking for archive in _active_prints, keys to try: [(1, 'Mescladora_de_resina_taladro.3mf'), (1, 'Mescladora_de_resina_taladro.gcode.3mf'), (1, 'Mescladora_de_resina_taladro'), (1, 'plate_1.gcode.3mf'), (1, 'plate_1.3mf')]...
+2026-07-25 15:56:10,026 INFO [backend.app.main] [-] Current _active_prints: [(1, 'Mescladora de resina taladro.gcode.3mf'), (1, 'Mescladora_de_resina_taladro.3mf')]
+2026-07-25 15:56:10,026 INFO [backend.app.main] [-] Found archive 2 with key (1, 'Mescladora_de_resina_taladro.3mf')
+2026-07-25 15:56:11,036 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=[PRINTER], prot_c=False)
+2026-07-25 15:56:11,047 INFO [backend.app.main] [-] Deleted /Mescladora_de_resina_taladro.3mf from printer [PRINTER] SD card
+2026-07-25 15:56:12,038 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=[PRINTER], prot_c=False)
+2026-07-25 15:56:12,057 INFO [backend.app.main] [-] [TIMING] SD card cleanup: 2.033s elapsed
+2026-07-25 15:56:12,060 INFO [backend.app.main] [-] Updated queue item 2 status to failed
+2026-07-25 15:56:12,063 INFO [backend.app.main] [-] [TIMING] Queue item update: 2.038s elapsed
+2026-07-25 15:56:12,064 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] on_print_complete: printer=1, archive=2, session=yes, ams_mapping=[3]
+2026-07-25 15:56:12,064 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] PRINT COMPLETE printer 1: mapping=[3], tray_now=3, last_loaded_tray=3
+2026-07-25 15:56:12,065 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: archive 2, plate_id=1, filament_usage=[{'slot_id': 1, 'used_g': 52.23, 'type': 'PLA', 'color': '#000000'}]
+2026-07-25 15:56:12,065 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: slot_to_tray=[3] (source: print_cmd)
+2026-07-25 15:56:12,282 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: slot_id=1 -> global_tray=3 -> AMS0-T3 (used_g=52.2, tray_now_override=None)
+2026-07-25 15:56:12,283 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: no spool assignment at printer 1 AMS0-T3
+2026-07-25 15:56:12,283 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] VT254: not in print mapping/tray_change_log — skipping fallback for printer 1
+2026-07-25 15:56:12,286 INFO [backend.app.main] [-] [TIMING] Filament usage tracking: 2.262s elapsed
+2026-07-25 15:56:12,286 INFO [backend.app.main] [-] [TIMING] Archive lookup: 2.262s elapsed
+2026-07-25 15:56:12,286 INFO [backend.app.main] [-] [ARCHIVE] Updating archive 2 status...
+2026-07-25 15:56:12,286 INFO [backend.app.main] [-] [ARCHIVE] HMS errors at failure: [{'code': '0x20070', 'attr': 83887616, 'module': 5, 'severity': 6}]
+2026-07-25 15:56:12,287 INFO [backend.app.main] [-] [ARCHIVE] HMS errors present but none matched a known failure-reason short code
+2026-07-25 15:56:12,290 INFO [backend.app.main] [-] [ARCHIVE] Archive 2 status updated to failed, failure_reason=None
+2026-07-25 15:56:12,290 INFO [backend.app.main] [-] [ARCHIVE] WebSocket notification sent for archive 2
+2026-07-25 15:56:12,290 INFO [backend.app.main] [-] [TIMING] Archive status update: 2.266s elapsed
+2026-07-25 15:56:12,293 INFO [backend.app.main] [-] [PRINT_LOG] Log entry written for archive 2
+2026-07-25 15:56:12,293 INFO [backend.app.main] [-] [TIMING] Print log entry: 2.269s elapsed
+2026-07-25 15:56:12,294 INFO [backend.app.main] [-] [TIMING] Background tasks scheduled (energy, photo): 2.269s elapsed
+2026-07-25 15:56:12,294 INFO [backend.app.main] [-] [TIMING] All background tasks scheduled: 2.269s elapsed
+2026-07-25 15:56:12,294 INFO [backend.app.main] [-] [CALLBACK] on_print_complete finished for printer 1, archive 2
+2026-07-25 15:56:12,294 INFO [backend.app.main] [-] [ENERGY-BG] Starting energy calculation for archive 2
+2026-07-25 15:56:12,295 INFO [backend.app.main] [-] [PHOTO-BG] Starting finish photo capture for archive 2
+2026-07-25 15:56:12,295 INFO [backend.app.main] [-] [AUTO-OFF-BG] Starting smart plug automation for printer 1
+2026-07-25 15:56:12,295 INFO [backend.app.services.smart_plug_manager] [-] Print on printer 1 ended with status 'failed', skipping auto-off to allow investigation
+2026-07-25 15:56:12,295 INFO [backend.app.main] [-] [AUTO-OFF-BG] Completed
+2026-07-25 15:56:12,296 INFO [backend.app.main] [-] [LAYER-TL] Cancelled layer timelapse for printer 1 (status: failed)
+2026-07-25 15:56:12,297 INFO [backend.app.main] [-] [ENERGY-BG] No start kWh recorded for archive 2
+2026-07-25 15:56:12,301 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using RTSP (model: [PRINTER])
+2026-07-25 15:56:14,513 INFO [backend.app.services.camera] [-] Successfully captured camera frame bytes: 418795 bytes
+2026-07-25 15:56:14,514 INFO [backend.app.services.camera] [-] Saved camera frame to: /app/data/archive/1/20260725_150057_Mescladora de resina taladro/photos/finish_20260725_155612_109e62c2.jpg
+2026-07-25 15:56:14,514 INFO [backend.app.services.camera] [-] Finish photo saved: finish_20260725_155612_109e62c2.jpg
+2026-07-25 15:56:14,520 INFO [backend.app.main] [-] [PHOTO-BG] Saved: finish_20260725_155612_109e62c2.jpg
+2026-07-25 15:56:14,520 INFO [backend.app.main] [-] [PHOTO-NOTIFY] Photo task returned: finish_20260725_155612_109e62c2.jpg
+2026-07-25 15:56:14,520 INFO [backend.app.main] [-] [NOTIFY-BG] Starting notifications for printer 1, photo=finish_20260725_155612_109e62c2.jpg
+2026-07-25 15:56:14,525 INFO [backend.app.main] [-] [NOTIFY-BG] Loaded finish photo bytes: 418795 bytes
+2026-07-25 15:56:14,525 INFO [backend.app.services.notification_service] [-] on_print_complete called for printer 1 ([PRINTER]), status=failed
+2026-07-25 15:56:14,531 INFO [backend.app.services.notification_service] [-] No notification providers configured for on_print_failed event on printer 1
+2026-07-25 15:56:14,531 INFO [backend.app.main] [-] [NOTIFY-BG] Completed
+2026-07-25 15:57:08,015 INFO [uvicorn.access] [-] [IP]:53880 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-25 15:57:10,775 INFO [uvicorn.access] [-] [IP]:34336 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-25 15:57:10,816 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-25 15:57:10,817 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-25 15:57:10,817 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-25 15:57:33,616 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-25 15:58:01,389 INFO [backend.app.api.routes.support] [2f52624d] Log level changed to DEBUG
+2026-07-25 15:58:01,389 INFO [backend.app.api.routes.bug_report] [2f52624d] Bug report: enabled debug logging
+2026-07-25 15:58:01,390 DEBUG [backend.app.services.bambu_mqtt] [2f52624d] [[SERIAL]] Requesting status update (pushall)
+2026-07-25 15:58:01,390 INFO [uvicorn.access] [-] [IP]:34348 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-25 15:58:01,907 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:01,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:01,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:01,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:01,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'ams_exist_bits_raw': '1', 'cali_id': 255, 'cali_stat': 0, 'cfs': [], 'insert_flag': True, 'power_on_flag': False, 'tray_exist_bits': 'f', 'tray_hall_out_bits': '8', 'tray_is_bbl_bits': 'f', 'tray_now': '3', 'tray_pre': '3', 'tray_read_done_bits': 'f', 'tray_reading_bits': '0', 'tray_tar': '3', 'unbind_ams_stat': 0, 'version': 3003}
+2026-07-25 15:58:01,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 3
+2026-07-25 15:58:01,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x10002003 -> extruder 0
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 0 (main=0, sub=0)
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] device.extruder.state=1 (switch_state bits 12-14: 0)
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] info.temp direct: 37°C (heater OFF)
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ctc_info keys: ['temp']
+2026-07-25 15:58:01,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=37.0, heating=False, respect_local=False
+2026-07-25 15:58:01,910 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 37.0, target: 0.0, heating: False
+2026-07-25 15:58:01,910 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:01,910 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'agora_service': 'disable', 'brtc_service': 'enable', 'bs_state': 0, 'cap_pic_enable': 'invalid', 'ipcam_dev': '1', 'ipcam_record': 'enable', 'laser_preview_res': 7, 'liveview_preview': True, 'mode_bits': 2, 'resolution': '1080p', 'rtsp_url': 'rtsps://[IP]:322/streaming/live/1', 'timelapse': 'disable', 'tl_external_free_kb': 32555296, 'tl_external_total_kb': 120097376, 'tl_internal_free_kb': 115081, 'tl_internal_total_kb': 962560, 'tl_store_hpd_type': 2, 'tl_store_path_type': 2, 'tutk_server': 'disable'}
+2026-07-25 15:58:01,910 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -34dBm
+2026-07-25 15:58:01,910 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:01,910 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:01,910 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
+2026-07-25 15:58:03,170 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:03,170 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:03,170 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:03,171 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:03,171 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:03,171 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:03,171 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:03,171 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:03,172 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:03,172 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
+2026-07-25 15:58:04,227 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:04,227 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:04,227 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:04,227 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:04,227 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:04,228 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:04,228 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:04,228 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:04,229 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:04,229 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
+2026-07-25 15:58:05,387 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:05,387 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:05,387 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:05,387 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:05,388 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:05,388 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:05,388 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:05,388 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:05,388 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:05,389 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
+2026-07-25 15:58:06,521 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:06,521 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:06,521 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:06,521 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:06,521 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:06,521 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:06,522 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:06,522 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:06,522 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:06,522 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
+2026-07-25 15:58:07,658 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:07,659 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:07,659 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:07,659 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:07,659 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:07,659 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:07,660 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:07,660 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:07,660 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:07,660 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
+2026-07-25 15:58:08,842 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:08,843 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:08,843 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:08,843 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:08,844 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:08,844 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:08,844 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:08,845 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:08,845 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:08,846 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
+2026-07-25 15:58:10,024 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': False, 'cfg': 8089159, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-25 15:58:10,024 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-25 15:58:10,024 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089159 (binary: 0b11110110110111001000111)
+2026-07-25 15:58:10,024 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: Mescladora_de_resina_taladro
+2026-07-25 15:58:10,024 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-25 15:58:10,024 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-25 15:58:10,025 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 13423, 'ts_unix': '20260723022547'}]
+2026-07-25 15:58:10,025 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-25 15:58:10,025 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [3]
+2026-07-25 15:58:10,025 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: /data/Metadata/plate_1.gcode, subtask: Mescladora_de_resina_taladro
