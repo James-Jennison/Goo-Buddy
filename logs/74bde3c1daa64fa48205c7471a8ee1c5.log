@@ -1,0 +1,200 @@
+2026-07-26 19:49:19,098 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:49:19,104 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:49:19,105 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:49:19,106 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:49:49,148 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:49:49,154 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:49:49,155 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:49:49,156 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:50:19,190 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:50:19,196 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:50:19,197 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:50:19,198 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:50:49,231 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:50:49,237 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:50:49,238 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:50:49,239 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:51:19,266 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:51:19,269 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:51:19,269 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:51:19,269 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:51:49,298 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:51:49,304 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:51:49,305 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:51:49,306 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:52:19,339 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:52:19,346 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:52:19,346 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:52:19,347 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:52:43,376 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-26 19:52:49,381 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:52:49,387 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:52:49,388 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:52:49,389 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:53:19,417 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:53:19,420 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:53:19,421 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:53:19,421 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:53:49,446 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:53:49,452 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:53:49,453 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:53:49,454 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:54:19,488 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:54:19,495 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:54:19,495 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:54:19,496 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:54:49,528 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:54:49,533 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:54:49,534 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:54:49,534 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:55:19,570 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:55:19,576 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:55:19,577 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:55:19,578 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:55:49,619 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:55:49,625 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:55:49,626 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:55:49,626 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:56:19,661 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:56:19,667 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:56:19,668 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:56:19,668 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:56:33,841 INFO [uvicorn.access] [-] [IP]:58050 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-26 19:56:34,442 INFO [uvicorn.access] [-] [IP]:58055 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-26 19:56:34,754 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-26 19:56:34,756 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-26 19:56:34,757 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 2 printers
+2026-07-26 19:56:35,259 INFO [backend.app.api.routes.printers] [0f1c4ae4] Cover: resolved plate 1 before download (subtask=Ring+of+Gears+bambu_Ring_of_Gears_16mm)
+2026-07-26 19:56:35,356 INFO [backend.app.api.routes.cloud] [51544b96] get_filament_info called with 1 IDs: ['GFL99']
+2026-07-26 19:56:35,367 INFO [uvicorn.access] [-] [IP]:58052 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-26 19:56:35,781 INFO [backend.app.api.routes.printers] [42ed04c0] Cover: resolved plate 3 before download (subtask=2._A1_Automation_v39-1_Heat-resistant_parts_(PETG_or_ABS))
+2026-07-26 19:56:35,911 INFO [backend.app.api.routes.cloud] [7fb0d6c5] get_filament_info called with 2 IDs: ['GFG99', 'GFL99']
+2026-07-26 19:56:35,917 INFO [uvicorn.access] [-] [IP]:58054 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-26 19:56:49,693 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:56:49,695 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:56:49,696 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:56:49,696 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:57:11,158 INFO [backend.app.api.routes.camera] [73e11d33] Using chamber image protocol for A1
+2026-07-26 19:57:11,159 INFO [backend.app.api.routes.camera] [73e11d33] Camera viewer attached to printer-2 (subscribers=1)
+2026-07-26 19:57:11,162 INFO [backend.app.api.routes.camera] [2404a860] Using chamber image protocol for A1
+2026-07-26 19:57:11,163 INFO [backend.app.api.routes.camera] [2404a860] Camera viewer attached to printer-1 (subscribers=1)
+2026-07-26 19:57:11,164 INFO [backend.app.api.routes.camera] [73e11d33] Starting chamber image stream for [IP] (stream_id=2-fanout, model=A1)
+2026-07-26 19:57:11,168 INFO [backend.app.api.routes.camera] [2404a860] Starting chamber image stream for [IP] (stream_id=1-fanout, model=A1)
+2026-07-26 19:57:11,967 INFO [backend.app.services.camera] [73e11d33] Chamber image: connected to [IP]:6000
+2026-07-26 19:57:11,975 INFO [backend.app.services.camera] [2404a860] Chamber image: connected to [IP]:6000
+2026-07-26 19:57:19,714 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:57:19,717 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:57:19,717 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:57:19,718 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:57:24,738 INFO [backend.app.api.routes.camera] [ec403495] Skipping force-shutdown for printer 1: 1 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-26 19:57:24,739 INFO [backend.app.api.routes.camera] [714082b3] Skipping force-shutdown for printer 2: 1 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-26 19:57:24,741 INFO [uvicorn.access] [-] [IP]:58077 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-26 19:57:24,742 INFO [uvicorn.access] [-] [IP]:58078 - "POST /api/v1/printers/2/camera/stop HTTP/1.1" 200
+2026-07-26 19:57:41,936 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-26 19:57:41,941 INFO [backend.app.api.routes.camera] [73e11d33] Camera viewer detached from printer-2 (subscribers=0)
+2026-07-26 19:57:41,943 INFO [backend.app.api.routes.camera] [2404a860] Camera viewer detached from printer-1 (subscribers=0)
+2026-07-26 19:57:43,408 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-26 19:57:46,943 INFO [backend.app.api.routes.camera] [73e11d33] Chamber image stream cancelled (stream_id=2-fanout)
+2026-07-26 19:57:46,946 INFO [backend.app.api.routes.camera] [2404a860] Chamber image stream cancelled (stream_id=1-fanout)
+2026-07-26 19:57:46,953 INFO [backend.app.api.routes.camera] [73e11d33] Chamber image stream stopped for [IP] (stream_id=2-fanout)
+2026-07-26 19:57:46,955 INFO [backend.app.api.routes.camera] [2404a860] Chamber image stream stopped for [IP] (stream_id=1-fanout)
+2026-07-26 19:57:49,742 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:57:49,748 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:57:49,749 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:57:49,750 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:58:19,776 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:58:19,781 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:58:19,781 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:58:19,782 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:58:49,814 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:58:49,819 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:58:49,820 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:58:49,821 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:59:19,850 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:59:19,855 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:59:19,856 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:59:19,857 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:59:49,888 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 19:59:49,895 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 19:59:49,895 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 19:59:49,896 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:00:19,932 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 20:00:19,938 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 20:00:19,939 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:00:19,939 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:00:49,969 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 20:00:49,974 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 20:00:49,975 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:00:49,975 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:00:50,314 INFO [uvicorn.access] [-] [IP]:63563 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-26 20:00:50,874 INFO [uvicorn.access] [-] [IP]:63563 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-26 20:00:51,189 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-26 20:00:51,190 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-26 20:00:51,192 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 2 printers
+2026-07-26 20:00:51,649 INFO [backend.app.api.routes.printers] [b25eef52] Cover: resolved plate 1 before download (subtask=Ring+of+Gears+bambu_Ring_of_Gears_16mm)
+2026-07-26 20:00:51,650 INFO [backend.app.api.routes.cloud] [0c826642] get_filament_info called with 1 IDs: ['GFL99']
+2026-07-26 20:00:51,655 INFO [uvicorn.access] [-] [IP]:63567 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-26 20:00:51,905 INFO [backend.app.api.routes.printers] [2f53bede] Cover: resolved plate 3 before download (subtask=2._A1_Automation_v39-1_Heat-resistant_parts_(PETG_or_ABS))
+2026-07-26 20:00:51,958 INFO [backend.app.api.routes.cloud] [0a46903d] get_filament_info called with 2 IDs: ['GFG99', 'GFL99']
+2026-07-26 20:00:51,960 INFO [uvicorn.access] [-] [IP]:63564 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-26 20:01:19,996 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 20:01:19,999 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 20:01:19,999 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:01:20,000 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:01:50,014 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 20:01:50,018 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 20:01:50,019 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:01:50,019 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:02:20,034 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(10, 2, None, 8)]
+2026-07-26 20:02:20,037 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 1}
+2026-07-26 20:02:20,037 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:02:20,038 INFO [backend.app.services.print_scheduler] [-] Queue: printer 2 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-26 20:02:22,942 INFO [backend.app.api.routes.support] [543869cd] Log level changed to DEBUG
+2026-07-26 20:02:22,943 INFO [backend.app.api.routes.bug_report] [543869cd] Bug report: enabled debug logging
+2026-07-26 20:02:22,943 DEBUG [backend.app.services.bambu_mqtt] [543869cd] [[SERIAL]] Requesting status update (pushall)
+2026-07-26 20:02:22,943 DEBUG [backend.app.services.bambu_mqtt] [543869cd] [[SERIAL]] Requesting status update (pushall)
+2026-07-26 20:02:22,946 INFO [uvicorn.access] [-] [IP]:63611 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-26 20:02:22,992 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'buildplate_marker_detector': True}
+2026-07-26 20:02:22,993 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['buildplate_marker_detector']
+2026-07-26 20:02:22,993 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: RUNNING, gcode_file: Ring+of+Gears+bambu_Ring_of_Gears_16mm.3mf, subtask_name: Ring+of+Gears+bambu_Ring_of_Gears_16mm
+2026-07-26 20:02:22,993 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'tray_exist_bits': 'f', 'tray_is_bbl_bits': 'f', 'tray_tar': '2', 'tray_now': '2', 'tray_pre': '2', 'tray_read_done_bits': 'f', 'tray_reading_bits': '0', 'version': 22, 'insert_flag': True, 'power_on_flag': False}
+2026-07-26 20:02:22,993 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 2
+2026-07-26 20:02:22,994 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-26 20:02:22,994 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x1002 -> extruder 0
+2026-07-26 20:02:22,994 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-26 20:02:22,994 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 768 (main=3, sub=0)
+2026-07-26 20:02:22,995 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-26 20:02:22,995 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-26 20:02:22,995 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-26 20:02:22,995 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-26 20:02:22,996 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-26 20:02:22,996 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-26 20:02:22,996 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'enable', 'timelapse': 'disable', 'resolution': '1080p', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-26 20:02:22,997 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -32dBm
+2026-07-26 20:02:22,997 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'on'}]
+2026-07-26 20:02:22,997 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: RUNNING -> RUNNING, file: Ring+of+Gears+bambu_Ring_of_Gears_16mm.3mf, subtask: Ring+of+Gears+bambu_Ring_of_Gears_16mm
+2026-07-26 20:02:23,516 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'buildplate_marker_detector': True}
+2026-07-26 20:02:23,516 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['buildplate_marker_detector']
+2026-07-26 20:02:23,516 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: RUNNING, gcode_file: 2._A1_Automation_v39-1_Heat-resistant_parts_(PETG_or_ABS).3mf, subtask_name: 2._A1_Automation_v39-1_Heat-resistant_parts_(PETG_or_ABS)
+2026-07-26 20:02:23,516 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'tray_exist_bits': 'f', 'tray_is_bbl_bits': 'f', 'tray_tar': '0', 'tray_now': '0', 'tray_pre': '0', 'tray_read_done_bits': 'f', 'tray_reading_bits': '0', 'version': 41, 'insert_flag': True, 'power_on_flag': False}
+2026-07-26 20:02:23,517 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 0
+2026-07-26 20:02:23,517 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-26 20:02:23,517 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x1002 -> extruder 0
+2026-07-26 20:02:23,518 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-26 20:02:23,518 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 768 (main=3, sub=0)
+2026-07-26 20:02:23,518 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-26 20:02:23,518 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-26 20:02:23,519 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-26 20:02:23,519 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-26 20:02:23,519 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-26 20:02:23,520 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-26 20:02:23,520 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'enable', 'timelapse': 'disable', 'resolution': '1080p', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-26 20:02:23,520 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -29dBm
+2026-07-26 20:02:23,520 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'on'}]
+2026-07-26 20:02:23,521 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: RUNNING -> RUNNING, file: 2._A1_Automation_v39-1_Heat-resistant_parts_(PETG_or_ABS).3mf, subtask: 2._A1_Automation_v39-1_Heat-resistant_parts_(PETG_or_ABS)
+2026-07-26 20:02:25,016 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-26 20:02:25,017 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -34dBm
+2026-07-26 20:02:25,536 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-26 20:02:27,042 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-26 20:02:27,043 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -31dBm
+2026-07-26 20:02:27,569 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
