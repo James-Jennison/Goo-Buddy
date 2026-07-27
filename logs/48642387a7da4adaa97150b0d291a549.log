@@ -1,0 +1,200 @@
+2026-07-27 22:44:54,983 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:44:54,984 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:44:54,984 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:44:54,984 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:54,984 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:44:54,984 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:44:54,985 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:44:54,985 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:44:54,986 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:44:54,986 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:56,287 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:44:56,287 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:44:56,287 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:44:56,287 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:56,287 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:44:56,287 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:44:56,288 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:44:56,289 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:44:56,289 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:44:56,290 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:57,338 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:44:57,339 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:44:57,339 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:44:57,339 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:57,339 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:44:57,339 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:44:57,340 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:44:57,340 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:44:57,340 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:44:57,341 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:58,680 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:44:58,680 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:44:58,680 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:44:58,680 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:58,680 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:44:58,681 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:44:58,681 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:44:58,681 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:44:58,682 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:44:58,682 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:59,762 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:44:59,762 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:44:59,762 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:44:59,762 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:44:59,762 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:44:59,763 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:44:59,763 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:44:59,764 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:44:59,764 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:44:59,764 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:00,996 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:00,996 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:00,997 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:00,997 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:00,997 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:00,997 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:00,998 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:00,998 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:00,998 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:00,999 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:02,047 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:02,047 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:02,047 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:02,047 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:02,048 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:02,048 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:02,048 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:02,049 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:02,049 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:02,049 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:03,340 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:03,340 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:03,340 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:03,340 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:03,341 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:03,341 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:03,341 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:03,342 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:03,342 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:03,342 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:04,409 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:04,409 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:04,409 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:04,410 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:04,410 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:04,410 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:04,411 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:04,411 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:04,411 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:04,411 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:05,723 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:05,723 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:05,723 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:05,723 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:05,724 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:05,724 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:05,724 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:05,725 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:05,725 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:05,726 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:06,804 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:06,804 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:06,804 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:06,804 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:06,804 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:06,805 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:06,805 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:06,805 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:06,806 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:06,806 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:08,069 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:08,070 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:08,070 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:08,070 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:08,070 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:08,071 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:08,072 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:08,072 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:08,072 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:08,072 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:09,112 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:09,113 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:09,113 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:09,113 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:09,113 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:09,113 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:09,114 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:09,114 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:09,114 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:09,115 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:10,150 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:10,151 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:10,151 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:10,151 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:10,151 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:10,151 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:10,152 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:10,152 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:10,152 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:10,152 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:11,253 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:11,253 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:11,253 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:11,254 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:11,254 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:11,254 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:11,254 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:11,255 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:11,255 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:11,255 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:12,325 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:12,325 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:12,326 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:12,326 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:12,326 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:12,326 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:12,327 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:12,327 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:12,327 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:12,328 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:13,662 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:13,662 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:13,662 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:13,662 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:13,663 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:13,663 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:13,664 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:13,664 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:13,665 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:13,665 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:14,728 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:14,728 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:14,728 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:14,728 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:14,729 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:14,729 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:14,729 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:14,730 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:14,730 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:14,730 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:16,005 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:16,005 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:16,005 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:16,005 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:16,006 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:16,007 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:16,007 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:16,008 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:16,008 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:16,008 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:17,055 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'cfg': 8089303, 'first_layer_inspector': True, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-27 22:45:17,055 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'cfg', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-27 22:45:17,055 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] xcam cfg bitmask: 8089303 (binary: 0b11110110110111011010111)
+2026-07-27 22:45:17,055 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_2.gcode, subtask_name: Train Track - Modular Bridge - Ikea, Brio, Hape
+2026-07-27 22:45:17,056 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 1}
+2026-07-27 22:45:17,056 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-27 22:45:17,056 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: [{'attr': 83887616, 'code': 131184, 'ts_boot': 16648, 'ts_unix': '20260711141537'}, {'attr': 83886592, 'code': 196618, 'ts_boot': 62434119, 'ts_unix': '20260712073555'}]
+2026-07-27 22:45:17,056 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-27 22:45:17,057 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [0]
+2026-07-27 22:45:17,057 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_2.gcode, subtask: Train Track - Modular Bridge - Ikea, Brio, Hape
