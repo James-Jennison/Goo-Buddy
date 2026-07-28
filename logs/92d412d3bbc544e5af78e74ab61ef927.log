@@ -1,0 +1,200 @@
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:07:17,374 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 75
+2026-07-28 20:07:43,762 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:07:43,762 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 76
+2026-07-28 20:07:47,498 INFO [backend.app.api.routes.notifications] [7a341e4a] Updated notification provider: Phone Push Notifications
+2026-07-28 20:07:47,499 INFO [uvicorn.access] [-] [IP]:51992 - "PATCH /api/v1/notifications/1 HTTP/1.1" 200
+2026-07-28 20:08:06,137 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:08:06,138 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 77
+2026-07-28 20:08:36,563 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:08:36,563 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 78
+2026-07-28 20:08:58,918 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:08:58,919 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 79
+2026-07-28 20:09:21,310 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:09:21,310 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 80
+2026-07-28 20:09:47,721 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:09:47,721 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 81
+2026-07-28 20:10:16,189 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:10:16,189 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 82
+2026-07-28 20:10:26,524 INFO [backend.app.api.routes.support] [f6f6c95e] Log level changed to DEBUG
+2026-07-28 20:10:26,525 INFO [backend.app.api.routes.bug_report] [f6f6c95e] Bug report: enabled debug logging
+2026-07-28 20:10:26,525 DEBUG [backend.app.services.bambu_mqtt] [f6f6c95e] [[SERIAL]] Requesting status update (pushall)
+2026-07-28 20:10:26,526 INFO [uvicorn.access] [-] [IP]:51992 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-28 20:10:27,415 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'buildplate_marker_detector': True}
+2026-07-28 20:10:27,415 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['buildplate_marker_detector']
+2026-07-28 20:10:27,415 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: RUNNING, gcode_file: Brick_man.gcode.3mf, subtask_name: Brick_man
+2026-07-28 20:10:27,415 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'tray_exist_bits': 'f', 'tray_is_bbl_bits': 'f', 'tray_tar': '1', 'tray_now': '1', 'tray_pre': '1', 'tray_read_done_bits': 'f', 'tray_reading_bits': '0', 'version': 39, 'insert_flag': True, 'power_on_flag': True}
+2026-07-28 20:10:27,415 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 1
+2026-07-28 20:10:27,416 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-28 20:10:27,416 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x1002 -> extruder 0
+2026-07-28 20:10:27,416 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-28 20:10:27,416 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 768 (main=3, sub=0)
+2026-07-28 20:10:27,416 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:27,416 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-28 20:10:27,417 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-28 20:10:27,417 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-28 20:10:27,417 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-28 20:10:27,418 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-28 20:10:27,418 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'enable', 'timelapse': 'disable', 'resolution': '1080p', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-28 20:10:27,418 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -50dBm
+2026-07-28 20:10:27,418 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'off'}]
+2026-07-28 20:10:27,418 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: RUNNING -> RUNNING, file: Brick_man.gcode.3mf, subtask: Brick_man
+2026-07-28 20:10:29,416 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:30,186 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=109556s (30.43h)
+2026-07-28 20:10:30,190 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-28 20:10:31,097 DEBUG [backend.app.main] [-] Recorded 3 printer sensor history entries
+2026-07-28 20:10:31,445 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:31,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -49dBm
+2026-07-28 20:10:33,495 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:34,244 DEBUG [backend.app.api.routes.printers] [e36aca5e] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:10:34,244 DEBUG [backend.app.api.routes.printers] [e36aca5e] Using tray_now directly as global ID: 1
+2026-07-28 20:10:35,525 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:35,525 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:10:35,525 DEBUG [backend.app.services.external_camera] [-] capture_frame called: type=rtsp, url=rtsp://[CREDENTIALS]@[IP]/stream1:55...
+2026-07-28 20:10:35,526 DEBUG [backend.app.services.external_camera] [-] Running ffmpeg RTSP capture...
+2026-07-28 20:10:37,769 DEBUG [backend.app.services.external_camera] [-] ffmpeg returned: code=145, stdout=0 bytes, stderr=2174 bytes
+2026-07-28 20:10:37,769 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:10:37,770 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 83
+2026-07-28 20:10:39,558 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:41,598 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:41,599 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -51dBm
+2026-07-28 20:10:43,630 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:43,630 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -57dBm
+2026-07-28 20:10:44,180 DEBUG [backend.app.api.routes.printers] [cb4cd4c0] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:10:44,181 DEBUG [backend.app.api.routes.printers] [cb4cd4c0] Using tray_now directly as global ID: 1
+2026-07-28 20:10:45,650 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:45,651 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:10:47,695 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:47,696 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -50dBm
+2026-07-28 20:10:51,720 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:51,720 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:10:53,758 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:53,758 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -49dBm
+2026-07-28 20:10:54,187 DEBUG [backend.app.api.routes.printers] [8dc8f270] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:10:54,187 DEBUG [backend.app.api.routes.printers] [8dc8f270] Using tray_now directly as global ID: 1
+2026-07-28 20:10:55,798 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:55,798 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -50dBm
+2026-07-28 20:10:57,824 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:57,825 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -52dBm
+2026-07-28 20:10:57,825 DEBUG [backend.app.services.external_camera] [-] capture_frame called: type=rtsp, url=rtsp://[CREDENTIALS]@[IP]/stream1:55...
+2026-07-28 20:10:57,825 DEBUG [backend.app.services.external_camera] [-] Running ffmpeg RTSP capture...
+2026-07-28 20:10:59,877 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:10:59,878 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -54dBm
+2026-07-28 20:10:59,976 DEBUG [backend.app.services.external_camera] [-] ffmpeg returned: code=145, stdout=0 bytes, stderr=2174 bytes
+2026-07-28 20:10:59,976 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:10:59,976 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 84
+2026-07-28 20:11:00,190 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=109586s (30.44h)
+2026-07-28 20:11:00,194 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-28 20:11:03,921 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:03,921 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -55dBm
+2026-07-28 20:11:04,188 DEBUG [backend.app.api.routes.printers] [ec8ff6e2] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:11:04,188 DEBUG [backend.app.api.routes.printers] [ec8ff6e2] Using tray_now directly as global ID: 1
+2026-07-28 20:11:05,961 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:05,961 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -51dBm
+2026-07-28 20:11:10,025 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:10,026 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -50dBm
+2026-07-28 20:11:12,063 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:12,063 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:11:14,092 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:14,092 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -48dBm
+2026-07-28 20:11:14,182 DEBUG [backend.app.api.routes.printers] [f0f61928] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:11:14,182 DEBUG [backend.app.api.routes.printers] [f0f61928] Using tray_now directly as global ID: 1
+2026-07-28 20:11:18,201 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:18,201 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -49dBm
+2026-07-28 20:11:20,224 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:20,225 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -55dBm
+2026-07-28 20:11:20,225 DEBUG [backend.app.services.external_camera] [-] capture_frame called: type=rtsp, url=rtsp://[CREDENTIALS]@[IP]/stream1:55...
+2026-07-28 20:11:20,225 DEBUG [backend.app.services.external_camera] [-] Running ffmpeg RTSP capture...
+2026-07-28 20:11:22,255 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:22,255 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -56dBm
+2026-07-28 20:11:22,377 DEBUG [backend.app.services.external_camera] [-] ffmpeg returned: code=145, stdout=0 bytes, stderr=2174 bytes
+2026-07-28 20:11:22,377 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:11:22,378 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 85
+2026-07-28 20:11:24,175 DEBUG [backend.app.api.routes.printers] [59f7bec2] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:11:24,176 DEBUG [backend.app.api.routes.printers] [59f7bec2] Using tray_now directly as global ID: 1
+2026-07-28 20:11:24,310 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:24,311 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -55dBm
+2026-07-28 20:11:26,335 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:26,335 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -56dBm
+2026-07-28 20:11:30,194 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=109616s (30.45h)
+2026-07-28 20:11:30,198 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-28 20:11:30,390 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:30,390 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -50dBm
+2026-07-28 20:11:31,100 DEBUG [backend.app.main] [-] Recorded 3 printer sensor history entries
+2026-07-28 20:11:32,413 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:32,414 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -49dBm
+2026-07-28 20:11:34,306 DEBUG [backend.app.api.routes.printers] [36e5c187] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:11:34,306 DEBUG [backend.app.api.routes.printers] [36e5c187] Using tray_now directly as global ID: 1
+2026-07-28 20:11:34,440 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:34,441 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -52dBm
+2026-07-28 20:11:36,482 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:36,483 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:11:38,560 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:38,560 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -48dBm
+2026-07-28 20:11:42,632 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:42,632 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -49dBm
+2026-07-28 20:11:44,247 DEBUG [backend.app.api.routes.printers] [f0bc32ba] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:11:44,248 DEBUG [backend.app.api.routes.printers] [f0bc32ba] Using tray_now directly as global ID: 1
+2026-07-28 20:11:44,655 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:44,656 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -54dBm
+2026-07-28 20:11:44,656 DEBUG [backend.app.services.external_camera] [-] capture_frame called: type=rtsp, url=rtsp://[CREDENTIALS]@[IP]/stream1:55...
+2026-07-28 20:11:44,656 DEBUG [backend.app.services.external_camera] [-] Running ffmpeg RTSP capture...
+2026-07-28 20:11:46,679 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:46,680 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -51dBm
+2026-07-28 20:11:46,820 DEBUG [backend.app.services.external_camera] [-] ffmpeg returned: code=145, stdout=0 bytes, stderr=2174 bytes
+2026-07-28 20:11:46,821 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:11:46,821 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 86
+2026-07-28 20:11:47,676 INFO [uvicorn.access] [-] [IP]:52318 - "POST /api/v1/notification-templates/preview HTTP/1.1" 200
+2026-07-28 20:11:48,715 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:48,715 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:11:54,255 DEBUG [backend.app.api.routes.printers] [b954252a] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:11:54,255 DEBUG [backend.app.api.routes.printers] [b954252a] Using tray_now directly as global ID: 1
+2026-07-28 20:11:54,780 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:54,780 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -50dBm
+2026-07-28 20:11:56,817 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:56,818 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:11:58,845 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:11:58,845 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -48dBm
+2026-07-28 20:12:00,199 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=109646s (30.46h)
+2026-07-28 20:12:00,205 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-28 20:12:00,392 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-28 20:12:00,883 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:12:02,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:12:02,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -54dBm
+2026-07-28 20:12:02,910 DEBUG [backend.app.services.external_camera] [-] capture_frame called: type=rtsp, url=rtsp://[CREDENTIALS]@[IP]/stream1:55...
+2026-07-28 20:12:02,911 DEBUG [backend.app.services.external_camera] [-] Running ffmpeg RTSP capture...
+2026-07-28 20:12:04,223 DEBUG [backend.app.api.routes.printers] [cf1c649c] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-28 20:12:04,223 DEBUG [backend.app.api.routes.printers] [cf1c649c] Using tray_now directly as global ID: 1
+2026-07-28 20:12:05,103 DEBUG [backend.app.services.external_camera] [-] ffmpeg returned: code=145, stdout=0 bytes, stderr=2174 bytes
+2026-07-28 20:12:05,103 ERROR [backend.app.services.external_camera] [-] ffmpeg RTSP capture failed: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 14 (Debian 14.2.0-19)
+  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libd
+2026-07-28 20:12:05,103 WARNING [backend.app.services.layer_timelapse] [-] Failed to capture frame for layer 87
+2026-07-28 20:12:05,811 INFO [uvicorn.access] [-] [IP]:52318 - "POST /api/v1/notifications/test-all HTTP/1.1" 200
+2026-07-28 20:12:06,968 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:12:06,968 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -53dBm
+2026-07-28 20:12:11,023 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:12:13,061 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 20:12:13,062 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -55dBm
