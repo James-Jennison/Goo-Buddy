@@ -1,0 +1,200 @@
+2026-07-28 12:59:39,872 INFO [backend.app.services.virtual_printer.ftp_server] [-] [Virtual P1S] FTP session cancelled from [IP]
+2026-07-28 12:59:39,873 INFO [backend.app.services.virtual_printer.ftp_server] [-] [Virtual P1S] FTP session ended from [IP]
+2026-07-28 12:59:39,882 INFO [backend.app.services.virtual_printer.ftp_server] [-] [Virtual P1S] FTP connection from ('[IP]', 56545)
+2026-07-28 12:59:39,884 INFO [backend.app.services.virtual_printer.ftp_server] [-] [Virtual P1S] FTP login from [IP]
+2026-07-28 12:59:39,886 INFO [backend.app.services.virtual_printer.ftp_server] [-] FTP EPSV listening on port 50006
+2026-07-28 12:59:39,899 INFO [backend.app.services.virtual_printer.ftp_server] [-] FTP receiving file: Sanja_flipper_modified_frame_clip-X2D.gcode.3mf from [IP]
+2026-07-28 12:59:39,901 INFO [backend.app.services.virtual_printer.ftp_server] [-] FTP data TLS from [IP]: cipher=('ECDHE-RSA-AES256-GCM-SHA384', 'TLSv1.2', 256), version=TLSv1.2, session_reused=True
+2026-07-28 12:59:39,902 INFO [backend.app.services.virtual_printer.ftp_server] [-] FTP data connection established from [IP]
+2026-07-28 12:59:40,007 INFO [backend.app.services.virtual_printer.ftp_server] [-] FTP saved file: /app/data/virtual_printer/uploads/1/Sanja_flipper_modified_frame_clip-X2D.gcode.3mf (114507 bytes)
+2026-07-28 12:59:40,008 INFO [backend.app.services.virtual_printer.manager] [-] [VP Virtual P1S] Received file: Sanja_flipper_modified_frame_clip-X2D.gcode.3mf from [IP]
+2026-07-28 12:59:40,064 INFO [backend.app.services.virtual_printer.manager] [-] [VP Virtual P1S] Archived: 60 - X2D / P2S Riser - AMS Flipper V2
+2026-07-28 12:59:43,011 INFO [backend.app.services.virtual_printer.ftp_server] [-] [Virtual P1S] FTP session cancelled from [IP]
+2026-07-28 12:59:43,011 INFO [backend.app.services.virtual_printer.ftp_server] [-] [Virtual P1S] FTP session ended from [IP]
+2026-07-28 12:59:48,154 INFO [uvicorn.access] [-] [IP]:64181 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-28 12:59:48,369 INFO [uvicorn.access] [-] [IP]:64193 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-28 12:59:48,564 INFO [backend.app.api.routes.camera] [c21df037] Using chamber image protocol for P1S
+2026-07-28 12:59:48,564 INFO [backend.app.api.routes.camera] [c21df037] Camera viewer attached to printer-1 (subscribers=1)
+2026-07-28 12:59:48,568 INFO [backend.app.api.routes.camera] [c21df037] Starting chamber image stream for [IP] (stream_id=1-fanout, model=P1S)
+2026-07-28 12:59:48,610 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=[USER])
+2026-07-28 12:59:48,752 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-28 12:59:48,754 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-28 12:59:48,939 INFO [backend.app.api.routes.cloud] [ee786584] get_filament_info called with 2 IDs: ['GFA00', 'GFG00']
+2026-07-28 12:59:49,190 INFO [uvicorn.access] [-] [IP]:64184 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-28 12:59:49,335 INFO [backend.app.services.camera] [c21df037] Chamber image: connected to [IP]:6000
+2026-07-28 12:59:49,622 INFO [backend.app.api.routes.camera] [6122d625] Using chamber image protocol for P1S
+2026-07-28 12:59:49,623 INFO [backend.app.api.routes.camera] [6122d625] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-28 12:59:50,150 INFO [backend.app.api.routes.camera] [c21df037] Camera viewer detached from printer-1 (subscribers=1)
+2026-07-28 12:59:50,516 INFO [uvicorn.access] [-] [IP]:64184 - "POST /api/v1/printers/1/clear-plate HTTP/1.1" 200
+2026-07-28 12:59:53,012 INFO [backend.app.api.routes.camera] [236612ba] Skipping force-shutdown for printer 1: 1 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-28 12:59:53,015 INFO [uvicorn.access] [-] [IP]:64204 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-28 13:00:00,168 INFO [backend.app.services.smart_plug_manager] [-] Captured 2 energy snapshot(s)
+2026-07-28 13:00:13,080 INFO [backend.app.api.routes.print_queue] [20ead3a7] Added archive 60 to queue for 1
+2026-07-28 13:00:13,087 INFO [uvicorn.access] [-] [IP]:64227 - "POST /api/v1/queue/ HTTP/1.1" 200
+2026-07-28 13:00:13,457 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:58678
+2026-07-28 13:00:32,773 INFO [backend.app.services.print_scheduler] [-] Queue check: found 1 pending items: [(56, 1, 60, None)]
+2026-07-28 13:00:32,802 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=FINISH, awaiting_plate_clear=False
+2026-07-28 13:00:32,806 INFO [backend.app.services.print_scheduler] [-] Launching 1 upload(s) (pool 0/4 in flight)
+2026-07-28 13:00:32,821 INFO [backend.app.services.print_scheduler] [-] Starting queue item 56
+2026-07-28 13:00:32,856 INFO [backend.app.services.print_scheduler] [-] Queue item 56: FTP upload starting - printer=[PRINTER] (P1S), ip=[IP], file=Sanja_flipper_modified_frame_clip-X2D.3mf, local_path=/app/data/archive/unassigned/20260728_125940_Sanja_flipper_modified_frame_clip-X2D/Sanja_flipper_modified_frame_clip-X2D.gcode.3mf, retry_enabled=True, retry_count=3, timeout=30.0
+2026-07-28 13:00:33,650 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 13:00:33,680 INFO [backend.app.services.bambu_ftp] [-] FTP connecting to [IP] for upload (model=P1S, mode=prot_p, socket_timeout=30.0s, deadline=600s)...
+2026-07-28 13:00:34,469 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 13:00:34,470 INFO [backend.app.services.bambu_ftp] [-] FTP connected to [IP]
+2026-07-28 13:00:34,470 INFO [backend.app.services.bambu_ftp] [-] FTP uploading /app/data/archive/unassigned/20260728_125940_Sanja_flipper_modified_frame_clip-X2D/Sanja_flipper_modified_frame_clip-X2D.gcode.3mf (114507 bytes) to /Sanja_flipper_modified_frame_clip-X2D.3mf
+2026-07-28 13:00:34,540 INFO [backend.app.services.bambu_ftp] [-] FTP data channel ready in 0.1s (PASV + TLS handshake)
+2026-07-28 13:00:35,045 INFO [backend.app.services.bambu_ftp] [-] FTP STOR confirmed for /Sanja_flipper_modified_frame_clip-X2D.3mf: 226
+2026-07-28 13:00:35,045 INFO [backend.app.services.bambu_ftp] [-] FTP upload complete: /Sanja_flipper_modified_frame_clip-X2D.3mf (114507 bytes in 0.6s, 195 KB/s)
+2026-07-28 13:00:35,045 INFO [backend.app.services.bambu_ftp] [-] FTP mode cached for [IP]: prot_p
+2026-07-28 13:00:35,062 INFO [backend.app.main] [-] Registered expected print: printer=1, file=Sanja_flipper_modified_frame_clip-X2D.3mf, archive=60, ams_mapping=[128], plate_id=1
+2026-07-28 13:00:35,076 INFO [backend.app.services.print_scheduler] [-] Queue item 56: Status set to 'printing', sending print command...
+2026-07-28 13:00:35,077 INFO [backend.app.services.printer_manager] [-] PRINT COMMAND: printer=1, file=Sanja_flipper_modified_frame_clip-X2D.3mf, caller=print_scheduler.py:930:_dispatch_one
+2026-07-28 13:00:35,078 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Sending print command: {"print": {"sequence_id": "20000", "command": "project_file", "param": "Metadata/plate_1.gcode", "url": "ftp://Sanja_flipper_modified_frame_clip-X2D.3mf", "file": "Sanja_flipper_modified_frame_clip-X2D.3mf", "md5": "", "bed_type": "auto", "timelapse": true, "bed_leveling": true, "auto_bed_leveling": 1, "flow_cali": false, "vibration_cali": true, "layer_inspect": true, "use_ams": true, "cfg": "0", "extrude_cali_flag": 2, "extrude_cali_manual_mode": 0, "nozzle_offset_cali": 0, "subtask_name": "Sanja_flipper_modified_frame_clip-X2D", "profile_id": "0", "project_id": "709924421", "subtask_id": "709924421", "task_id": "709924421", "ams_mapping": [128], "ams_mapping2": [{"ams_id": 128, "slot_id": 0}]}}
+2026-07-28 13:00:35,080 INFO [backend.app.services.print_scheduler] [-] Queue item 56: Print started successfully - Sanja_flipper_modified_frame_clip-X2D.gcode.3mf
+2026-07-28 13:00:44,154 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 13:00:45,698 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] PRINT START detected - file: Sanja_flipper_modified_frame_clip-X2D.3mf, subtask: Sanja_flipper_modified_frame_clip-X2D, is_new: True, is_file_change: False
+2026-07-28 13:00:45,700 INFO [backend.app.main] [-] [CALLBACK] on_print_start called for printer 1, data keys: ['filename', 'subtask_name', 'remaining_time', 'raw_data', 'ams_mapping']
+2026-07-28 13:00:45,707 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] Skipped trays with invalid remain% for printer 1: AMS0-T3(remain=-1)
+2026-07-28 13:00:45,707 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] PRINT START printer 1: mapping=None, tray_now=255, last_loaded_tray=128
+2026-07-28 13:00:45,707 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] PRINT START printer 1: mapping-related keys: {'ams_extruder_map': {'0': 0, '128': 0}}
+2026-07-28 13:00:45,708 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] PRINT START printer 1 AMS 0: T0(type=PLA, color=0086D6FF, now=?, tar=?), T1(type=PLA, color=EC008CFF, now=?, tar=?), T2(type=PLA, color=F4EE2AFF, now=?, tar=?), T3(type=PLA, color=E3E5E5FF, now=?, tar=?)
+2026-07-28 13:00:45,708 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] PRINT START printer 1 AMS 128: T0(type=PETG, color=000000FF, now=?, tar=?)
+2026-07-28 13:00:45,711 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] Snapshotted 5 spool assignments for printer 1: {'0-0': 17, '0-1': 32, '0-2': 14, '0-3': 33, '128-0': 20}
+2026-07-28 13:00:45,715 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] Captured start remain% for printer 1 (5 trays): {'0-0': 100, '0-1': 100, '0-2': 98, '128-0': 29, '255-0': 0}
+2026-07-28 13:00:45,720 INFO [backend.app.services.smart_plug_manager] [-] Print started on printer 1, turning on plug 'Bento Box'
+2026-07-28 13:00:45,807 INFO [backend.app.services.homeassistant] [-] Turned ON HA entity 'Bento Box' (switch.gaming_room_h2d_plug)
+2026-07-28 13:00:45,832 INFO [backend.app.main] [-] [PLATE CHECK] printer_id=1, plate_detection_enabled=False
+2026-07-28 13:00:45,833 INFO [backend.app.main] [-] [CALLBACK] Print start detected - filename: Sanja_flipper_modified_frame_clip-X2D.3mf, subtask: Sanja_flipper_modified_frame_clip-X2D
+2026-07-28 13:00:45,834 INFO [backend.app.main] [-] Using expected archive 60 for print (skipping duplicate)
+2026-07-28 13:00:45,878 INFO [backend.app.main] [-] [CALLBACK] Injected ams_mapping into usage tracker session: [128]
+2026-07-28 13:00:45,911 WARNING [backend.app.main] [-] [ENERGY] Failed to record starting energy for archive 60: Multiple rows were found when one or none was required
+2026-07-28 13:00:45,965 INFO [backend.app.api.routes.printers] [8f996ed9] Cover: resolved plate 1 before download (subtask=Sanja_flipper_modified_frame_clip-X2D)
+2026-07-28 13:00:45,967 INFO [backend.app.api.routes.printers] [8f996ed9] Cover using cached 3MF from /app/data/archive/unassigned/20260728_125940_Sanja_flipper_modified_frame_clip-X2D/Sanja_flipper_modified_frame_clip-X2D.gcode.3mf (avoided duplicate FTP)
+2026-07-28 13:00:45,967 INFO [backend.app.api.routes.printers] [8f996ed9] Downloaded file size: 114507 bytes
+2026-07-28 13:00:46,002 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 68137 bytes
+2026-07-28 13:00:46,004 INFO [backend.app.services.notification_service] [-] on_print_start called for printer 1 ([PRINTER])
+2026-07-28 13:00:46,024 INFO [backend.app.api.routes.printers] [cefc753a] Cover: resolved plate 1 before download (subtask=Sanja_flipper_modified_frame_clip-X2D)
+2026-07-28 13:00:46,042 INFO [backend.app.services.notification_service] [-] No notification providers configured for print_start event on printer 1
+2026-07-28 13:00:46,083 INFO [backend.app.main] [-] Loaded 4 printable objects for printer 1
+2026-07-28 13:00:47,239 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 13:00:47,496 INFO [backend.app.main] [-] [TIMELAPSE] Baseline at print start: 4 video files for printer 1
+2026-07-28 13:01:14,439 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:58678
+2026-07-28 13:01:29,431 INFO [backend.app.services.homeassistant] [efebe5ff] Turned OFF HA entity 'Bento Box' (switch.gaming_room_h2d_plug)
+2026-07-28 13:01:29,443 INFO [uvicorn.access] [-] [IP]:64429 - "POST /api/v1/smart-plugs/4/control HTTP/1.1" 200
+2026-07-28 13:02:14,826 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:58678
+2026-07-28 13:03:14,966 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 48 pushes/min to [IP]:58678
+2026-07-28 13:04:26,267 INFO [backend.app.api.routes.printers] [0067d2d8] Cover: resolved plate 1 before download (subtask=Sanja_flipper_modified_frame_clip-X2D)
+2026-07-28 13:04:36,435 INFO [uvicorn.access] [-] [IP]:64561 - "POST /api/v1/maintenance/items/2/perform HTTP/1.1" 200
+2026-07-28 13:04:44,436 INFO [backend.app.api.routes.printers] [4cd9ce1a] Cover: resolved plate 1 before download (subtask=Sanja_flipper_modified_frame_clip-X2D)
+2026-07-28 13:04:48,487 INFO [backend.app.api.routes.camera] [a482c559] Using chamber image protocol for P1S
+2026-07-28 13:04:48,487 INFO [backend.app.api.routes.camera] [a482c559] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-28 13:05:44,173 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 13:08:03,972 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: client connected from [IP]:50726
+2026-07-28 13:08:03,974 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: client connected from [IP]:50727
+2026-07-28 13:08:03,974 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: received from [IP]:50726: {'login': {'command': 'detect', 'sequence_id': '20000'}}
+2026-07-28 13:08:03,975 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: sent detect response to [IP]:50726 (serial=[SERIAL])
+2026-07-28 13:08:03,976 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: received from [IP]:50727: {'login': {'command': 'detect', 'sequence_id': '20001'}}
+2026-07-28 13:08:03,976 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: sent detect response to [IP]:50727 (serial=[SERIAL])
+2026-07-28 13:08:06,607 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] MQTT TLS connection from ('[IP]', 60996) - cipher=('TLS_AES_256_GCM_SHA384', 'TLSv1.3', 256), version=TLSv1.3
+2026-07-28 13:08:06,607 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] MQTT client connected: [IP]:60996
+2026-07-28 13:08:06,608 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] MQTT client authenticated successfully
+2026-07-28 13:08:06,611 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] MQTT client [IP]:60996 authenticated (negotiated keepalive=60s, idle disconnect disabled)
+2026-07-28 13:08:06,612 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] MQTT subscribe: device/[SERIAL]/report QoS=0
+2026-07-28 13:08:06,631 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT publish to device/[SERIAL]/request: {"pushing":{"command":"pushall","push_target":1,"sequence_id":"20001","version":1}}...
+2026-07-28 13:08:06,631 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT pushing command: pushall
+2026-07-28 13:08:06,632 INFO [backend.app.services.virtual_printer.mqtt_server] [-] Sending status report in response to pushall
+2026-07-28 13:08:06,634 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT publish to device/[SERIAL]/request: {"info":{"command":"get_version","sequence_id":"20002"}}...
+2026-07-28 13:08:06,634 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT info command: get_version
+2026-07-28 13:08:06,635 INFO [backend.app.services.virtual_printer.mqtt_server] [-] Sent version response (product_name=P1S)
+2026-07-28 13:08:06,636 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT publish to device/[SERIAL]/request: {"info":{"command":"get_version","sequence_id":"20003"}}...
+2026-07-28 13:08:06,636 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT info command: get_version
+2026-07-28 13:08:06,636 INFO [backend.app.services.virtual_printer.mqtt_server] [-] Sent version response (product_name=P1S)
+2026-07-28 13:08:06,956 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: client connected from [IP]:61007
+2026-07-28 13:08:06,962 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: received from [IP]:61007: {'login': {'command': 'detect', 'sequence_id': '20003'}}
+2026-07-28 13:08:06,963 INFO [backend.app.services.virtual_printer.bind_server] [-] Bind server: sent detect response to [IP]:61007 (serial=09400A391800002)
+2026-07-28 13:08:15,455 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 9 pushes/min to [IP]:60996
+2026-07-28 13:08:19,509 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 60738 bytes
+2026-07-28 13:08:52,228 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64888 bytes
+2026-07-28 13:08:52,235 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64888 bytes
+2026-07-28 13:08:52,847 INFO [backend.app.services.notification_service] [-] Sent notification via Discord
+2026-07-28 13:08:54,280 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 65764 bytes
+2026-07-28 13:08:58,880 INFO [backend.app.api.routes.cloud] [009a141a] get_filament_info called with 2 IDs: ['GFA00', 'GFG00']
+2026-07-28 13:08:59,260 INFO [uvicorn.access] [-] [IP]:64601 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-28 13:09:15,632 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:09:31,066 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 65336 bytes
+2026-07-28 13:10:05,822 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 61897 bytes
+2026-07-28 13:10:15,826 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:10:38,516 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 61507 bytes
+2026-07-28 13:10:44,191 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 13:11:13,241 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 60597 bytes
+2026-07-28 13:11:16,010 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:11:47,917 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 63131 bytes
+2026-07-28 13:12:16,189 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:12:20,578 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 65986 bytes
+2026-07-28 13:12:45,025 INFO [backend.app.main] [-] [Printer 1] Broadcasting AMS change via WebSocket
+2026-07-28 13:12:55,299 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64377 bytes
+2026-07-28 13:13:11,025 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT publish to device/[SERIAL]/request: {"pushing":{"command":"pushall","push_target":1,"sequence_id":"20004","version":1}}...
+2026-07-28 13:13:11,026 INFO [backend.app.services.virtual_printer.mqtt_server] [-] MQTT pushing command: pushall
+2026-07-28 13:13:11,026 INFO [backend.app.services.virtual_printer.mqtt_server] [-] Sending status report in response to pushall
+2026-07-28 13:13:16,353 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:13:29,997 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 63831 bytes
+2026-07-28 13:14:00,275 INFO [backend.app.api.routes.cloud] [09fe19de] get_filament_info called with 2 IDs: ['GFA00', 'GFG00']
+2026-07-28 13:14:00,447 INFO [uvicorn.access] [-] [IP]:64669 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-28 13:14:02,639 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 62771 bytes
+2026-07-28 13:14:03,838 INFO [backend.app.api.routes.camera] [e5cbfe38] Skipping force-shutdown for printer 1: 2 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-28 13:14:03,849 INFO [uvicorn.access] [-] [IP]:64673 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-28 13:14:04,582 INFO [backend.app.api.routes.camera] [a482c559] Camera viewer detached from printer-1 (subscribers=1)
+2026-07-28 13:14:08,606 INFO [backend.app.api.routes.support] [c17a1eff] Log level changed to DEBUG
+2026-07-28 13:14:08,608 INFO [uvicorn.access] [-] [IP]:64675 - "POST /api/v1/support/debug-logging HTTP/1.1" 200
+2026-07-28 13:14:08,746 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 13:14:08,746 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -20dBm
+2026-07-28 13:14:10,824 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 13:14:10,825 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -21dBm
+2026-07-28 13:14:16,523 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:14:16,964 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 13:14:19,025 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 13:14:21,073 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 13:14:22,613 INFO [backend.app.api.routes.support] [9666b72d] Log level changed to INFO
+2026-07-28 13:14:22,615 INFO [uvicorn.access] [-] [IP]:64674 - "POST /api/v1/support/debug-logging HTTP/1.1" 200
+2026-07-28 13:14:37,440 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64567 bytes
+2026-07-28 13:15:05,102 INFO [backend.app.api.routes.printers] [7953afbb] Cover: resolved plate 1 before download (subtask=Sanja_flipper_modified_frame_clip-X2D)
+2026-07-28 13:15:05,168 INFO [backend.app.api.routes.camera] [caa8a0cf] Using chamber image protocol for P1S
+2026-07-28 13:15:05,169 INFO [backend.app.api.routes.camera] [caa8a0cf] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-28 13:15:10,124 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 58520 bytes
+2026-07-28 13:15:16,692 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:15:44,211 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 13:15:44,803 INFO [backend.app.main] [-] [Printer 1] Broadcasting AMS change via WebSocket
+2026-07-28 13:15:44,839 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 62542 bytes
+2026-07-28 13:15:59,036 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 57761 bytes
+2026-07-28 13:16:16,878 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:16:17,399 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 63084 bytes
+2026-07-28 13:16:52,221 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64655 bytes
+2026-07-28 13:17:17,051 INFO [backend.app.services.virtual_printer.mqtt_server] [-] [Virtual P1S] 1Hz status push: 60 pushes/min to [IP]:60996
+2026-07-28 13:17:24,870 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64030 bytes
+2026-07-28 13:17:33,819 INFO [backend.app.api.routes.support] [ab7c6d87] Log level changed to DEBUG
+2026-07-28 13:17:33,820 INFO [backend.app.api.routes.bug_report] [ab7c6d87] Bug report: enabled debug logging
+2026-07-28 13:17:33,820 DEBUG [backend.app.services.bambu_mqtt] [ab7c6d87] [[SERIAL]] Requesting status update (pushall)
+2026-07-28 13:17:33,822 INFO [uvicorn.access] [-] [IP]:64711 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-28 13:17:34,143 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: RUNNING, gcode_file: Sanja_flipper_modified_frame_clip-X2D.3mf, subtask_name: Sanja_flipper_modified_frame_clip-X2D
+2026-07-28 13:17:34,144 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '11', 'tray_exist_bits': '1000f', 'tray_is_bbl_bits': '1000f', 'tray_tar': '128', 'tray_now': '128', 'tray_pre': '128', 'tray_read_done_bits': '1000f', 'tray_reading_bits': '0', 'version': 28, 'insert_flag': True, 'power_on_flag': False}
+2026-07-28 13:17:34,144 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 128
+2026-07-28 13:17:34,145 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 2 new units, 2 total
+2026-07-28 13:17:34,145 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x1001 -> extruder 0
+2026-07-28 13:17:34,145 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 128 info=0x2004 -> extruder 0
+2026-07-28 13:17:34,146 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0, '128': 0}
+2026-07-28 13:17:34,146 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 768 (main=3, sub=0)
+2026-07-28 13:17:34,146 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 13:17:34,147 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-28 13:17:34,147 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-28 13:17:34,147 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-28 13:17:34,147 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-28 13:17:34,148 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-28 13:17:34,148 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'enable', 'timelapse': 'enable', 'resolution': '', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-28 13:17:34,149 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Timelapse detected during print (from ipcam)
+2026-07-28 13:17:34,149 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -21dBm
+2026-07-28 13:17:34,161 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'on'}]
+2026-07-28 13:17:34,162 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: RUNNING -> RUNNING, file: Sanja_flipper_modified_frame_clip-X2D.3mf, subtask: Sanja_flipper_modified_frame_clip-X2D
+2026-07-28 13:17:34,828 DEBUG [backend.app.services.virtual_printer.ssdp_server] [-] Sent SSDP NOTIFY for Virtual P1S (Location=[IP], USN=[SERIAL], bind=[IP])
+2026-07-28 13:17:37,654 DEBUG [backend.app.services.virtual_printer.ssdp_server] [-] Sent SSDP NOTIFY for Virtual H2D (Location=[IP], USN=09400A391800002, bind=[IP])
+2026-07-28 13:17:38,206 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 13:17:40,268 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
