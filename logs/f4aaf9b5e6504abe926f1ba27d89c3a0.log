@@ -1,0 +1,200 @@
+2026-07-28 21:05:42,899 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66285 bytes
+2026-07-28 21:05:47,593 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 21:06:11,616 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 68038 bytes
+2026-07-28 21:06:38,140 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 61848 bytes
+2026-07-28 21:06:42,217 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 69394 bytes
+2026-07-28 21:07:08,814 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64989 bytes
+2026-07-28 21:07:37,527 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 69092 bytes
+2026-07-28 21:08:34,730 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64666 bytes
+2026-07-28 21:09:03,320 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 58463 bytes
+2026-07-28 21:09:33,940 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 68648 bytes
+2026-07-28 21:10:02,694 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 65664 bytes
+2026-07-28 21:10:31,232 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 64658 bytes
+2026-07-28 21:10:47,611 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 21:10:59,801 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 65708 bytes
+2026-07-28 21:11:26,391 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 65399 bytes
+2026-07-28 21:11:52,898 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66888 bytes
+2026-07-28 21:12:19,431 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66650 bytes
+2026-07-28 21:12:45,932 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66275 bytes
+2026-07-28 21:13:16,546 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66574 bytes
+2026-07-28 21:13:43,124 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66884 bytes
+2026-07-28 21:14:11,673 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 62942 bytes
+2026-07-28 21:14:38,179 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66399 bytes
+2026-07-28 21:14:46,237 INFO [backend.app.api.routes.cloud] [26fef77b] get_filament_info called with 1 IDs: ['GFA00']
+2026-07-28 21:14:46,596 INFO [uvicorn.access] [-] [IP]:56893 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-28 21:15:04,770 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66811 bytes
+2026-07-28 21:15:33,403 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 65649 bytes
+2026-07-28 21:15:47,629 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 21:15:59,990 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 61021 bytes
+2026-07-28 21:16:28,616 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 67545 bytes
+2026-07-28 21:16:55,144 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66082 bytes
+2026-07-28 21:17:21,704 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 68105 bytes
+2026-07-28 21:17:50,280 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 66766 bytes
+2026-07-28 21:18:16,902 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] FINISH PHOTO MOMENT (last-layer) — layer=672/672, timelapse_active=True
+2026-07-28 21:18:16,906 INFO [backend.app.main] [-] [FINISH-PHOTO-MOMENT] printer=1 trigger=last_layer timelapse_active=True
+2026-07-28 21:18:16,907 INFO [backend.app.main] [-] [FINISH-PHOTO-MOMENT] timelapse active for printer 1 — skipping pre-capture (last-frame extraction will run post-completion)
+2026-07-28 21:18:16,915 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 67879 bytes
+2026-07-28 21:19:10,110 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] PRINT COMPLETE detected - state: FINISH, status: completed, file: mops.3mf, subtask: mops, was_running: True, timelapse_during_print: True
+2026-07-28 21:19:10,112 INFO [backend.app.main] [-] [CALLBACK] on_print_complete started for printer 1
+2026-07-28 21:19:10,113 INFO [backend.app.main] [-] [TIMING] WebSocket send_print_complete: 0.001s elapsed
+2026-07-28 21:19:10,113 INFO [backend.app.main] [-] Print complete - filename: mops.3mf, subtask: mops, status: completed
+2026-07-28 21:19:10,114 INFO [backend.app.main] [-] Looking for archive in _active_prints, keys to try: [(1, 'mops.3mf'), (1, 'mops.gcode.3mf'), (1, 'mops'), (1, 'mops.3mf'), (1, 'mops.3mf')]...
+2026-07-28 21:19:10,114 INFO [backend.app.main] [-] Current _active_prints: [(1, 'mops.gcode.3mf'), (1, 'mops.3mf')]
+2026-07-28 21:19:10,114 INFO [backend.app.main] [-] Found archive 64 with key (1, 'mops.3mf')
+2026-07-28 21:19:12,002 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 21:19:12,070 INFO [backend.app.main] [-] Deleted /mops.3mf from printer [PRINTER] SD card
+2026-07-28 21:19:13,110 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 21:19:13,141 INFO [backend.app.main] [-] [TIMING] SD card cleanup: 3.030s elapsed
+2026-07-28 21:19:13,157 INFO [backend.app.main] [-] Updated queue item 58 status to completed
+2026-07-28 21:19:13,188 INFO [backend.app.main] [-] [TIMING] Queue item update: 3.077s elapsed
+2026-07-28 21:19:13,235 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] on_print_complete: printer=1, archive=64, session=yes, ams_mapping=[128]
+2026-07-28 21:19:13,236 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] PRINT COMPLETE printer 1: mapping=None, tray_now=255, last_loaded_tray=128
+2026-07-28 21:19:13,249 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: archive 64, plate_id=1, filament_usage=[{'slot_id': 1, 'used_g': 8.31, 'type': 'PLA', 'color': '#3D3D3C'}]
+2026-07-28 21:19:13,249 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: slot_to_tray=[128] (source: print_cmd)
+2026-07-28 21:19:13,249 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: slot_id=1 -> global_tray=128 -> AMS128-T0 (used_g=8.3, tray_now_override=None)
+2026-07-28 21:19:13,263 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] Spool 3 consumed 8.3g (3MF, print_cmd_map) on printer 1 AMS128-T0 (completed)
+2026-07-28 21:19:13,264 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] 3MF: archive 64 filament_color '#3D3D3C' -> '#000000' (from inventory spools)
+2026-07-28 21:19:13,264 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] AMS0-T0: not in print mapping/tray_change_log — skipping fallback for printer 1
+2026-07-28 21:19:13,264 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] AMS0-T1: not in print mapping/tray_change_log — skipping fallback for printer 1
+2026-07-28 21:19:13,265 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] AMS0-T2: not in print mapping/tray_change_log — skipping fallback for printer 1
+2026-07-28 21:19:13,265 INFO [backend.app.services.usage_tracker] [-] [UsageTracker] VT254: not in print mapping/tray_change_log — skipping fallback for printer 1
+2026-07-28 21:19:13,308 INFO [backend.app.main] [-] [TIMING] Usage tracker: 3.196s elapsed
+2026-07-28 21:19:13,313 INFO [backend.app.services.spoolman_tracking] [-] [SPOOLMAN] No tracking data for print (printer=1, archive=64)
+2026-07-28 21:19:13,314 INFO [backend.app.main] [-] [TIMING] Spoolman usage report: 3.203s elapsed
+2026-07-28 21:19:13,315 INFO [backend.app.main] [-] [TIMING] Filament usage tracking: 3.203s elapsed
+2026-07-28 21:19:13,315 INFO [backend.app.main] [-] [TIMING] Archive lookup: 3.203s elapsed
+2026-07-28 21:19:13,315 INFO [backend.app.main] [-] [ARCHIVE] Updating archive 64 status...
+2026-07-28 21:19:13,328 INFO [backend.app.main] [-] [ARCHIVE] Archive 64 status updated to completed, failure_reason=None
+2026-07-28 21:19:13,329 INFO [backend.app.main] [-] [ARCHIVE] WebSocket notification sent for archive 64
+2026-07-28 21:19:13,329 INFO [backend.app.main] [-] [TIMING] Archive status update: 3.218s elapsed
+2026-07-28 21:19:13,343 INFO [backend.app.main] [-] [PRINT_LOG] Log entry written for archive 64
+2026-07-28 21:19:13,343 INFO [backend.app.main] [-] [TIMING] Print log entry: 3.232s elapsed
+2026-07-28 21:19:13,344 INFO [backend.app.main] [-] [TIMING] Background tasks scheduled (energy, photo): 3.232s elapsed
+2026-07-28 21:19:13,344 INFO [backend.app.main] [-] [TIMING] All background tasks scheduled: 3.232s elapsed
+2026-07-28 21:19:13,344 INFO [backend.app.main] [-] [TIMELAPSE] Timelapse was active during print, scheduling auto-scan for archive 64
+2026-07-28 21:19:13,344 INFO [backend.app.main] [-] [TIMING] Timelapse scan scheduled: 3.233s elapsed
+2026-07-28 21:19:13,345 INFO [backend.app.main] [-] [CALLBACK] on_print_complete finished for printer 1, archive 64
+2026-07-28 21:19:13,345 INFO [backend.app.main] [-] [ENERGY-BG] Starting energy calculation for archive 64
+2026-07-28 21:19:13,347 INFO [backend.app.main] [-] [PHOTO-BG] Starting finish photo capture for archive 64
+2026-07-28 21:19:13,349 INFO [backend.app.main] [-] [AUTO-OFF-BG] Starting smart plug automation for printer 1
+2026-07-28 21:19:13,351 INFO [backend.app.main] [-] [MAINT-BG] Starting maintenance check for printer 1
+2026-07-28 21:19:13,354 INFO [backend.app.main] [-] [LAYER-TL] Stitching layer timelapse for printer 1
+2026-07-28 21:19:13,365 INFO [backend.app.services.smart_plug_manager] [-] Print completed successfully on printer 1, scheduling turn-off for plug 'Bento Box'
+2026-07-28 21:19:13,365 INFO [backend.app.services.smart_plug_manager] [-] Scheduling turn-off for plug 'Bento Box' in 600 seconds
+2026-07-28 21:19:13,366 INFO [backend.app.main] [-] [AUTO-OFF-BG] Completed
+2026-07-28 21:19:13,367 INFO [backend.app.main] [-] [ENERGY-BG] No start kWh recorded for archive 64
+2026-07-28 21:19:13,395 INFO [backend.app.main] [-] [TIMELAPSE] Using print-start baseline: 6 existing video files for archive 64
+2026-07-28 21:19:13,402 INFO [backend.app.main] [-] [TIMELAPSE] Attempt 1/4: waiting 5s before scanning for archive 64
+2026-07-28 21:19:13,423 INFO [backend.app.main] [-] [MAINT-BG] Completed (no items need attention)
+2026-07-28 21:19:18,426 INFO [backend.app.api.routes.cloud] [81e4408c] get_filament_info called with 1 IDs: ['GFA00']
+2026-07-28 21:19:18,462 INFO [uvicorn.access] [-] [IP]:64986 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-28 21:19:19,431 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 21:19:19,661 INFO [backend.app.main] [-] [TIMELAPSE] Attempt 1: Found 7 video files in /timelapse
+2026-07-28 21:19:19,661 INFO [backend.app.main] [-] [TIMELAPSE]   - video_2026-07-20_23-25-01.avi
+2026-07-28 21:19:19,661 INFO [backend.app.main] [-] [TIMELAPSE]   - video_2026-07-21_09-17-37.avi
+2026-07-28 21:19:19,661 INFO [backend.app.main] [-] [TIMELAPSE]   - video_2026-07-21_09-58-40.avi
+2026-07-28 21:19:19,662 INFO [backend.app.main] [-] [TIMELAPSE]   - video_2026-07-21_10-17-27.avi
+2026-07-28 21:19:19,662 INFO [backend.app.main] [-] [TIMELAPSE]   - video_2026-07-21_22-49-47.avi
+2026-07-28 21:19:19,662 INFO [backend.app.main] [-] [TIMELAPSE] Attempt 1: New file detected: video_2026-07-22_06-18-39.avi (downloading for archive 64)
+2026-07-28 21:19:20,513 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 21:19:21,928 INFO [uvicorn.access] [-] [IP]:64993 - "POST /api/v1/printers/1/clear-plate HTTP/1.1" 200
+2026-07-28 21:19:30,174 INFO [backend.app.api.routes.camera] [95e42fb5] Using chamber image protocol for P1S
+2026-07-28 21:19:30,174 INFO [backend.app.api.routes.camera] [95e42fb5] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:19:32,911 INFO [backend.app.api.routes.camera] [621afe2b] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:19:45,004 INFO [backend.app.api.routes.camera] [c960bd3b] Using chamber image protocol for P1S
+2026-07-28 21:19:45,005 INFO [backend.app.api.routes.camera] [c960bd3b] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:19:46,543 INFO [backend.app.api.routes.camera] [95e42fb5] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:19:58,629 INFO [backend.app.api.routes.camera] [7c7abdb9] Using chamber image protocol for P1S
+2026-07-28 21:19:58,630 INFO [backend.app.api.routes.camera] [7c7abdb9] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:19:59,884 INFO [backend.app.api.routes.camera] [c960bd3b] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:20:11,982 INFO [backend.app.api.routes.camera] [21fb1cb6] Using chamber image protocol for P1S
+2026-07-28 21:20:11,982 INFO [backend.app.api.routes.camera] [21fb1cb6] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:20:13,535 INFO [backend.app.main] [-] [PHOTO-BG] Timelapse for archive 64 didn't land within 60s; falling back to live camera
+2026-07-28 21:20:13,536 INFO [backend.app.main] [-] [PHOTO-BG] Using buffered frame from active stream
+2026-07-28 21:20:13,538 INFO [backend.app.main] [-] [PHOTO-BG] Saved buffered frame: finish_20260728_212013_30a21323.jpg
+2026-07-28 21:20:13,547 INFO [backend.app.main] [-] [PHOTO-BG] Saved: finish_20260728_212013_30a21323.jpg
+2026-07-28 21:20:13,547 INFO [backend.app.main] [-] [PHOTO-NOTIFY] Photo task returned: finish_20260728_212013_30a21323.jpg
+2026-07-28 21:20:13,548 INFO [backend.app.main] [-] [NOTIFY-BG] Starting notifications for printer 1, photo=finish_20260728_212013_30a21323.jpg
+2026-07-28 21:20:13,557 INFO [backend.app.main] [-] [NOTIFY-BG] Loaded finish photo bytes: 67732 bytes
+2026-07-28 21:20:13,558 INFO [backend.app.services.notification_service] [-] on_print_complete called for printer 1 ([PRINTER]), status=completed
+2026-07-28 21:20:13,561 INFO [backend.app.services.notification_service] [-] Found 1 providers for on_print_complete: ['Discord']
+2026-07-28 21:20:14,049 INFO [backend.app.services.notification_service] [-] Sent notification via Discord
+2026-07-28 21:20:14,053 INFO [backend.app.main] [-] [NOTIFY-BG] Completed
+2026-07-28 21:20:14,142 INFO [backend.app.api.routes.camera] [7c7abdb9] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:20:26,262 INFO [backend.app.api.routes.camera] [1ef0fa14] Using chamber image protocol for P1S
+2026-07-28 21:20:26,262 INFO [backend.app.api.routes.camera] [1ef0fa14] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:20:28,001 INFO [backend.app.api.routes.camera] [21fb1cb6] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:20:32,138 INFO [uvicorn.access] [-] [IP]:65006 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-28 21:20:32,208 INFO [backend.app.api.routes.camera] [70badd52] Using chamber image protocol for P1S
+2026-07-28 21:20:32,208 INFO [backend.app.api.routes.camera] [70badd52] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:20:40,091 INFO [backend.app.api.routes.camera] [d2588a3b] Using chamber image protocol for P1S
+2026-07-28 21:20:40,091 INFO [backend.app.api.routes.camera] [d2588a3b] Camera viewer attached to printer-1 (subscribers=4)
+2026-07-28 21:20:42,132 INFO [backend.app.api.routes.camera] [70badd52] Camera viewer detached from printer-1 (subscribers=3)
+2026-07-28 21:20:42,133 INFO [backend.app.api.routes.camera] [1ef0fa14] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:20:47,648 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 21:20:54,242 INFO [backend.app.api.routes.camera] [0c47d2d3] Using chamber image protocol for P1S
+2026-07-28 21:20:54,243 INFO [backend.app.api.routes.camera] [0c47d2d3] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:20:57,185 INFO [backend.app.api.routes.camera] [d2588a3b] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:21:09,279 INFO [backend.app.api.routes.camera] [434214e3] Using chamber image protocol for P1S
+2026-07-28 21:21:09,280 INFO [backend.app.api.routes.camera] [434214e3] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:21:10,132 INFO [backend.app.api.routes.camera] [0c47d2d3] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:21:22,234 INFO [backend.app.api.routes.camera] [6b704e0e] Using chamber image protocol for P1S
+2026-07-28 21:21:22,234 INFO [backend.app.api.routes.camera] [6b704e0e] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:21:23,361 INFO [backend.app.api.routes.camera] [434214e3] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:21:35,455 INFO [backend.app.api.routes.camera] [1a32e659] Using chamber image protocol for P1S
+2026-07-28 21:21:35,455 INFO [backend.app.api.routes.camera] [1a32e659] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:21:37,680 INFO [backend.app.api.routes.camera] [6b704e0e] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:21:49,784 INFO [backend.app.api.routes.camera] [e77c57cf] Using chamber image protocol for P1S
+2026-07-28 21:21:49,785 INFO [backend.app.api.routes.camera] [e77c57cf] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:21:51,925 INFO [backend.app.api.routes.camera] [1a32e659] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:21:54,032 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-28 21:21:54,958 INFO [uvicorn.access] [-] [IP]:65020 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-28 21:21:55,354 INFO [backend.app.api.routes.camera] [6d0846e8] Using chamber image protocol for P1S
+2026-07-28 21:21:55,355 INFO [backend.app.api.routes.camera] [6d0846e8] Camera viewer attached to printer-1 (subscribers=3)
+2026-07-28 21:21:55,496 INFO [uvicorn.access] [-] [IP]:65041 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-28 21:21:55,703 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=[USER])
+2026-07-28 21:21:55,772 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-28 21:21:55,774 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-28 21:21:55,775 INFO [backend.app.api.routes.cloud] [37e3b33e] get_filament_info called with 1 IDs: ['GFA00']
+2026-07-28 21:21:55,958 INFO [uvicorn.access] [-] [IP]:65038 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-28 21:21:56,645 INFO [backend.app.api.routes.camera] [0a5f420a] Using chamber image protocol for P1S
+2026-07-28 21:21:56,646 INFO [backend.app.api.routes.camera] [0a5f420a] Camera viewer attached to printer-1 (subscribers=4)
+2026-07-28 21:21:57,454 INFO [backend.app.api.routes.camera] [3e54871e] Skipping force-shutdown for printer 1: 4 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-28 21:21:57,455 INFO [uvicorn.access] [-] [IP]:65041 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-28 21:22:05,784 INFO [backend.app.services.bambu_mqtt] [a82900d4] [[SERIAL]] Requesting K-profiles for nozzle_diameter=0.4 (attempt 1/3)
+2026-07-28 21:22:06,040 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] K-profile response: nozzle=0.4, seq_id=27, 8 profiles, expected=0.4
+2026-07-28 21:22:06,040 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Got 8 K-profiles for nozzle=0.4
+2026-07-28 21:22:06,041 INFO [backend.app.services.bambu_mqtt] [a82900d4] [[SERIAL]] Got 8 K-profiles for nozzle=0.4 on attempt 1
+2026-07-28 21:22:06,506 INFO [backend.app.api.routes.camera] [e77c57cf] Camera viewer detached from printer-1 (subscribers=3)
+2026-07-28 21:22:06,511 INFO [backend.app.api.routes.camera] [6d0846e8] Camera viewer detached from printer-1 (subscribers=2)
+2026-07-28 21:22:06,513 INFO [backend.app.api.routes.camera] [1b281758] Camera viewer detached from printer-1 (subscribers=1)
+2026-07-28 21:23:13,290 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 21:23:13,708 INFO [uvicorn.access] [-] [IP]:65145 - "POST /api/v1/archives/62/timelapse/scan HTTP/1.1" 200
+2026-07-28 21:23:30,084 INFO [backend.app.services.bambu_ftp] [-] FTP connected successfully to [IP] (model=P1S, prot_c=False)
+2026-07-28 21:23:30,422 INFO [uvicorn.access] [-] [IP]:65147 - "POST /api/v1/archives/64/timelapse/scan HTTP/1.1" 200
+2026-07-28 21:23:57,253 INFO [backend.app.main] [-] [TIMELAPSE] Successfully attached timelapse to archive 64
+2026-07-28 21:24:36,231 INFO [uvicorn.access] [-] [IP]:65210 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-28 21:25:47,667 INFO [backend.app.main] [-] Recorded 2 AMS sensor history entries
+2026-07-28 21:26:11,142 INFO [backend.app.services.archive] [-] Converted timelapse to MP4 for archive 64 (video_2026-07-22_06-18-39.avi → video_2026-07-22_06-18-39.mp4)
+2026-07-28 21:26:45,718 INFO [backend.app.api.routes.support] [dca43cc9] Log level changed to DEBUG
+2026-07-28 21:26:45,720 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -23dBm
+2026-07-28 21:26:45,720 INFO [backend.app.api.routes.bug_report] [dca43cc9] Bug report: enabled debug logging
+2026-07-28 21:26:45,721 DEBUG [backend.app.services.bambu_mqtt] [dca43cc9] [[SERIAL]] Requesting status update (pushall)
+2026-07-28 21:26:45,724 INFO [uvicorn.access] [-] [IP]:65279 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-28 21:26:46,817 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: , subtask_name: mops
+2026-07-28 21:26:46,819 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '11', 'tray_exist_bits': '1000f', 'tray_is_bbl_bits': '1000f', 'tray_tar': '255', 'tray_now': '255', 'tray_pre': '255', 'tray_read_done_bits': '1000f', 'tray_reading_bits': '0', 'version': 67, 'insert_flag': True, 'power_on_flag': False}
+2026-07-28 21:26:46,820 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 255
+2026-07-28 21:26:46,820 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 2 new units, 2 total
+2026-07-28 21:26:46,820 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x1001 -> extruder 0
+2026-07-28 21:26:46,821 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 128 info=0x2004 -> extruder 0
+2026-07-28 21:26:46,821 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0, '128': 0}
+2026-07-28 21:26:46,821 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 0 (main=0, sub=0)
+2026-07-28 21:26:46,821 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-28 21:26:46,822 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-28 21:26:46,822 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-28 21:26:46,822 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-28 21:26:46,823 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-28 21:26:46,824 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-28 21:26:46,824 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'enable', 'timelapse': 'disable', 'resolution': '', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-28 21:26:46,824 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'on'}]
+2026-07-28 21:26:46,825 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: , subtask: mops
