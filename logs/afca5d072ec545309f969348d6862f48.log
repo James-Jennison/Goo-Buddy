@@ -1,0 +1,183 @@
+2026-07-30 11:42:43,395 INFO [root] [-] Logging to file: /app/logs/bambuddy.log
+2026-07-30 11:42:43,396 INFO [root] [-] Bambuddy starting - debug=False, log_level=INFO
+2026-07-30 11:42:46,110 INFO [backend.app.core.encryption] [-] Generated new MFA encryption key and saved to /app/data/.mfa_encryption_key
+2026-07-30 11:42:46,280 INFO [backend.app.core.database] [-] Created default group: Administrators
+2026-07-30 11:42:46,280 INFO [backend.app.core.database] [-] Created default group: Operators
+2026-07-30 11:42:46,281 INFO [backend.app.core.database] [-] Created default group: Viewers
+2026-07-30 11:42:46,341 INFO [backend.app.core.database] [-] Seeded 91 default spool catalog entries
+2026-07-30 11:42:46,525 INFO [backend.app.core.database] [-] Seeded 638 default color catalog entries
+2026-07-30 11:42:46,564 INFO [backend.app.services.mqtt_relay] [-] MQTT relay disabled
+2026-07-30 11:42:46,567 INFO [backend.app.services.smart_plug_manager] [-] Smart plug scheduler started
+2026-07-30 11:42:46,568 INFO [backend.app.services.smart_plug_manager] [-] Smart plug energy snapshot loop started
+2026-07-30 11:42:46,571 INFO [backend.app.services.print_scheduler] [-] Print scheduler started
+2026-07-30 11:42:46,574 INFO [backend.app.services.notification_service] [-] Notification digest scheduler started
+2026-07-30 11:42:46,574 INFO [backend.app.services.github_backup] [-] Starting GitHub backup scheduler
+2026-07-30 11:42:46,574 INFO [backend.app.services.local_backup] [-] Starting local backup scheduler
+2026-07-30 11:42:46,578 INFO [backend.app.services.obico_detection] [-] Starting Obico detection service
+2026-07-30 11:42:46,578 INFO [backend.app.services.library_trash] [-] Starting library trash sweeper
+2026-07-30 11:42:46,578 INFO [backend.app.services.archive_purge] [-] Starting archive auto-purge sweeper
+2026-07-30 11:42:46,578 INFO [backend.app.main] [-] AMS history recording started
+2026-07-30 11:42:46,578 INFO [backend.app.main] [-] Printer sensor history recording started
+2026-07-30 11:42:46,578 INFO [backend.app.main] [-] Printer runtime tracking started
+2026-07-30 11:42:46,578 INFO [backend.app.main] [-] SpoolBuddy watchdog started
+2026-07-30 11:42:46,578 INFO [backend.app.main] [-] Camera stream cleanup started
+2026-07-30 11:42:46,579 INFO [backend.app.main] [-] Expected prints cleanup started
+2026-07-30 11:42:46,579 INFO [backend.app.main] [-] Auth periodic cleanup started
+2026-07-30 11:42:46,579 INFO [backend.app.services.loop_watchdog] [-] Event-loop stall watchdog started — dumps all thread stacks to stderr if the loop stalls for more than 30s
+2026-07-30 11:42:46,587 INFO [root] [-] Virtual printer manager synced from database
+2026-07-30 11:42:50,619 INFO [uvicorn.access] [-] [IP]:60305 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-30 11:42:50,826 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-30 11:42:50,827 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-30 11:42:50,828 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 0 printers
+2026-07-30 11:42:50,834 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-30 11:42:51,062 INFO [uvicorn.access] [-] [IP]:59805 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-30 11:48:21,631 INFO [backend.app.api.routes.auth] [66acd6b5] Setup completed: auth_enabled=False, admin_created=False
+2026-07-30 11:48:21,633 INFO [uvicorn.access] [-] [IP]:60719 - "POST /api/v1/auth/setup HTTP/1.1" 200
+2026-07-30 11:48:21,872 INFO [uvicorn.access] [-] [IP]:59511 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-30 11:48:21,916 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-30 11:48:21,917 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-30 11:48:21,917 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 0 printers
+2026-07-30 11:48:25,626 INFO [backend.app.services.camera] [d0c5a3dc] Found ffmpeg at: /usr/bin/ffmpeg
+2026-07-30 11:48:26,321 INFO [backend.app.services.mqtt_relay] [278cf0d4] MQTT relay disabled
+2026-07-30 11:48:26,324 INFO [uvicorn.access] [-] [IP]:60719 - "PUT /api/v1/settings/ HTTP/1.1" 200
+2026-07-30 11:48:29,481 INFO [uvicorn.access] [-] [IP]:60106 - "PUT /api/v1/settings/ HTTP/1.1" 200
+2026-07-30 11:48:32,444 INFO [uvicorn.access] [-] [IP]:58207 - "PUT /api/v1/settings/ HTTP/1.1" 200
+2026-07-30 11:48:33,355 INFO [uvicorn.access] [-] [IP]:58207 - "PUT /api/v1/settings/ HTTP/1.1" 200
+2026-07-30 11:48:34,767 INFO [uvicorn.access] [-] [IP]:58207 - "PUT /api/v1/settings/ HTTP/1.1" 200
+2026-07-30 11:48:38,095 INFO [uvicorn.access] [-] [IP]:57040 - "PUT /api/v1/settings/ HTTP/1.1" 200
+2026-07-30 11:48:39,167 INFO [uvicorn.access] [-] [IP]:57040 - "PUT /api/v1/settings/ HTTP/1.1" 200
+2026-07-30 11:48:54,711 INFO [backend.app.services.discovery] [4dfd507e] Starting subnet scan of [IP]/24 (254 hosts)
+2026-07-30 11:48:54,762 INFO [uvicorn.access] [-] [IP]:58207 - "POST /api/v1/discovery/scan HTTP/1.1" 200
+2026-07-30 11:49:00,804 INFO [backend.app.services.discovery] [4dfd507e] Subnet scan complete. Found 0 printers.
+2026-07-30 12:02:52,748 INFO [uvicorn.access] [-] [IP]:56119 - "POST /api/v1/discovery/stop HTTP/1.1" 200
+2026-07-30 12:02:52,760 INFO [uvicorn.access] [-] [IP]:58835 - "POST /api/v1/discovery/scan/stop HTTP/1.1" 200
+2026-07-30 12:05:01,959 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-30 17:09:53,669 INFO [uvicorn.access] [-] [IP]:59327 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-30 17:09:53,852 INFO [uvicorn.access] [-] [IP]:59327 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-30 17:09:53,879 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-30 17:09:53,879 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-30 17:09:53,879 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 0 printers
+2026-07-30 17:09:57,686 INFO [uvicorn.access] [-] [IP]:59327 - "POST /api/v1/discovery/scan/stop HTTP/1.1" 200
+2026-07-30 17:09:57,687 INFO [uvicorn.access] [-] [IP]:52435 - "POST /api/v1/discovery/stop HTTP/1.1" 200
+2026-07-30 17:10:13,399 INFO [uvicorn.access] [-] [IP]:61344 - "POST /api/v1/discovery/stop HTTP/1.1" 200
+2026-07-30 17:10:13,407 INFO [uvicorn.access] [-] [IP]:59327 - "POST /api/v1/discovery/scan/stop HTTP/1.1" 200
+2026-07-30 17:10:23,561 INFO [backend.app.services.discovery] [a3fcb13f] Starting subnet scan of [IP]/24 (254 hosts)
+2026-07-30 17:10:23,576 INFO [uvicorn.access] [-] [IP]:60723 - "POST /api/v1/discovery/scan HTTP/1.1" 200
+2026-07-30 17:10:29,634 INFO [backend.app.services.discovery] [a3fcb13f] Subnet scan complete. Found 0 printers.
+2026-07-30 17:14:36,458 WARNING [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT disconnected: rc=Unspecified error, flags=DisconnectFlags(is_disconnect_packet_from_server=False)
+2026-07-30 17:14:36,459 WARNING [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Disconnected shortly after request topic subscription. Disabling request topic for this printer.
+2026-07-30 17:14:38,319 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] State is FAILED but completion NOT triggered: prev=None, was_running=False, already_triggered=False, has_callback=False
+2026-07-30 17:14:38,319 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Firmware version: 01.08.01.00
+2026-07-30 17:14:38,320 WARNING [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS unit 0: serial number not available in version info
+2026-07-30 17:14:38,320 WARNING [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS unit 0: firmware version not available in version info
+2026-07-30 17:14:38,441 INFO [uvicorn.access] [-] [IP]:54662 - "POST /api/v1/printers/diagnostic HTTP/1.1" 200
+2026-07-30 17:14:39,305 WARNING [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT disconnected: rc=Normal disconnection, flags=DisconnectFlags(is_disconnect_packet_from_server=False)
+2026-07-30 17:14:40,162 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Firmware version: 01.08.01.00
+2026-07-30 17:14:40,356 INFO [uvicorn.access] [-] [IP]:54662 - "POST /api/v1/printers/ HTTP/1.1" 200
+2026-07-30 17:14:40,371 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] State is FAILED but completion NOT triggered: prev=unknown, was_running=False, already_triggered=False, has_callback=True
+2026-07-30 17:14:40,372 INFO [backend.app.main] [-] [Printer 1] Broadcasting AMS change via WebSocket
+2026-07-30 17:14:40,490 INFO [uvicorn.access] [-] [IP]:49684 - "POST /api/v1/discovery/stop HTTP/1.1" 200
+2026-07-30 17:14:40,490 INFO [uvicorn.access] [-] [IP]:57877 - "POST /api/v1/discovery/scan/stop HTTP/1.1" 200
+2026-07-30 17:14:40,518 INFO [backend.app.services.spool_tag_matcher] [-] Color resolve: tray_id_name='A00-W1' rgba='FFFFFFFF' → resolved='Jade White'
+2026-07-30 17:14:40,538 INFO [backend.app.services.spool_tag_matcher] [-] Auto-created spool 1 from AMS tray data: PLA Basic Jade White (tag=9D13813500000100 uuid=4CB18C9D445249D78C6E87F9063FE267)
+2026-07-30 17:14:40,541 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Publishing extrusion_cali_sel: AMS 0, tray 0, cali_idx=52
+2026-07-30 17:14:40,542 INFO [backend.app.services.spool_tag_matcher] [-] No stored K-profile for spool 1 on printer 1 AMS0-T0 — preserved live cali_idx=52
+2026-07-30 17:14:40,542 INFO [backend.app.services.spool_tag_matcher] [-] Auto-assigned spool 1 to printer 1 AMS0-T0 (RFID match)
+2026-07-30 17:14:40,553 INFO [backend.app.main] [-] RFID auto-assigned spool 1 to printer 1 AMS0-T0
+2026-07-30 17:14:40,604 INFO [backend.app.api.routes.cloud] [2e432c92] get_filament_info called with 1 IDs: ['GFA00']
+2026-07-30 17:14:40,621 INFO [uvicorn.access] [-] [IP]:57877 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-30 17:14:40,622 INFO [backend.app.services.spool_tag_matcher] [-] Color resolve: tray_id_name='A00-G2' rgba='3F8E43FF' → resolved='Mistletoe Green'
+2026-07-30 17:14:40,642 INFO [backend.app.services.spool_tag_matcher] [-] Auto-created spool 2 from AMS tray data: PLA Basic Mistletoe Green (tag=5703FA7B00000100 uuid=CAA534A9E15945FAAF347C42A1D18B31)
+2026-07-30 17:14:40,648 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Publishing extrusion_cali_sel: AMS 0, tray 1, cali_idx=52
+2026-07-30 17:14:40,649 INFO [backend.app.services.spool_tag_matcher] [-] No stored K-profile for spool 2 on printer 1 AMS0-T1 — preserved live cali_idx=52
+2026-07-30 17:14:40,649 INFO [backend.app.services.spool_tag_matcher] [-] Auto-assigned spool 2 to printer 1 AMS0-T1 (RFID match)
+2026-07-30 17:14:40,657 INFO [backend.app.main] [-] RFID auto-assigned spool 2 to printer 1 AMS0-T1
+2026-07-30 17:14:40,665 INFO [backend.app.services.spool_tag_matcher] [-] Color resolve: tray_id_name='A00-K0' rgba='000000FF' → resolved='Black'
+2026-07-30 17:14:40,667 INFO [backend.app.services.spool_tag_matcher] [-] Auto-created spool 3 from AMS tray data: PLA Basic Black (tag=1D3B7D3000000100 uuid=8A2335C6FFBA438B90FBB22CD981A87A)
+2026-07-30 17:14:40,669 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Publishing extrusion_cali_sel: AMS 0, tray 2, cali_idx=52
+2026-07-30 17:14:40,670 INFO [backend.app.services.spool_tag_matcher] [-] No stored K-profile for spool 3 on printer 1 AMS0-T2 — preserved live cali_idx=52
+2026-07-30 17:14:40,670 INFO [backend.app.services.spool_tag_matcher] [-] Auto-assigned spool 3 to printer 1 AMS0-T2 (RFID match)
+2026-07-30 17:14:40,673 INFO [backend.app.main] [-] RFID auto-assigned spool 3 to printer 1 AMS0-T2
+2026-07-30 17:14:40,684 INFO [backend.app.services.spool_tag_matcher] [-] Color resolve: tray_id_name='A00-Y2' rgba='FEC600FF' → resolved='Sunflower Yellow'
+2026-07-30 17:14:40,686 INFO [backend.app.services.spool_tag_matcher] [-] Auto-created spool 4 from AMS tray data: PLA Basic Sunflower Yellow (tag=86FCAAE500000100 uuid=B9B8FF493F4840BE815DC3FD36358791)
+2026-07-30 17:14:40,688 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Publishing extrusion_cali_sel: AMS 0, tray 3, cali_idx=52
+2026-07-30 17:14:40,688 INFO [backend.app.services.spool_tag_matcher] [-] No stored K-profile for spool 4 on printer 1 AMS0-T3 — preserved live cali_idx=52
+2026-07-30 17:14:40,689 INFO [backend.app.services.spool_tag_matcher] [-] Auto-assigned spool 4 to printer 1 AMS0-T3 (RFID match)
+2026-07-30 17:14:40,691 INFO [backend.app.main] [-] RFID auto-assigned spool 4 to printer 1 AMS0-T3
+2026-07-30 17:14:43,360 INFO [backend.app.services.firmware_check] [4ea795e8] Got Bambu Lab build ID: F3enFCt-AMXFJT6zrnob0
+2026-07-30 17:14:47,998 INFO [backend.app.services.bambu_mqtt] [7906ab0b] [[SERIAL]] Requesting K-profiles for nozzle_diameter=0.4 (attempt 1/3)
+2026-07-30 17:14:48,006 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] K-profile response: nozzle=0.4, seq_id=3, 0 profiles, expected=0.4
+2026-07-30 17:14:48,007 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Got 0 K-profiles for nozzle=0.4
+2026-07-30 17:14:48,007 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Probing developer mode via ams_filament_setting (seq=4)
+2026-07-30 17:14:48,007 INFO [backend.app.services.bambu_mqtt] [7906ab0b] [[SERIAL]] Got 0 K-profiles for nozzle=0.4 on attempt 1
+2026-07-30 17:14:48,018 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Developer mode probe: ENABLED (result='')
+2026-07-30 17:14:51,453 INFO [backend.app.services.bambu_mqtt] [5431dfb4] [[SERIAL]] Requesting K-profiles for nozzle_diameter=0.4 (attempt 1/3)
+2026-07-30 17:14:51,467 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] K-profile response: nozzle=0.4, seq_id=5, 0 profiles, expected=0.4
+2026-07-30 17:14:51,467 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Got 0 K-profiles for nozzle=0.4
+2026-07-30 17:14:51,468 INFO [backend.app.services.bambu_mqtt] [5431dfb4] [[SERIAL]] Got 0 K-profiles for nozzle=0.4 on attempt 1
+2026-07-30 17:15:56,195 INFO [uvicorn.access] [-] [IP]:53718 - "PATCH /api/v1/maintenance/items/1 HTTP/1.1" 200
+2026-07-30 17:16:31,218 INFO [backend.app.api.routes.camera] [b5c64103] Using chamber image protocol for A1
+2026-07-30 17:16:31,219 INFO [backend.app.api.routes.camera] [b5c64103] Camera viewer attached to printer-1 (subscribers=1)
+2026-07-30 17:16:31,219 INFO [backend.app.api.routes.camera] [b5c64103] Starting chamber image stream for [IP] (stream_id=1-fanout, model=A1)
+2026-07-30 17:16:31,276 INFO [uvicorn.access] [-] [IP]:60608 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-30 17:16:31,302 INFO [backend.app.api.routes.camera] [100d9a8e] Using chamber image protocol for A1
+2026-07-30 17:16:31,302 INFO [backend.app.api.routes.camera] [100d9a8e] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-30 17:16:31,998 INFO [backend.app.services.camera] [b5c64103] Chamber image: connected to [IP]:6000
+2026-07-30 17:16:36,402 INFO [backend.app.api.routes.camera] [b5c64103] Camera viewer detached from printer-1 (subscribers=1)
+2026-07-30 17:16:40,685 INFO [backend.app.api.routes.camera] [100d9a8e] Camera viewer detached from printer-1 (subscribers=0)
+2026-07-30 17:16:40,703 INFO [backend.app.api.routes.camera] [b5c64103] Chamber image stream cancelled (stream_id=1-fanout)
+2026-07-30 17:16:40,707 INFO [backend.app.api.routes.camera] [b5c64103] Chamber image stream stopped for [IP] (stream_id=1-fanout)
+2026-07-30 17:16:40,707 INFO [backend.app.api.routes.camera] [3da61372] Shut down camera fan-out broadcaster for printer 1
+2026-07-30 17:16:40,708 INFO [backend.app.api.routes.camera] [3da61372] Stopped 0 camera stream(s) for printer 1
+2026-07-30 17:16:40,708 INFO [uvicorn.access] [-] [IP]:56426 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-30 17:16:40,868 INFO [backend.app.services.camera] [f2e44cad] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1)
+2026-07-30 17:16:43,534 INFO [backend.app.services.camera] [f2e44cad] Saved camera frame to: /tmp/tmp4ojq5hle.jpg
+2026-07-30 17:16:45,175 INFO [backend.app.api.routes.camera] [365ea425] Using chamber image protocol for A1
+2026-07-30 17:16:45,175 INFO [backend.app.api.routes.camera] [365ea425] Camera viewer attached to printer-1 (subscribers=1)
+2026-07-30 17:16:45,176 INFO [backend.app.api.routes.camera] [365ea425] Starting chamber image stream for [IP] (stream_id=1-fanout, model=A1)
+2026-07-30 17:16:45,955 INFO [backend.app.services.camera] [365ea425] Chamber image: connected to [IP]:6000
+2026-07-30 17:16:51,691 INFO [backend.app.api.routes.camera] [365ea425] Camera viewer detached from printer-1 (subscribers=0)
+2026-07-30 17:16:51,747 INFO [backend.app.api.routes.camera] [365ea425] Chamber image stream cancelled (stream_id=1-fanout)
+2026-07-30 17:16:51,748 INFO [backend.app.api.routes.camera] [365ea425] Chamber image stream stopped for [IP] (stream_id=1-fanout)
+2026-07-30 17:16:51,749 INFO [backend.app.api.routes.camera] [832ea23b] Shut down camera fan-out broadcaster for printer 1
+2026-07-30 17:16:51,749 INFO [backend.app.api.routes.camera] [832ea23b] Stopped 0 camera stream(s) for printer 1
+2026-07-30 17:16:51,751 INFO [uvicorn.access] [-] [IP]:51633 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-30 17:17:55,073 INFO [uvicorn.access] [-] [IP]:64939 - "POST /api/v1/cloud/login HTTP/1.1" 200
+2026-07-30 17:17:57,399 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-30 17:18:09,309 INFO [uvicorn.access] [-] [IP]:64486 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:18:22,268 INFO [uvicorn.access] [-] [IP]:51043 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:18:35,859 INFO [uvicorn.access] [-] [IP]:49581 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:18:45,470 INFO [uvicorn.access] [-] [IP]:63621 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:19:24,941 INFO [uvicorn.access] [-] [IP]:56790 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:20:25,082 INFO [backend.app.services.virtual_printer.certificate] [41b8f9f2] Generating new Virtual Printer CA certificate...
+2026-07-30 17:20:25,203 INFO [backend.app.services.virtual_printer.certificate] [41b8f9f2] Saved new CA certificate
+2026-07-30 17:21:04,677 INFO [uvicorn.access] [-] [IP]:58405 - "POST /api/v1/cloud/login HTTP/1.1" 200
+2026-07-30 17:21:23,832 INFO [uvicorn.access] [-] [IP]:64269 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:21:28,183 INFO [uvicorn.access] [-] [IP]:52771 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:22:04,041 INFO [backend.app.api.routes.support] [b709ac9b] Log level changed to DEBUG
+2026-07-30 17:22:04,041 INFO [backend.app.api.routes.bug_report] [b709ac9b] Bug report: enabled debug logging
+2026-07-30 17:22:04,042 DEBUG [backend.app.services.bambu_mqtt] [b709ac9b] [[SERIAL]] Requesting status update (pushall)
+2026-07-30 17:22:04,043 INFO [uvicorn.access] [-] [IP]:60841 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-30 17:22:04,079 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'buildplate_marker_detector': True}
+2026-07-30 17:22:04,080 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['buildplate_marker_detector']
+2026-07-30 17:22:04,080 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FAILED, gcode_file: , subtask_name: SETI Tokens 0.08mm layer V1.1 
+2026-07-30 17:22:04,080 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'tray_exist_bits': 'f', 'tray_is_bbl_bits': 'f', 'tray_tar': '0', 'tray_now': '0', 'tray_pre': '0', 'tray_read_done_bits': 'f', 'tray_reading_bits': '0', 'version': 590, 'insert_flag': True, 'power_on_flag': True}
+2026-07-30 17:22:04,081 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 0
+2026-07-30 17:22:04,082 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-30 17:22:04,082 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x1002 -> extruder 0
+2026-07-30 17:22:04,083 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-30 17:22:04,083 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 0 (main=0, sub=0)
+2026-07-30 17:22:04,083 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-30 17:22:04,084 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-30 17:22:04,084 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-30 17:22:04,085 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-30 17:22:04,085 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-30 17:22:04,086 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-30 17:22:04,087 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'disable', 'timelapse': 'disable', 'resolution': '1080p', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-30 17:22:04,087 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -73dBm
+2026-07-30 17:22:04,087 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'off'}]
+2026-07-30 17:22:04,088 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FAILED -> FAILED, file: , subtask: SETI Tokens 0.08mm layer V1.1 
+2026-07-30 17:22:08,139 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-30 17:22:10,137 DEBUG [backend.app.services.bambu_cloud] [f9513751] TOTP verify response: status=403, body={"error":"CSRF error: missing_cookie","reason":"missing_cookie"}
+2026-07-30 17:22:10,139 INFO [uvicorn.access] [-] [IP]:56331 - "POST /api/v1/cloud/verify HTTP/1.1" 200
+2026-07-30 17:22:12,219 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
