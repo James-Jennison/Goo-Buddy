@@ -1,0 +1,200 @@
+2026-07-31 12:06:09,667 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=[USER])
+2026-07-31 12:06:09,668 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-31 12:06:09,668 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-31 12:06:10,097 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:06:14,886 INFO [uvicorn.access] [-] [IP]:49486 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-31 12:06:15,759 INFO [backend.app.api.routes.camera] [8ec8ad89] Using chamber image protocol for P1S
+2026-07-31 12:06:15,759 INFO [backend.app.api.routes.camera] [8ec8ad89] Camera viewer attached to printer-1 (subscribers=1)
+2026-07-31 12:06:15,759 INFO [backend.app.api.routes.camera] [8ec8ad89] Starting chamber image stream for [IP] (stream_id=1-fanout-158719fe, model=P1S)
+2026-07-31 12:06:16,507 INFO [backend.app.services.camera] [8ec8ad89] Chamber image: connected to [IP]:6000
+2026-07-31 12:06:16,776 INFO [backend.app.api.routes.camera] [8ec8ad89] Camera viewer detached from printer-1 (subscribers=0)
+2026-07-31 12:06:16,809 INFO [backend.app.api.routes.camera] [bcf0d9e4] Using chamber image protocol for P1S
+2026-07-31 12:06:16,809 INFO [backend.app.api.routes.camera] [bcf0d9e4] Camera viewer attached to printer-1 (subscribers=1)
+2026-07-31 12:06:20,754 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 93284 bytes
+2026-07-31 12:06:25,374 INFO [uvicorn.access] [-] [IP]:45190 - "POST /api/v1/library/files?folder_id=2&generate_stl_thumbnails=false HTTP/1.1" 200
+2026-07-31 12:06:25,428 INFO [uvicorn.access] [8e6a0149] [IP]:45190 - "POST /api/v1/library/files/122/slice HTTP/1.1" 202
+2026-07-31 12:06:28,458 INFO [uvicorn.access] [8e6a0149] [IP]:45190 - "POST /api/v1/library/files/122/slice HTTP/1.1" 202
+2026-07-31 12:06:31,490 INFO [backend.app.api.routes.print_queue] [c72112d5] Added library file 123 to queue for 1
+2026-07-31 12:06:31,491 INFO [uvicorn.access] [8e6a0149] [IP]:45190 - "POST /api/v1/queue/ HTTP/1.1" 200
+2026-07-31 12:06:32,007 INFO [uvicorn.access] [-] [IP]:47186 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-31 12:06:32,069 INFO [uvicorn.access] [-] [IP]:47212 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-31 12:06:32,076 INFO [backend.app.api.routes.camera] [17c5e952] Using chamber image protocol for P1S
+2026-07-31 12:06:32,077 INFO [backend.app.api.routes.camera] [17c5e952] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-31 12:06:32,092 INFO [backend.app.api.routes.camera] [17c5e952] Camera viewer detached from printer-1 (subscribers=1)
+2026-07-31 12:06:32,104 INFO [backend.app.api.routes.camera] [9e4837ae] Using chamber image protocol for P1S
+2026-07-31 12:06:32,104 INFO [backend.app.api.routes.camera] [9e4837ae] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-31 12:06:32,176 INFO [backend.app.api.routes.printers] [7144d1c1] Cover: resolved plate 1 before download (subtask=Postcard_Ear-Ring_Display)
+2026-07-31 12:06:32,193 INFO [backend.app.api.routes.cloud] [34b3ed56] get_filament_info called with 5 IDs: ['GFG02', 'GFB00', 'GFA01', 'GFA00', 'GFU99']
+2026-07-31 12:06:32,302 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=[USER])
+2026-07-31 12:06:32,303 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-31 12:06:32,303 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 1 printers
+2026-07-31 12:06:33,347 INFO [uvicorn.access] [-] [IP]:47368 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-31 12:06:33,916 INFO [backend.app.api.routes.camera] [9e4837ae] Camera viewer detached from printer-1 (subscribers=1)
+2026-07-31 12:06:33,931 INFO [backend.app.api.routes.camera] [eba6bd6d] Skipping force-shutdown for printer 1: 1 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-31 12:06:33,931 INFO [uvicorn.access] [-] [IP]:47400 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-31 12:06:39,083 INFO [backend.app.services.print_scheduler] [-] Queue check: found 2 pending items: [(47, 1, None, 121), (48, 1, None, 123)]
+2026-07-31 12:06:39,084 INFO [backend.app.services.print_scheduler] [-] Queue skip summary: {'manual_start': 2}
+2026-07-31 12:06:39,084 INFO [backend.app.services.print_scheduler] [-] Queue: printer 1 not available — connected=True, state=RUNNING, awaiting_plate_clear=False
+2026-07-31 12:06:49,670 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-31 12:07:05,921 INFO [backend.app.api.routes.print_queue] [ca51bfbd] Cancelled queue item 48
+2026-07-31 12:07:05,922 INFO [uvicorn.access] [-] [IP]:54846 - "POST /api/v1/queue/48/cancel HTTP/1.1" 200
+2026-07-31 12:07:08,012 INFO [backend.app.api.routes.print_queue] [4d53024a] Cancelled queue item 47
+2026-07-31 12:07:08,013 INFO [uvicorn.access] [-] [IP]:52080 - "POST /api/v1/queue/47/cancel HTTP/1.1" 200
+2026-07-31 12:07:23,199 INFO [backend.app.api.routes.camera] [bcf0d9e4] Camera viewer detached from printer-1 (subscribers=0)
+2026-07-31 12:07:28,200 INFO [backend.app.api.routes.camera] [8ec8ad89] Chamber image stream cancelled (stream_id=1-fanout-158719fe)
+2026-07-31 12:07:29,219 INFO [backend.app.api.routes.camera] [8ec8ad89] Chamber image stream stopped for [IP] (stream_id=1-fanout-158719fe)
+2026-07-31 12:07:32,877 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:07:45,207 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:07:57,505 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:08:09,932 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:08:12,210 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 12:08:12,229 INFO [backend.app.services.camera] [-] Reusing in-flight camera capture for [IP]: 89952 bytes (no second connection opened)
+2026-07-31 12:08:12,229 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 89952 bytes
+2026-07-31 12:08:22,285 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:08:34,638 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:08:47,023 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:08:58,661 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:09:11,058 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:09:23,271 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:09:35,632 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:09:47,989 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:10:00,282 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:10:05,723 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 12:10:05,723 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: P1S)
+2026-07-31 12:10:07,807 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 87859 bytes
+2026-07-31 12:10:08,882 INFO [backend.app.api.routes.printers] [19d9fff9] Cover: resolved plate 1 before download (subtask=Postcard_Ear-Ring_Display)
+2026-07-31 12:10:08,884 INFO [backend.app.api.routes.camera] [4a101ef9] Using chamber image protocol for P1S
+2026-07-31 12:10:08,885 INFO [backend.app.api.routes.camera] [4a101ef9] Camera viewer attached to printer-1 (subscribers=1)
+2026-07-31 12:10:08,885 INFO [backend.app.api.routes.camera] [4a101ef9] Starting chamber image stream for [IP] (stream_id=1-fanout-473271d9, model=P1S)
+2026-07-31 12:10:08,970 INFO [backend.app.api.routes.printers] [7b54dfd0] Cover: resolved plate 1 before download (subtask=Postcard_Ear-Ring_Display)
+2026-07-31 12:10:09,626 INFO [backend.app.services.camera] [4a101ef9] Chamber image: connected to [IP]:6000
+2026-07-31 12:10:10,279 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-31 12:11:09,234 INFO [uvicorn.access] [-] [IP]:58964 - "POST /api/v1/printers/1/camera/diagnose HTTP/1.1" 200
+2026-07-31 12:11:36,528 INFO [backend.app.api.routes.camera] [fc2d557b] Skipping force-shutdown for printer 1: 1 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-31 12:11:36,529 INFO [uvicorn.access] [-] [IP]:46332 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-31 12:11:59,262 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 85872 bytes
+2026-07-31 12:13:09,825 INFO [backend.app.api.routes.support] [a3e24b31] Log level changed to DEBUG
+2026-07-31 12:13:09,826 INFO [backend.app.api.routes.bug_report] [a3e24b31] Bug report: enabled debug logging
+2026-07-31 12:13:09,826 DEBUG [backend.app.services.bambu_mqtt] [a3e24b31] [[SERIAL]] Requesting status update (pushall)
+2026-07-31 12:13:09,826 INFO [uvicorn.access] [-] [IP]:32880 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-31 12:13:09,907 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: RUNNING, gcode_file: Postcard_Ear-Ring_Display.3mf, subtask_name: Postcard_Ear-Ring_Display
+2026-07-31 12:13:09,907 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'tray_exist_bits': 'f', 'tray_is_bbl_bits': 'f', 'tray_tar': '2', 'tray_now': '2', 'tray_pre': '2', 'tray_read_done_bits': 'f', 'tray_reading_bits': '0', 'version': 28, 'insert_flag': True, 'power_on_flag': True}
+2026-07-31 12:13:09,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 2
+2026-07-31 12:13:09,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-31 12:13:09,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x1001 -> extruder 0
+2026-07-31 12:13:09,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-31 12:13:09,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 768 (main=3, sub=0)
+2026-07-31 12:13:09,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:09,908 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'enable', 'timelapse': 'disable', 'resolution': '', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'on'}]
+2026-07-31 12:13:09,909 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: RUNNING -> RUNNING, file: Postcard_Ear-Ring_Display.3mf, subtask: Postcard_Ear-Ring_Display
+2026-07-31 12:13:11,157 DEBUG [backend.app.main] [-] Recorded 3 printer sensor history entries
+2026-07-31 12:13:11,946 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:11,947 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:13:13,974 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:13,974 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -66dBm
+2026-07-31 12:13:16,002 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:16,002 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:13:16,568 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=31170s (8.66h)
+2026-07-31 12:13:16,570 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-31 12:13:18,027 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:18,027 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:13:22,058 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:22,059 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -63dBm
+2026-07-31 12:13:24,084 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:24,084 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -68dBm
+2026-07-31 12:13:24,936 INFO [backend.app.api.routes.camera] [fb414094] Using chamber image protocol for P1S
+2026-07-31 12:13:24,936 INFO [backend.app.api.routes.camera] [fb414094] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-31 12:13:25,035 INFO [backend.app.api.routes.cloud] [10a95417] get_filament_info called with 5 IDs: ['GFG02', 'GFB00', 'GFA01', 'GFA00', 'GFU99']
+2026-07-31 12:13:25,337 DEBUG [backend.app.api.routes.cloud] [10a95417] Failed to get cloud preset GFG02 (API ID: GFSG02): Failed to get setting detail: 400 {"message":"missing","code":2,"error":"Please check specified resource exist or not.","public":null,"version":null,"type":null,"name":null,"update_time":null,"nickname":null,"base_id":null,"setting":n
+2026-07-31 12:13:26,116 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:26,116 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:13:26,170 DEBUG [backend.app.api.routes.cloud] [10a95417] Failed to get cloud preset GFU99 (API ID: GFSU99): Failed to get setting detail: 400 {"message":"missing","code":2,"error":"Please check specified resource exist or not.","public":null,"version":null,"type":null,"name":null,"update_time":null,"nickname":null,"base_id":null,"setting":n
+2026-07-31 12:13:26,172 INFO [uvicorn.access] [-] [IP]:48448 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-31 12:13:30,148 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:30,148 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:13:32,195 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:34,229 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:34,229 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -63dBm
+2026-07-31 12:13:38,264 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:38,265 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:13:40,297 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:40,298 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -63dBm
+2026-07-31 12:13:42,325 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:42,326 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -67dBm
+2026-07-31 12:13:44,375 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:44,375 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -63dBm
+2026-07-31 12:13:46,572 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=31200s (8.67h)
+2026-07-31 12:13:46,574 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-31 12:13:48,435 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:48,435 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -61dBm
+2026-07-31 12:13:50,458 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:50,458 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:13:52,483 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:52,483 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -68dBm
+2026-07-31 12:13:56,314 DEBUG [backend.app.api.routes.printers] [e40ffada] API returning ams_mapping: [], ams_extruder_map: {'0': 0}
+2026-07-31 12:13:56,314 DEBUG [backend.app.api.routes.printers] [e40ffada] Using tray_now directly as global ID: 2
+2026-07-31 12:13:56,512 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:56,512 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:13:56,515 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 89904 bytes
+2026-07-31 12:13:56,515 DEBUG [backend.app.main] [-] [FINISH-PHOTO-BANK] banked in-print frame for printer 1 at layer 44/219 (89904 bytes)
+2026-07-31 12:13:58,536 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:13:58,536 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -66dBm
+2026-07-31 12:14:02,572 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:04,616 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:04,616 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -67dBm
+2026-07-31 12:14:06,650 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:06,650 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:14:08,700 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:08,700 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:14:11,162 DEBUG [backend.app.main] [-] Recorded 3 printer sensor history entries
+2026-07-31 12:14:12,736 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:12,736 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -68dBm
+2026-07-31 12:14:14,766 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:14,767 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:14:16,576 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=31230s (8.68h)
+2026-07-31 12:14:16,578 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-31 12:14:16,800 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:16,800 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:14:20,851 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:22,897 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:22,897 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -67dBm
+2026-07-31 12:14:24,925 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:24,925 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:14:28,965 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:28,965 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:14:30,987 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:30,988 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -63dBm
+2026-07-31 12:14:33,009 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:33,009 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -64dBm
+2026-07-31 12:14:35,038 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:35,038 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -65dBm
+2026-07-31 12:14:41,113 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:43,136 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:46,580 DEBUG [backend.app.main] [-] [[PRINTER]] Runtime tracking: added 30s, total=31260s (8.68h)
+2026-07-31 12:14:46,583 DEBUG [backend.app.main] [-] Updated runtime for 1 printer(s)
+2026-07-31 12:14:46,951 INFO [backend.app.api.routes.camera] [fb414094] Camera viewer detached from printer-1 (subscribers=1)
+2026-07-31 12:14:47,002 INFO [backend.app.api.routes.camera] [f7109229] Skipping force-shutdown for printer 1: 1 subscriber(s) still attached; natural cleanup will tear down when last viewer disconnects
+2026-07-31 12:14:47,003 INFO [uvicorn.access] [-] [IP]:40884 - "POST /api/v1/printers/1/camera/stop HTTP/1.1" 200
+2026-07-31 12:14:49,191 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 12:14:49,191 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -67dBm
+2026-07-31 12:14:50,449 INFO [backend.app.api.routes.support] [adce80f9] Log level changed to INFO
+2026-07-31 12:14:50,449 INFO [uvicorn.access] [-] [IP]:44560 - "POST /api/v1/support/debug-logging HTTP/1.1" 200
+2026-07-31 12:15:10,284 INFO [backend.app.main] [-] Recorded 1 AMS sensor history entries
+2026-07-31 12:15:23,013 INFO [backend.app.services.stl_thumbnail] [16d81de6] Generated STL thumbnail: /app/data/archive/library/thumbnails/82b6b231a1c14994946c8ccc28bfbd80.png
+2026-07-31 12:15:23,022 INFO [uvicorn.access] [-] [IP]:60994 - "POST /api/v1/library/files?generate_stl_thumbnails=true HTTP/1.1" 200
+2026-07-31 12:15:47,544 INFO [uvicorn.access] [-] [IP]:45554 - "POST /api/v1/library/files/124/slice HTTP/1.1" 202
+2026-07-31 12:15:52,075 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 89182 bytes
+2026-07-31 12:15:58,100 INFO [backend.app.services.stl_thumbnail] [10b86178] Generated STL thumbnail: /app/data/archive/library/thumbnails/d18dc63ba2ae4f26ae261dc3a8ebfc3b.png
+2026-07-31 12:15:58,106 INFO [uvicorn.access] [-] [IP]:34160 - "POST /api/v1/library/generate-stl-thumbnails HTTP/1.1" 200
+2026-07-31 12:16:43,383 INFO [uvicorn.access] [-] [IP]:35708 - "DELETE /api/v1/library/files/120 HTTP/1.1" 200
+2026-07-31 12:16:46,656 INFO [uvicorn.access] [-] [IP]:35782 - "DELETE /api/v1/library/files/122 HTTP/1.1" 200
+2026-07-31 12:17:11,861 INFO [backend.app.api.routes.camera] [373e8f9e] Using chamber image protocol for P1S
+2026-07-31 12:17:11,861 INFO [backend.app.api.routes.camera] [373e8f9e] Camera viewer attached to printer-1 (subscribers=2)
+2026-07-31 12:17:47,694 INFO [backend.app.main] [-] [SNAPSHOT] Using buffered frame for printer 1: 87935 bytes
