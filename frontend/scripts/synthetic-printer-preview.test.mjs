@@ -32,7 +32,7 @@ test('synthetic API is a fixed GET-only state matrix without mutation routes', (
 
 test('the authoritative production build does not include the synthetic harness', async () => {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-  const staticRoot = resolve(root, '../static');
+  const staticRoot = resolve(root, 'static');
   const output = await Promise.all([
     readFile(resolve(staticRoot, 'index.html'), 'utf8'),
     ...((await readdir(resolve(staticRoot, 'assets'))).filter((name) => name.endsWith('.js')).map((name) => readFile(resolve(staticRoot, 'assets', name), 'utf8'))),
