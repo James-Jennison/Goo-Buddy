@@ -304,7 +304,7 @@ class TestUpdatesAPI:
     @pytest.mark.asyncio
     async def test_perform_update_preserves_ssh_origin_when_pointing_at_correct_repo(self, tmp_path):
         """Regression for the developer-checkout footgun: if origin already
-        points at github.com/maziggy/bambuddy via SSH, the updater must
+        points at github.com/James-Jennison/Goo-Buddy via SSH, the updater must
         leave it alone instead of clobbering it with HTTPS. Pre-fix, every
         Apply Update click rewrote `git@github.com:...` to `https://...`,
         breaking subsequent `git push` for any developer testing the
@@ -326,7 +326,7 @@ class TestUpdatesAPI:
             # SSH URL. Every other subprocess returns successfully with no
             # output.
             if "get-url" in args and "origin" in args:
-                proc.communicate = AsyncMock(return_value=(b"git@github.com:maziggy/bambuddy.git\n", b""))
+                proc.communicate = AsyncMock(return_value=(b"git@github.com:James-Jennison/Goo-Buddy.git\n", b""))
             else:
                 proc.communicate = AsyncMock(return_value=(b"", b""))
             proc.returncode = 0

@@ -1347,10 +1347,8 @@ describe('SettingsPage', () => {
 /**
  * Sponsor banner on Settings -> General.
  *
- * Below the fleet threshold it makes the community/donation ask; at or above it
- * the same slot makes the commercial ask and points at business.html. A print
- * farm asked to chip in $5 is a wasted impression, and a hobbyist pitched a
- * support contract is an annoyed user — so both directions are pinned.
+ * It is a single optional community-support message regardless of fleet size;
+ * Goo Buddy does not offer commercial licensing or priority-support plans.
  */
 describe('SettingsPage — sponsor banner audience', () => {
   beforeEach(() => {
@@ -1385,15 +1383,12 @@ describe('SettingsPage — sponsor banner audience', () => {
     expect(screen.queryByText(/Goo Buddy for business/i)).not.toBeInTheDocument();
   });
 
-  it('shows the commercial ask for a business-sized fleet', async () => {
+  it('keeps the same community ask for a large fleet', async () => {
     fleet(6);
     render(<SettingsPage />);
 
-    const banner = await screen.findByRole('link', { name: /Goo Buddy for business/i });
+    const banner = await screen.findByRole('link', { name: /Independent & community-funded/i });
     expect(banner).toHaveAttribute('href', 'https://github.com/James-Jennison/Goo-Buddy?from=app-settings');
-    // The donation copy is replaced, not merely supplemented.
-    expect(screen.queryByText(/Independent & community-funded/i)).not.toBeInTheDocument();
-    // The ask names the fleet back to them.
-    expect(screen.getByText(/6 printers/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Goo Buddy for business/i)).not.toBeInTheDocument();
   });
 });

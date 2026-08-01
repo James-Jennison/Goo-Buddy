@@ -31,33 +31,13 @@ vi.mock('../../contexts/ToastContext', () => ({
   useToast: () => ({ showPersistentToast }),
 }));
 
-// The hook reads the printers list (fleet size decides which ask it makes), so
-// it now needs a QueryClient. Fresh per test so one test's fleet can't leak
-// into the next through the cache.
+// The hook uses React Query only through the application provider contract.
 function wrapper() {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-  );
-}
-
-/** Make GET /printers/ return exactly `count` printers. */
-function withFleet(count: number) {
-  server.use(
-    http.get('/api/v1/printers/', () =>
-      HttpResponse.json(
-        Array.from({ length: count }, (_, i) => ({
-          id: i + 1,
-          name: `Printer ${i + 1}`,
-          serial_number: `SN${i + 1}`,
-          ip_address: '192.168.1.10',
-          model: 'X1C',
-          is_active: true,
-        })),
-      ),
-    ),
   );
 }
 
@@ -145,15 +125,7 @@ describe('useSponsorPrompt', () => {
   });
 });
 
-/**
- * Fleet-size audience split.
- *
- * A print farm has no use for a "chip in $5" toast — it wants a support
- * contract. At/above BUSINESS_FLEET_THRESHOLD configured printers the toast
- * makes the business-oriented copy instead. Both paths link to the Goo Buddy
- * repository until a separate sponsorship or commercial-support program exists.
- */
-describe('useSponsorPrompt — fleet-size audience', () => {
+describe('useSponsorPrompt — consistent community message', () => {
   beforeEach(() => {
     server.use(
       http.get('/api/v1/sponsor-prompt/check', () =>
@@ -169,8 +141,7 @@ describe('useSponsorPrompt — fleet-size audience', () => {
     );
   });
 
-  it('makes the personal ask below the threshold', async () => {
-    withFleet(4);
+  it('uses the milestone message and project link', async () => {
     renderHook(() => useSponsorPrompt('EUR'), { wrapper: wrapper() });
 
     await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1));
@@ -179,68 +150,20 @@ describe('useSponsorPrompt — fleet-size audience', () => {
     expect(message).toContain('30'); // the prints milestone copy, not the fleet copy
   });
 
-  it('makes the business-oriented ask at the threshold', async () => {
-    withFleet(5);
+  it('does not request the printer list to tailor a commercial offer', async () => {
+    let printerRequests = 0;
+    server.use(http.get('/api/v1/printers/', () => {
+      printerRequests += 1;
+      return HttpResponse.json([]);
+    }));
     renderHook(() => useSponsorPrompt('EUR'), { wrapper: wrapper() });
 
     await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1));
     const [, message, , options] = showPersistentToast.mock.calls[0];
     expect(options.action.href).toContain('github.com/James-Jennison/Goo-Buddy');
-    // Attribution still rides on the milestone, so Matomo keeps segmenting it.
     expect(options.action.href).toContain('from=app-toast-prints-25');
-    expect(message).toContain('5'); // fleet size, not the print count
-    expect(message).toMatch(/support plan/i);
-  });
-
-  it('counts configured printers, not active ones — maintenance mode must not downgrade the ask', async () => {
-    // Eight printers, five of them in maintenance (is_active: false). This is
-    // still an eight-printer business; if the split filtered on is_active it
-    // would see three and pitch them as a hobbyist mid-outage.
-    server.use(
-      http.get('/api/v1/printers/', () =>
-        HttpResponse.json(
-          Array.from({ length: 8 }, (_, i) => ({
-            id: i + 1,
-            name: `Printer ${i + 1}`,
-            serial_number: `SN${i + 1}`,
-            ip_address: '192.168.1.10',
-            model: 'X1C',
-            is_active: i < 3,
-          })),
-        ),
-      ),
-    );
-
-    renderHook(() => useSponsorPrompt('EUR'), { wrapper: wrapper() });
-
-    await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1));
-    const [, message, , options] = showPersistentToast.mock.calls[0];
-    expect(options.action.href).toContain('github.com/James-Jennison/Goo-Buddy');
-    expect(message).toContain('8');
-  });
-
-  it('waits for the fleet to load before deciding — a farm is never pitched as a hobbyist', async () => {
-    // Slow printers response: if the hook fired the toast before the fleet
-    // resolved, it would default to 0 printers and make the personal ask.
-    server.use(
-      http.get('/api/v1/printers/', async () => {
-        await new Promise((r) => setTimeout(r, 50));
-        return HttpResponse.json(
-          Array.from({ length: 6 }, (_, i) => ({
-            id: i + 1,
-            name: `Printer ${i + 1}`,
-            serial_number: `SN${i + 1}`,
-            ip_address: '192.168.1.10',
-            model: 'X1C',
-            is_active: true,
-          })),
-        );
-      }),
-    );
-
-    renderHook(() => useSponsorPrompt('EUR'), { wrapper: wrapper() });
-
-    await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1), { timeout: 2000 });
-    expect(showPersistentToast.mock.calls[0][3].action.href).toContain('github.com/James-Jennison/Goo-Buddy');
+    expect(message).toContain('30');
+    expect(message).not.toMatch(/support plan|commercial licensing|invoicing/i);
+    expect(printerRequests).toBe(0);
   });
 });

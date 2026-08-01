@@ -43,6 +43,23 @@ function source(id, name, platform, isActive, extras = {}) {
 const ELEGGO_ID = 101;
 const MOONRAKER_ID = 201;
 const MOONRAKER_PUBLIC_OFFSET = 1_000_000;
+const BAMBU_ID = 1;
+
+const SYNTHETIC_BAMBU_STATUS = Object.freeze({
+  id: BAMBU_ID, name: 'Synthetic Bambu — printing', connected: true, state: 'RUNNING',
+  current_print: 'Synthetic workshop job', subtask_name: null, current_archive_id: null, current_plate_id: null,
+  gcode_file: null, progress: 36, remaining_time: null, layer_num: 72, total_layers: 200,
+  temperatures: { nozzle: 212, nozzle_target: 215, bed: 56, bed_target: 60, chamber: 31, chamber_target: 33 },
+  cover_url: null, hms_errors: [], ams: [], ams_exists: false, vt_tray: [], store_to_sdcard: false,
+  timelapse: false, ipcam: false, wifi_signal: null, wired_network: true, door_open: false,
+  nozzles: [], nozzle_rack: [], print_options: null, stg_cur: -1, stg_cur_name: null, stg: [],
+  airduct_mode: 0, speed_level: 2, chamber_light: false, active_extruder: 0, ams_mapping: [],
+  ams_extruder_map: {}, fila_switch: null, tray_now: 255, expected_tray: null, previous_tray: null,
+  ams_status_main: 0, ams_status_sub: 0, mc_print_sub_stage: 0, last_ams_update: 0,
+  printable_objects_count: 0, cooling_fan_speed: null, big_fan1_speed: null, big_fan2_speed: null,
+  heatbreak_fan_speed: null, firmware_version: 'synthetic-bambu', developer_mode: null,
+  ams_filament_backup: null, awaiting_plate_clear: false, supports_drying: false,
+});
 
 const READY_ELEGOO = {
   phase: 'ready', freshness: 'current', retained: false, last_observation_at: timestamp(), error: null,
@@ -89,6 +106,7 @@ const MOONRAKER_STATUSES = new Map([
 ]);
 
 export const SYNTHETIC_PRINTERS = Object.freeze([
+  source(BAMBU_ID, 'Synthetic Bambu — printing', 'bambu', true, { model: 'X1 Carbon', serial_number: 'SYNTHETIC-BAMBU', ip_address: null }),
   source(-ELEGGO_ID, 'Synthetic Elegoo — ready', 'elegoo', true),
   source(-(ELEGGO_ID + 1), 'Synthetic Elegoo — stale', 'elegoo', true),
   source(-(ELEGGO_ID + 2), 'Synthetic Elegoo — disconnected', 'elegoo', true),
@@ -110,6 +128,50 @@ const UI_PREFERENCES = {
   drying_presets: null, camera_view_mode: 'window', printer_sort: 'name', printer_sort_ascending: true,
 };
 
+/**
+ * Fixed, non-secret defaults for the normal Settings page.  This is deliberately
+ * separate from UI_PREFERENCES: the production endpoint returns the complete
+ * application-settings schema, whereas /ui-preferences is a small user-preference
+ * payload.  Keeping both fixed here prevents the preview from accepting data.
+ */
+const SYNTHETIC_SETTINGS = Object.freeze({
+  auto_archive: true, save_thumbnails: true, capture_finish_photo: true,
+  default_filament_cost: 25, currency: 'USD', energy_cost_per_kwh: 0.15, energy_tracking_mode: 'total',
+  spoolman_enabled: false, spoolman_url: '', spoolman_sync_mode: 'auto', spoolman_disable_weight_sync: false,
+  spoolman_report_partial_usage: true, auto_add_unknown_rfid: true, disable_filament_warnings: false,
+  prefer_lowest_filament: false, check_updates: true, check_printer_firmware: true, include_beta_updates: false,
+  language: 'en', notification_language: 'en', bed_cooled_threshold: 35,
+  ams_humidity_good: 40, ams_humidity_fair: 60, ams_temp_good: 28, ams_temp_fair: 35,
+  ams_history_retention_days: 30, printer_sensor_history_retention_days: 30,
+  queue_drying_enabled: false, queue_drying_block: false, ambient_drying_enabled: false, print_drying_enabled: false,
+  drying_presets: '', ams_humidity_thresholds: '', gcode_snippets: '',
+  local_backup_enabled: false, local_backup_schedule: 'daily', local_backup_time: '03:00',
+  local_backup_retention: 5, local_backup_path: '', per_printer_mapping_expanded: false,
+  date_format: 'system', time_format: 'system', default_printer_id: null, pipeline_max_copies: 50,
+  virtual_printer_enabled: false, virtual_printer_access_code: '', virtual_printer_mode: 'archive',
+  virtual_printer_archive_name_source: 'metadata', dark_style: 'vibrant', dark_background: 'cool', dark_accent: 'green',
+  light_style: 'classic', light_background: 'neutral', light_accent: 'green',
+  ftp_retry_enabled: true, ftp_retry_count: 3, ftp_retry_delay: 2, ftp_timeout: 30,
+  mqtt_enabled: false, mqtt_broker: '', mqtt_port: 1883, mqtt_username: '', mqtt_password: '',
+  mqtt_topic_prefix: 'goo-buddy', mqtt_use_tls: false, external_url: '',
+  ha_enabled: false, ha_url: '', ha_token: '', ha_url_from_env: false, ha_token_from_env: false, ha_env_managed: false,
+  library_archive_mode: 'ask', library_disk_warning_gb: 5, camera_view_mode: 'window',
+  preferred_slicer: 'bambu_studio', open_in_slicer: null, use_slicer_api: false,
+  orcaslicer_api_url: '', bambu_studio_api_url: '', prometheus_enabled: false, prometheus_token: '',
+  low_stock_threshold: 20, session_max_hours: 24, user_notifications_enabled: true,
+  default_bed_levelling: 'auto', default_flow_cali: 'auto', default_vibration_cali: true,
+  default_layer_inspect: false, default_timelapse: false, default_nozzle_offset_cali: 'auto',
+  stagger_group_size: 2, stagger_interval_minutes: 5, require_plate_clear: false,
+  queue_shortest_first: false, queue_max_concurrent_uploads: 4,
+  preheat_enabled: false, preheat_filament_targets: '', preheat_max_wait_seconds: 900, preheat_soak_seconds: 300,
+  nozzle_temp_presets: '', bed_temp_presets: '', chamber_temp_presets: '', fan_speed_presets: '',
+  local_login_enabled: true, ldap_enabled: false, ldap_server_url: '', ldap_bind_dn: '', ldap_bind_password: '',
+  ldap_search_base: '', ldap_user_filter: '(sAMAccountName={username})', ldap_security: 'starttls',
+  ldap_group_mapping: '', ldap_auto_provision: false, ldap_default_group: '',
+  obico_enabled: false, obico_ml_url: '', obico_sensitivity: 'medium', obico_action: 'notify',
+  obico_poll_interval: 10, obico_enabled_printers: '', forecast_global_lead_time_days: 0, default_sidebar_order: '',
+});
+
 function response(status, payload) {
   return { status, payload };
 }
@@ -119,7 +181,9 @@ export function syntheticResponse(method, path) {
   if (method !== 'GET') return response(405, { detail: 'Synthetic preview is read-only' });
   if (path === '/api/v1/auth/status') return response(200, { auth_enabled: false, requires_setup: false });
   if (path === '/api/v1/printers/') return response(200, SYNTHETIC_PRINTERS);
-  if (path === '/api/v1/settings/' || path === '/api/v1/settings/ui-preferences') return response(200, UI_PREFERENCES);
+  if (path === `/api/v1/printers/${BAMBU_ID}/status`) return response(200, SYNTHETIC_BAMBU_STATUS);
+  if (path === '/api/v1/settings/') return response(200, SYNTHETIC_SETTINGS);
+  if (path === '/api/v1/settings/ui-preferences') return response(200, UI_PREFERENCES);
   if (path === '/api/v1/inventory/colors') return response(200, []);
   const elegoo = path.match(/^\/api\/v1\/printers\/elegoo\/(\d+)\/status$/);
   if (elegoo && ELEGGO_STATUSES.has(Number(elegoo[1]))) return response(200, ELEGGO_STATUSES.get(Number(elegoo[1])));

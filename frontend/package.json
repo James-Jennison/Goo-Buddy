@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "preview:synthetic-printers": "node scripts/synthetic-printer-preview.mjs",
     "test:synthetic-printers": "node --test scripts/synthetic-printer-preview.test.mjs",
+    "test:branding-assets": "node --test scripts/branding-assets.test.mjs",
     "test": "vitest",
     "test:run": "vitest run && npm run check:i18n",
     "test:coverage": "vitest run --coverage",

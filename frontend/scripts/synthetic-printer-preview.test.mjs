@@ -19,15 +19,19 @@ test('synthetic preview refuses production mode and arbitrary input', () => {
 });
 
 test('synthetic API is a fixed GET-only state matrix without mutation routes', () => {
-  assert.equal(SYNTHETIC_PRINTERS.length, 14);
+  assert.equal(SYNTHETIC_PRINTERS.length, 15);
+  assert.equal(SYNTHETIC_PRINTERS.filter((printer) => printer.platform === 'bambu').length, 1);
   assert.equal(SYNTHETIC_PRINTERS.filter((printer) => printer.platform === 'elegoo').length, 6);
   assert.equal(SYNTHETIC_PRINTERS.filter((printer) => printer.platform === 'moonraker').length, 8);
   assert.equal(syntheticResponse('GET', '/api/v1/printers/').status, 200);
   assert.equal(syntheticResponse('POST', '/api/v1/printers/').status, 405);
   assert.equal(syntheticResponse('GET', '/api/v1/printers/moonraker/201/status').payload.phase, 'ready');
+  assert.equal(syntheticResponse('GET', '/api/v1/printers/1/status').payload.connected, true);
   assert.equal(syntheticResponse('GET', '/api/v1/printers/elegoo/111/status').payload.phase, 'waiting');
   assert.equal(syntheticResponse('GET', '/api/v1/printers/moonraker/211/status').payload.phase, 'connecting');
   assert.equal(syntheticResponse('GET', '/api/v1/printers/moonraker/999/status').status, 404);
+  assert.equal(syntheticResponse('GET', '/api/v1/settings/').payload.currency, 'USD');
+  assert.equal(syntheticResponse('GET', '/api/v1/settings/ui-preferences').payload.currency, undefined);
 });
 
 test('the authoritative production build does not include the synthetic harness', async () => {
