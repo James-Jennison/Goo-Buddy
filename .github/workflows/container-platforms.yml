@@ -1,0 +1,66 @@
+name: Container Platform Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-image:
+    name: Production image (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            suffix: amd64
+          - platform: linux/arm64
+            suffix: arm64
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up QEMU for ARM64
+        if: matrix.platform == 'linux/arm64'
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and load production image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          pull: true
+          load: true
+          push: false
+          provenance: false
+          tags: goo-buddy:validate-${{ matrix.suffix }}
+
+      - name: Verify image architecture
+        run: |
+          test "$(docker image inspect goo-buddy:validate-${{ matrix.suffix }} --format '{{.Architecture}}/{{.Os}}')" = "${{ matrix.suffix }}/linux"
+
+      - name: Run non-networked import and static smoke checks
+        run: |
+          docker run --rm --network none --platform ${{ matrix.platform }} \
+            goo-buddy:validate-${{ matrix.suffix }} \
+            python -c "import backend.app.main"
+          docker run --rm --network none --platform ${{ matrix.platform }} \
+            --entrypoint test goo-buddy:validate-${{ matrix.suffix }} -d /app/static
+
+      - name: Validate Compose configuration for selected platform
+        env:
+          DOCKER_DEFAULT_PLATFORM: ${{ matrix.platform }}
+        run: |
+          docker compose -f docker-compose.yml config --quiet
+          docker compose -f docker-compose.test.yml config --quiet

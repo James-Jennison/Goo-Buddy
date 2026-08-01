@@ -1,10 +1,10 @@
 services:
   bambuddy:
-    image: ghcr.io/maziggy/bambuddy:latest
+    image: goo-buddy:local
     build: .
     # Usage:
-    #   docker compose up -d          → pulls pre-built image from ghcr.io
-    #   docker compose up -d --build  → builds locally from source
+    #   docker compose up -d --build  → builds the local Goo Buddy source
+    # No Goo Buddy image is published by this foundation.
     container_name: bambuddy
     # File ownership inside the data and logs volumes is normalised by the
     # entrypoint at startup (chowns to PUID:PGID and drops privileges via
@@ -52,9 +52,9 @@ services:
     # → ~60 processes → ~210 MB instead.
     #
     # Bridge mode is the normal setup for any Linux host that runs
-    # Bambuddy alongside other services (NAS, multi-tenant Docker VM,
+    # Goo Buddy alongside other services (NAS, multi-tenant Docker VM,
     # Synology DSM, Unraid) — `network_mode: host` would conflict with
-    # ports those other services already bind. Bambuddy uses host mode by
+    # ports those other services already bind. Goo Buddy uses host mode by
     # default because SSDP printer discovery needs L2 multicast, but it's
     # a deliberate trade-off, not a security-blind default; setups that
     # forgo discovery (add printers by IP) can stay on bridge with the
@@ -63,7 +63,7 @@ services:
       - bambuddy_data:/app/data
       - bambuddy_logs:/app/logs
       #
-      # OPTIONAL — only needed if you ALSO run a native install of Bambuddy
+      # OPTIONAL — only needed if you ALSO run a native install of Goo Buddy
       # on the same host and want both installs to share the same Virtual
       # Printer CA certificate (so the slicer only has to trust one CA).
       # Most Docker-only users should leave this commented out — the
@@ -78,20 +78,20 @@ services:
       #- /path/to/nas/bambuddy-backups:/app/data/backups
       #
       # Tailscale integration (optional): mount the host's tailscaled socket
-      # so Bambuddy can request Let's Encrypt certs for virtual printers via
+      # so Goo Buddy can request Let's Encrypt certs for virtual printers via
       # your tailnet's MagicDNS name. Requires:
       #   1. Tailscale installed + `tailscale up` completed on the host
       #   2. `sudo tailscale set --operator=<container-user>` on the host so
       #      the user running the container can call `tailscale cert`
       # Without this mount, the Tailscale toggle in the UI is harmless —
-      # Bambuddy falls back to self-signed certs.
+      # Goo Buddy falls back to self-signed certs.
       #- /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
       #
       # Using a self signed certificate for Home Assistant
       # Add your certificate to certs directory and mount it to the container.
       # The certificate will be added to the system trust store on container startup.
       # Enable the system trust store with the USE_SYSTEM_TRUST_STORE env var to
-      # have Bambuddy trust the certificate.
+      # have Goo Buddy trust the certificate.
       # - /path/to/certs:/usr/local/share/ca-certificates
       #
       # External library folders. Mount the host paths the operator wants
@@ -109,7 +109,7 @@ services:
       # show up as your user on the host. Defaults to 1000:1000.
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
-      # Port BamBuddy runs on (default: 8000)
+      # Port Goo Buddy runs on (default: 8000)
       # Usage: PORT=8080 docker compose up -d
       - PORT=${PORT:-8000}
       # Virtual printer: Set to the Docker host's IP when using bridge mode (ports:).
@@ -147,7 +147,7 @@ services:
       # You also need to mount your certificates to the container (see volumes section above).
       # - USE_SYSTEM_TRUST_STORE=true
     restart: unless-stopped
-    # Docker's default is 10s, after which it SIGKILLs. Bambuddy shuts down in
+    # Docker's default is 10s, after which it SIGKILLs. Goo Buddy shuts down in
     # well under that (uvicorn caps its wait on in-flight requests at 5s, then
     # the app checkpoints the SQLite WAL, disconnects MQTT and stops the virtual
     # printers), but a Pi with several virtual printers and a slow SD card can be
@@ -156,7 +156,7 @@ services:
     stop_grace_period: 30s
 
   # Optional: External PostgreSQL database
-  # Uncomment to run Postgres alongside Bambuddy (or use an external Postgres host)
+  # Uncomment to run Postgres alongside Goo Buddy (or use an external Postgres host)
   #postgres:
   #  image: postgres:16-alpine
   #  container_name: bambuddy-db

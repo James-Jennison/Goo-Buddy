@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 # Build frontend
 FROM node:22-bookworm-slim AS frontend-builder
 
