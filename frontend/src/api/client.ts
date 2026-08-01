@@ -368,6 +368,35 @@ export interface Printer {
   plate_detection_roi?: PlateDetectionROI;  // ROI for plate detection
   created_at: string;
   updated_at: string;
+  // Goo Buddy's opt-in passive SDCP source is projected alongside Bambu
+  // printers but never exposes its address or operational controls.
+  platform?: 'elegoo';
+  driver?: string;
+  read_only?: boolean;
+  endpoint_configured?: boolean;
+  endpoint_hint?: string;
+  firmware?: string | null;
+}
+
+export interface ElegooSourceCreate {
+  name: string;
+  private_ipv4: string;
+  read_only_acknowledged: boolean;
+  is_enabled: boolean;
+}
+
+export interface ElegooDashboardStatus {
+  phase: 'disabled' | 'connecting' | 'waiting' | 'ready' | 'stale' | 'reconnecting' | 'disconnected' | 'invalid';
+  freshness: 'current' | 'retained' | 'unavailable';
+  retained: boolean;
+  last_observation_at: string | null;
+  error: string | null;
+  state: string | null;
+  model: string | null;
+  firmware: string | null;
+  temperatures: Record<string, { current_c: number | null; target_c: number | null }> | null;
+  job: { state: string | null; progress_percent: number | null; current_layer: number | null; total_layers: number | null } | null;
+  capabilities: string[];
 }
 
 export interface HMSError {
@@ -3826,6 +3855,19 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  createElegooSource: (data: ElegooSourceCreate) =>
+    request<Printer>('/printers/elegoo', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateElegooSource: (id: number, data: Partial<ElegooSourceCreate>) =>
+    request<Printer>(`/printers/elegoo/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  getElegooStatus: (id: number) => request<ElegooDashboardStatus>(`/printers/elegoo/${id}/status`),
+  deleteElegooSource: (id: number) =>
+    request<{ status: string }>(`/printers/elegoo/${id}`, { method: 'DELETE' }),
   updatePrinter: (id: number, data: Partial<PrinterCreate>) =>
     request<Printer>(`/printers/${id}`, {
       method: 'PATCH',

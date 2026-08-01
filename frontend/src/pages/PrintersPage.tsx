@@ -91,7 +91,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { api, discoveryApi, firmwareApi, withStreamToken, ApiError } from '../api/client';
 import { formatDateOnly, formatETA, formatDuration, parseUTCDate } from '../utils/date';
-import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult } from '../api/client';
+import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult, ElegooSourceCreate } from '../api/client';
 import { Card, CardContent } from '../components/Card';
 import { Button } from '../components/Button';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -1741,7 +1741,77 @@ const DRYING_PRESETS: Record<string, { n3f: number; n3s: number; n3f_hours: numb
   'PVA':   { n3f: 65, n3s: 85, n3f_hours: 12, n3s_hours: 18 },
 };
 
-function PrinterCard({
+function isCanonicalRfc1918Ipv4(value: string): boolean {
+  const octets = value.split('.');
+  if (octets.length !== 4 || octets.some((octet) => !/^\d+$/.test(octet))) return false;
+  const numbers = octets.map(Number);
+  if (numbers.some((number, index) => number > 255 || String(number) !== octets[index])) return false;
+  return numbers[0] === 10 || (numbers[0] === 172 && numbers[1] >= 16 && numbers[1] <= 31) || (numbers[0] === 192 && numbers[1] === 168);
+}
+
+function ElegooPrinterCard({ printer }: { printer: Printer }) {
+  const queryClient = useQueryClient();
+  const [editingEndpoint, setEditingEndpoint] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [replacementAddress, setReplacementAddress] = useState('');
+  const [replacementAcknowledged, setReplacementAcknowledged] = useState(false);
+  const { data: status } = useQuery({
+    queryKey: ['elegoo-status', -printer.id],
+    queryFn: () => api.getElegooStatus(-printer.id),
+    refetchInterval: 3000,
+  });
+  const toggle = useMutation({
+    mutationFn: () => api.updateElegooSource(-printer.id, { is_enabled: !printer.is_active }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['printers'] });
+      queryClient.invalidateQueries({ queryKey: ['elegoo-status', -printer.id] });
+    },
+  });
+  const phase = printer.is_active ? (status?.phase ?? 'connecting') : 'disabled';
+  const current = status?.freshness === 'current';
+  const temperatures = status?.temperatures;
+  const job = status?.job;
+  const validReplacementAddress = isCanonicalRfc1918Ipv4(replacementAddress);
+  const replaceEndpoint = useMutation({
+    mutationFn: () => api.updateElegooSource(-printer.id, { private_ipv4: replacementAddress, read_only_acknowledged: replacementAcknowledged }),
+    onSuccess: () => {
+      setEditingEndpoint(false);
+      setReplacementAddress('');
+      setReplacementAcknowledged(false);
+      queryClient.invalidateQueries({ queryKey: ['printers'] });
+      queryClient.invalidateQueries({ queryKey: ['elegoo-status', -printer.id] });
+    },
+  });
+  const deleteSource = useMutation({
+    mutationFn: () => api.deleteElegooSource(-printer.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['printers'] });
+      queryClient.removeQueries({ queryKey: ['elegoo-status', -printer.id] });
+    },
+  });
+  return (
+    <Card className="overflow-hidden border-teal-500/30">
+      <CardContent className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div><h3 className="font-semibold text-white">{printer.name}</h3><p className="text-xs text-bambu-gray">Elegoo SDCP v3 · read-only</p></div>
+          <span className={`rounded-full px-2 py-1 text-xs ${current ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>{phase}</span>
+        </div>
+        {status?.retained && <p className="rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-200">Retained data — not current. Waiting for a fresh printer observation.</p>}
+        {!printer.is_active && <p className="text-sm text-bambu-gray">Disabled. Enable only when you want Goo Buddy to open its passive read-only connection.</p>}
+        {printer.is_active && !status?.last_observation_at && <p className="text-sm text-bambu-gray">Waiting for a printer-pushed SDCP status and attributes observation. Goo Buddy does not request one.</p>}
+        {status?.error && <p className="text-sm text-red-300">Connection: {status.error.replaceAll('_', ' ')}</p>}
+        {(status?.model || status?.firmware) && <p className="text-sm text-bambu-gray">{status.model ?? 'Centauri'}{status.firmware ? ` · firmware ${status.firmware}` : ''}</p>}
+        {temperatures && <div className="grid grid-cols-2 gap-2 text-sm"><span>Nozzle {temperatures.nozzle?.current_c ?? '—'}°C / {temperatures.nozzle?.target_c ?? '—'}°C</span><span>Bed {temperatures.bed?.current_c ?? '—'}°C / {temperatures.bed?.target_c ?? '—'}°C</span></div>}
+        {job && <div className="text-sm text-bambu-gray"><p>{job.state ?? status?.state ?? 'Unknown'}{job.progress_percent != null ? ` · ${Math.round(job.progress_percent)}%` : ''}</p>{job.current_layer != null && <p>Layer {job.current_layer}{job.total_layers != null ? ` / ${job.total_layers}` : ''}</p>}</div>}
+        <div className="flex items-center justify-between gap-3 border-t border-bambu-dark-tertiary pt-3"><span className="text-xs text-bambu-gray">Camera, files, console, maintenance, and controls are unavailable.</span><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setEditingEndpoint(true)}>Change endpoint</Button><Button variant="secondary" onClick={() => toggle.mutate()} disabled={toggle.isPending}>{printer.is_active ? 'Disable' : 'Enable'}</Button><Button variant="danger" onClick={() => setConfirmingDelete(true)}>Remove</Button></div></div>
+        {editingEndpoint && <form className="space-y-2 rounded border border-bambu-dark-tertiary p-3" onSubmit={(event) => { event.preventDefault(); replaceEndpoint.mutate(); }}><p className="text-sm text-amber-200">Changing the private address immediately disconnects the old source and leaves this printer disabled. Re-enable it deliberately after saving.</p><label htmlFor={`elegoo-replace-${printer.id}`} className="block text-xs text-bambu-gray">New private IPv4 address</label><input id={`elegoo-replace-${printer.id}`} required inputMode="numeric" value={replacementAddress} onChange={(event) => setReplacementAddress(event.target.value)} placeholder="192.168.1.50" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /><label htmlFor={`elegoo-replace-ack-${printer.id}`} className="flex gap-2 text-xs text-bambu-gray"><input id={`elegoo-replace-ack-${printer.id}`} required type="checkbox" checked={replacementAcknowledged} onChange={(event) => setReplacementAcknowledged(event.target.checked)} />I confirm this replacement remains read-only.</label><div className="flex gap-2"><Button type="button" variant="secondary" onClick={() => setEditingEndpoint(false)}>Cancel</Button><Button type="submit" disabled={!validReplacementAddress || !replacementAcknowledged || replaceEndpoint.isPending}>Save and disable</Button></div></form>}
+        {confirmingDelete && <div className="space-y-3 rounded border border-red-500/40 p-3"><p className="text-sm text-bambu-gray">Remove this read-only source? Its active connection is cancelled and its saved endpoint configuration is deleted.</p><div className="flex gap-2"><Button variant="secondary" onClick={() => setConfirmingDelete(false)}>Cancel</Button><Button variant="danger" onClick={() => deleteSource.mutate()} disabled={deleteSource.isPending}>Remove printer</Button></div></div>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function BambuPrinterCard({
   printer,
   hideIfDisconnected,
   maintenanceInfo,
@@ -6575,16 +6645,28 @@ function PrinterCard({
   );
 }
 
+function PrinterCard(props: Parameters<typeof BambuPrinterCard>[0]) {
+  if (props.printer.platform === 'elegoo') {
+    return <ElegooPrinterCard printer={props.printer} />;
+  }
+  return <BambuPrinterCard {...props} />;
+}
+
 export function AddPrinterModal({
   onClose,
   onAdd,
   existingSerials,
 }: {
   onClose: () => void;
-  onAdd: (data: PrinterCreate) => void;
+  onAdd: (data: PrinterCreate | ElegooSourceCreate) => void;
   existingSerials: string[];
 }) {
   const { t } = useTranslation();
+  const [platform, setPlatform] = useState<'bambu' | 'elegoo'>('bambu');
+  const [elegooName, setElegooName] = useState('');
+  const [elegooAddress, setElegooAddress] = useState('');
+  const [elegooAcknowledged, setElegooAcknowledged] = useState(false);
+  const [elegooEnabled, setElegooEnabled] = useState(false);
   const [form, setForm] = useState<PrinterCreate>({
     name: '',
     serial_number: '',
@@ -6781,6 +6863,34 @@ export function AddPrinterModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  if (platform === 'elegoo') {
+    const validPrivateIPv4 = isCanonicalRfc1918Ipv4(elegooAddress);
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
+        <Card className="w-full max-w-md my-auto" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+          <CardContent>
+            <h2 className="text-xl font-semibold mb-4">Add printer</h2>
+            <div className="mb-4">
+              <label htmlFor="elegoo-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label>
+              <select id="elegoo-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo')}>
+                <option value="bambu">Bambu Lab</option>
+                <option value="elegoo">Elegoo SDCP v3 (read-only)</option>
+              </select>
+            </div>
+            <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); onAdd({ name: elegooName.trim(), private_ipv4: elegooAddress, read_only_acknowledged: elegooAcknowledged, is_enabled: elegooEnabled }); }}>
+              <p className="text-sm text-bambu-gray">Centauri/OpenCentauri support is an opt-in, passive SDCP v3 connection. Goo Buddy sends no printer commands, requests, G-code, or discovery traffic.</p>
+              <div><label htmlFor="elegoo-display-name" className="block text-sm text-bambu-gray mb-1">Display name</label><input id="elegoo-display-name" required value={elegooName} onChange={(e) => setElegooName(e.target.value)} className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></div>
+              <div><label htmlFor="elegoo-private-ipv4" className="block text-sm text-bambu-gray mb-1">Private IPv4 address</label><input id="elegoo-private-ipv4" required inputMode="numeric" value={elegooAddress} onChange={(e) => setElegooAddress(e.target.value)} placeholder="192.168.1.50" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" aria-describedby="elegoo-address-help" /><p id="elegoo-address-help" className="mt-1 text-xs text-bambu-gray">RFC1918 IPv4 only. The fixed SDCP v3 endpoint is used internally and is never shown on the dashboard.</p></div>
+              <label htmlFor="elegoo-read-only-ack" className="flex gap-2 text-sm text-bambu-gray"><input id="elegoo-read-only-ack" required type="checkbox" checked={elegooAcknowledged} onChange={(e) => setElegooAcknowledged(e.target.checked)} />I understand this is read-only and does not provide printer controls.</label>
+              <label className="flex gap-2 text-sm text-bambu-gray"><input type="checkbox" checked={elegooEnabled} onChange={(e) => setElegooEnabled(e.target.checked)} />Enable the passive connection after saving</label>
+              <div className="flex gap-3 pt-2"><Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t('common.cancel')}</Button><Button type="submit" disabled={!validPrivateIPv4 || !elegooAcknowledged || !elegooName.trim()} className="flex-1">Add read-only printer</Button></div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <>
     <div
@@ -6790,6 +6900,7 @@ export function AddPrinterModal({
       <Card className="w-full max-w-md my-auto max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <CardContent>
           <h2 className="text-xl font-semibold mb-4">{t('printers.addPrinter')}</h2>
+          <div className="mb-4"><label htmlFor="printer-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label><select id="printer-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo')}><option value="bambu">Bambu Lab</option><option value="elegoo">Elegoo SDCP v3 (read-only)</option></select></div>
 
           {/* Discovery Section */}
           <div className="mb-4 pb-4 border-b border-bambu-dark-tertiary">
@@ -7987,7 +8098,8 @@ export function PrintersPage() {
   ) || {};
 
   const addMutation = useMutation({
-    mutationFn: api.createPrinter,
+    mutationFn: (data: PrinterCreate | ElegooSourceCreate) =>
+      'private_ipv4' in data ? api.createElegooSource(data) : api.createPrinter(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['printers'] });
       queryClient.invalidateQueries({ queryKey: ['maintenanceOverview'] });
