@@ -93,6 +93,7 @@ import { api, discoveryApi, firmwareApi, withStreamToken, ApiError } from '../ap
 import { formatDateOnly, formatETA, formatDuration, parseUTCDate } from '../utils/date';
 import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult, ElegooSourceCreate, MoonrakerSourceCreate } from '../api/client';
 import { Card, CardContent } from '../components/Card';
+import { WorkshopReadOnlyPresentation } from '../components/WorkshopPrinterPresentation';
 import { Button } from '../components/Button';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { BulkPrinterToolbar, type PrinterState } from '../components/BulkPrinterToolbar';
@@ -1769,8 +1770,6 @@ export function ElegooPrinterCard({ printer }: { printer: Printer }) {
   });
   const phase = printer.is_active ? (status?.phase ?? 'connecting') : 'disabled';
   const current = status?.freshness === 'current';
-  const temperatures = status?.temperatures;
-  const job = status?.job;
   const validReplacementAddress = isCanonicalRfc1918Ipv4(replacementAddress);
   const replaceEndpoint = useMutation({
     mutationFn: () => api.updateElegooSource(-printer.id, { private_ipv4: replacementAddress, read_only_acknowledged: replacementAcknowledged }),
@@ -1790,19 +1789,13 @@ export function ElegooPrinterCard({ printer }: { printer: Printer }) {
     },
   });
   return (
-    <Card className="overflow-hidden border-teal-500/30">
-      <CardContent className="space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div><h3 className="font-semibold text-white">{printer.name}</h3><p className="text-xs text-bambu-gray">Elegoo SDCP v3 · read-only</p></div>
-          <span className={`rounded-full px-2 py-1 text-xs ${current ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>{phase}</span>
-        </div>
-        {status?.retained && <p className="rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-200">Retained data — not current. Waiting for a fresh printer observation.</p>}
+    <Card className="workshop-printer-card workshop-printer-card--elegoo overflow-hidden">
+      <CardContent className="workshop-card-content space-y-4">
+        <div className="flex items-start justify-between gap-3"><h3 className="workshop-printer-name">{printer.name}</h3><span className="sr-only">{phase} {current ? 'current' : 'not current'}</span></div>
+        <WorkshopReadOnlyPresentation platform="elegoo" snapshot={status} />
         {!printer.is_active && <p className="text-sm text-bambu-gray">Disabled. Enable only when you want Goo Buddy to open its passive read-only connection.</p>}
         {printer.is_active && !status?.last_observation_at && ['connecting', 'waiting', 'reconnecting'].includes(status?.phase ?? 'connecting') && <p className="text-sm text-bambu-gray">Waiting for a printer-pushed SDCP status and attributes observation. Goo Buddy does not request one.</p>}
         {status?.error && <p className="text-sm text-red-300">Connection: {status.error.replaceAll('_', ' ')}</p>}
-        {(status?.model || status?.firmware) && <p className="text-sm text-bambu-gray">{status.model ?? 'Centauri'}{status.firmware ? ` · firmware ${status.firmware}` : ''}</p>}
-        {temperatures && <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2"><span>Nozzle {temperatures.nozzle?.current_c ?? '—'}°C / {temperatures.nozzle?.target_c ?? '—'}°C</span><span>Bed {temperatures.bed?.current_c ?? '—'}°C / {temperatures.bed?.target_c ?? '—'}°C</span>{temperatures.chamber && <span>Chamber {temperatures.chamber.current_c ?? '—'}°C / {temperatures.chamber.target_c ?? '—'}°C</span>}</div>}
-        {job && <div className="text-sm text-bambu-gray"><p>{job.state ?? status?.state ?? 'Unknown'}{job.progress_percent != null ? ` · ${Math.round(job.progress_percent)}%` : ''}</p>{job.current_layer != null && <p>Layer {job.current_layer}{job.total_layers != null ? ` / ${job.total_layers}` : ''}</p>}</div>}
         <div className="flex items-center justify-between gap-3 border-t border-bambu-dark-tertiary pt-3"><span className="text-xs text-bambu-gray">Camera, files, console, maintenance, and controls are unavailable.</span><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setEditingEndpoint(true)}>Change endpoint</Button><Button variant="secondary" onClick={() => toggle.mutate()} disabled={toggle.isPending}>{printer.is_active ? 'Disable' : 'Enable'}</Button><Button variant="danger" onClick={() => setConfirmingDelete(true)}>Remove</Button></div></div>
         {editingEndpoint && <form className="space-y-2 rounded border border-bambu-dark-tertiary p-3" onSubmit={(event) => { event.preventDefault(); replaceEndpoint.mutate(); }}><p className="text-sm text-amber-200">Changing the private address immediately disconnects the old source and leaves this printer disabled. Re-enable it deliberately after saving.</p><label htmlFor={`elegoo-replace-${printer.id}`} className="block text-xs text-bambu-gray">New private IPv4 address</label><input id={`elegoo-replace-${printer.id}`} required inputMode="numeric" value={replacementAddress} onChange={(event) => setReplacementAddress(event.target.value)} placeholder="192.168.1.50" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /><label htmlFor={`elegoo-replace-ack-${printer.id}`} className="flex gap-2 text-xs text-bambu-gray"><input id={`elegoo-replace-ack-${printer.id}`} required type="checkbox" checked={replacementAcknowledged} onChange={(event) => setReplacementAcknowledged(event.target.checked)} />I confirm this replacement remains read-only.</label><div className="flex gap-2"><Button type="button" variant="secondary" onClick={() => setEditingEndpoint(false)}>Cancel</Button><Button type="submit" disabled={!validReplacementAddress || !replacementAcknowledged || replaceEndpoint.isPending}>Save and disable</Button></div></form>}
         {confirmingDelete && <div className="space-y-3 rounded border border-red-500/40 p-3"><p className="text-sm text-bambu-gray">Remove this read-only source? Its active connection is cancelled and its saved endpoint configuration is deleted.</p><div className="flex gap-2"><Button variant="secondary" onClick={() => setConfirmingDelete(false)}>Cancel</Button><Button variant="danger" onClick={() => deleteSource.mutate()} disabled={deleteSource.isPending}>Remove printer</Button></div></div>}
@@ -1825,16 +1818,13 @@ export function MoonrakerPrinterCard({ printer }: { printer: Printer }) {
   const remove = useMutation({ mutationFn: () => api.deleteMoonrakerSource(-1_000_000 - printer.id), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['printers'] }) });
   const replace = useMutation({ mutationFn: () => api.updateMoonrakerSource(-1_000_000 - printer.id, { private_ipv4: replacementAddress, port: Number(replacementPort), scheme: replacementScheme, api_key: replacementApiKey || undefined, read_only_acknowledged: replacementAcknowledged }), onSuccess: () => { setEditingConfiguration(false); queryClient.invalidateQueries({ queryKey: ['printers'] }); queryClient.invalidateQueries({ queryKey: ['moonraker-status', -1_000_000 - printer.id] }); } });
   const current = status?.freshness === 'current';
-  return <Card className="overflow-hidden border-sky-500/30"><CardContent className="space-y-3">
-    <div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-white">{printer.name}</h3><p className="text-xs text-bambu-gray">Klipper via Moonraker · alpha read-only</p></div><span className={`rounded-full px-2 py-1 text-xs ${current ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>{printer.is_active ? status?.phase ?? 'connecting' : 'disabled'}</span></div>
-    {status?.retained && <p className="rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-200">Retained data — not current. Waiting for validated Moonraker status.</p>}
+  return <Card className="workshop-printer-card workshop-printer-card--moonraker overflow-hidden"><CardContent className="workshop-card-content space-y-4">
+    <div className="flex items-start justify-between gap-3"><h3 className="workshop-printer-name">{printer.name}</h3><span className="sr-only">{current ? 'current' : 'not current'}</span></div>
+    <WorkshopReadOnlyPresentation platform="moonraker" snapshot={status} />
     {!printer.is_active && <p className="text-sm text-bambu-gray">Disabled. Enable only when you want Goo Buddy to open its read-only monitoring connection.</p>}
     {printer.is_active && !status?.last_observation_at && ['connecting', 'waiting', 'reconnecting'].includes(status?.phase ?? 'connecting') && <p className="text-sm text-bambu-gray">Connecting to the saved private Moonraker endpoint and waiting for validated status.</p>}
     {status?.error && <p className="break-words text-sm text-red-300">Connection: {status.error.replaceAll('_', ' ')}</p>}
     {status?.error === 'unauthorized' && <p className="text-sm text-amber-200">Moonraker authentication needs attention. Review the saved API-key configuration; Goo Buddy never displays the key.</p>}
-    {(status?.model || status?.firmware) && <p className="text-sm text-bambu-gray">{status.model ?? 'Klipper'}{status.firmware ? ` · Moonraker ${status.firmware}` : ''}</p>}
-    {status?.temperatures && <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2"><span>Nozzle {status.temperatures.nozzle?.current_c ?? '—'}°C / {status.temperatures.nozzle?.target_c ?? '—'}°C</span><span>Bed {status.temperatures.bed?.current_c ?? '—'}°C / {status.temperatures.bed?.target_c ?? '—'}°C</span>{status.temperatures.chamber && <span>Chamber {status.temperatures.chamber.current_c ?? '—'}°C / {status.temperatures.chamber.target_c ?? '—'}°C</span>}</div>}
-    {status?.job && <div className="text-sm text-bambu-gray"><p>{status.job.name ?? 'Active job'} · {status.job.state ?? status.state ?? 'Unknown'}{status.job.progress_percent != null ? ` · ${Math.round(status.job.progress_percent)}%` : ''}</p>{status.job.current_layer != null && <p>Layer {status.job.current_layer}{status.job.total_layers != null ? ` / ${status.job.total_layers}` : ''}</p>}{status.job.elapsed_seconds != null && <p>Elapsed {formatDuration(status.job.elapsed_seconds)}{status.job.estimated_remaining_seconds != null ? ` · estimated remaining ${formatDuration(status.job.estimated_remaining_seconds)}` : ''}</p>}</div>}
     <div className="flex items-center justify-between gap-3 border-t border-bambu-dark-tertiary pt-3"><span className="text-xs text-bambu-gray">Camera, files, console, maintenance, upload, and controls are unavailable.</span><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setEditingConfiguration(true)}>Change connection</Button><Button variant="secondary" onClick={() => toggle.mutate()} disabled={toggle.isPending}>{printer.is_active ? 'Disable' : 'Enable'}</Button><Button variant="danger" onClick={() => setConfirmingDelete(true)}>Remove</Button></div></div>
     {editingConfiguration && <form className="space-y-2 rounded border border-bambu-dark-tertiary p-3" onSubmit={(event) => { event.preventDefault(); replace.mutate(); }}><p className="text-sm text-amber-200">Changing the endpoint, transport, port, or API key immediately closes this session and leaves monitoring disabled. Re-enable it deliberately after saving.</p><label className="block text-xs text-bambu-gray">New private IPv4 address<input required inputMode="numeric" value={replacementAddress} onChange={(event) => setReplacementAddress(event.target.value)} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></label><div className="grid grid-cols-2 gap-2"><label className="block text-xs text-bambu-gray">Transport<select value={replacementScheme} onChange={(event) => setReplacementScheme(event.target.value as 'http' | 'https')} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white"><option value="http">HTTP</option><option value="https">HTTPS</option></select></label><label className="block text-xs text-bambu-gray">Port<input required inputMode="numeric" value={replacementPort} onChange={(event) => setReplacementPort(event.target.value)} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></label></div><label className="block text-xs text-bambu-gray">Replacement API key (optional)<input type="password" autoComplete="off" value={replacementApiKey} onChange={(event) => setReplacementApiKey(event.target.value)} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></label><label className="flex gap-2 text-xs text-bambu-gray"><input required type="checkbox" checked={replacementAcknowledged} onChange={(event) => setReplacementAcknowledged(event.target.checked)} />I confirm this replacement remains read-only.</label><div className="flex gap-2"><Button type="button" variant="secondary" onClick={() => setEditingConfiguration(false)}>Cancel</Button><Button type="submit" disabled={!isCanonicalRfc1918Ipv4(replacementAddress) || !Number.isInteger(Number(replacementPort)) || Number(replacementPort) < 1 || Number(replacementPort) > 65535 || !replacementAcknowledged || replace.isPending}>Save and disable</Button></div></form>}
     {confirmingDelete && <div className="space-y-3 rounded border border-red-500/40 p-3"><p className="text-sm text-bambu-gray">Remove this Moonraker read-only source? Its connection is cancelled and its protected configuration is deleted.</p><div className="flex gap-2"><Button variant="secondary" onClick={() => setConfirmingDelete(false)}>Cancel</Button><Button variant="danger" onClick={() => remove.mutate()} disabled={remove.isPending}>Remove printer</Button></div></div>}
@@ -3306,7 +3296,7 @@ function BambuPrinterCard({
   return (
     <Card
       id={`printer-card-${printer.id}`}
-      className={`relative flex h-full flex-col ${isSelected ? 'ring-2 ring-bambu-green' : ''} ${selectionMode || viewMode === 'compact' ? 'cursor-pointer' : ''}`}
+      className={`workshop-printer-card workshop-printer-card--bambu relative flex h-full flex-col ${isSelected ? 'ring-2 ring-bambu-green' : ''} ${selectionMode || viewMode === 'compact' ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
       onDragEnter={handleCardDragEnter}
       onDragOver={handleCardDragOver}
@@ -3372,7 +3362,7 @@ function BambuPrinterCard({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h3 className={`font-semibold text-white ${getTitleSize()}`}>{printer.name}</h3>
+                    <h3 className={`workshop-printer-name ${getTitleSize()}`}>{printer.name}</h3>
                     {/* Connection indicator dot for compact mode */}
                     {viewMode === 'compact' && (() => {
                       const hmsErrors = status?.connected && status.hms_errors ? filterKnownHMSErrors(status.hms_errors) : [];
@@ -8797,16 +8787,19 @@ export function PrintersPage() {
   );
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="workshop-page p-4 md:p-8">
       <div className="space-y-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+        <div className="workshop-page-header">
+          <div>
+          <h1 className="workshop-page-title text-2xl font-bold text-white flex items-center gap-3">
             <PrinterIcon className="w-7 h-7 text-bambu-green" />
             {t('printers.title')}
           </h1>
           <StatusSummaryBar printers={printers} />
+          </div>
+          <p className="max-w-sm text-sm leading-5 text-bambu-gray">A capability-driven workspace. Read-only sources display only validated observations.</p>
         </div>
-        <div ref={toolbarRef} className="relative flex items-center gap-2">
+        <div ref={toolbarRef} className="workshop-toolbar relative flex items-center gap-2">
           {/* Only show search bar when printers exist */}
           {printers && printers.length > 0 && (
             <div className="relative min-w-0 flex-1">
@@ -8868,7 +8861,7 @@ export function PrintersPage() {
       {isLoading ? (
         <div className="text-center py-12 text-bambu-gray">{t('common.loading')}</div>
       ) : printers?.length === 0 ? (
-        <Card>
+        <Card className="workshop-surface">
           <CardContent className="text-center py-12">
             <p className="text-bambu-gray mb-4">{t('printers.noPrintersConfigured')}</p>
             <Button
@@ -8882,7 +8875,7 @@ export function PrintersPage() {
           </CardContent>
         </Card>
       ) : sortedPrinters.length === 0 && (search.trim() || statusFilter !== 'all' || locationFilter !== 'all') ? (
-        <Card>
+        <Card className="workshop-surface">
           <CardContent className="text-center py-12">
             <p className="text-bambu-gray">{t('printers.noSearchResults')}</p>
           </CardContent>
@@ -8973,7 +8966,7 @@ export function PrintersPage() {
                   </h2>
                 }
               >
-                <div className={`grid gap-4 ${cardSize >= 3 ? 'gap-6' : ''} ${getGridClasses()}`}>
+                <div className={`workshop-fleet-grid grid gap-4 ${cardSize >= 3 ? 'gap-6' : ''} ${getGridClasses()}`}>
                   {groupPrinters.map((printer) => (
                     <PrinterCard
                       key={printer.id}
@@ -9022,7 +9015,7 @@ export function PrintersPage() {
         </div>
       ) : (
         /* Regular grid view */
-        <div className={`grid gap-4 ${cardSize >= 3 ? 'gap-6' : ''} ${getGridClasses()}`}>
+        <div className={`workshop-fleet-grid grid gap-4 ${cardSize >= 3 ? 'gap-6' : ''} ${getGridClasses()}`}>
           {sortedPrinters.map((printer) => (
             <PrinterCard
               key={printer.id}

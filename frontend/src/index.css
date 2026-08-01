@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Inter, self-hosted (#1460).  Bambuddy is a local-first, offline-capable PWA;
+/* Inter, self-hosted (#1460). Goo Buddy is a local-first, offline-capable PWA;
    pulling the font from fonts.googleapis.com at runtime broke the install on
    Android (CSP-blocked cross-origin fetch) and meant the UI couldn't render
    offline.  These are the variable woff2 files Google Fonts serves — one file
@@ -197,6 +197,202 @@ html {
   --text-muted: #6a8874;
   --text-tertiary: #4a6854;
   --border-color: #2a3d30;
+}
+
+/* ============================================
+   GOO BUDDY WORKSHOP
+   Shared presentation system for capability-driven printer views. These
+   classes deliberately style existing components; they do not imply a new
+   backend capability, data source, or control surface.
+   ============================================ */
+
+:root {
+  --workshop-navy: #101b27;
+  --workshop-slate: #1a2a38;
+  --workshop-raised: #203444;
+  --workshop-border: color-mix(in srgb, var(--border-color) 72%, transparent);
+  --workshop-teal: #16b8a6;
+  --workshop-emerald: #32c982;
+  --workshop-amber: #e3aa4b;
+  --workshop-coral: #ef786d;
+  --workshop-retained: #5ea6d8;
+  --workshop-shadow: 0 18px 46px rgba(11, 24, 36, 0.14);
+}
+
+.dark {
+  --workshop-navy: #0e1822;
+  --workshop-slate: #172633;
+  --workshop-raised: #203442;
+  --workshop-border: rgba(141, 177, 196, 0.16);
+  --workshop-shadow: 0 20px 52px rgba(0, 0, 0, 0.28);
+}
+
+.workshop-surface {
+  border-color: var(--workshop-border);
+  box-shadow: var(--workshop-shadow);
+}
+
+.workshop-printer-card {
+  isolation: isolate;
+  border-radius: 18px;
+  border-color: var(--workshop-border);
+  box-shadow: var(--workshop-shadow);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--bg-secondary) 96%, var(--workshop-teal) 4%), var(--bg-secondary));
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.workshop-printer-card:hover {
+  border-color: color-mix(in srgb, var(--workshop-teal) 42%, var(--workshop-border));
+  box-shadow: 0 24px 58px rgba(8, 26, 36, 0.2);
+}
+
+.workshop-printer-card--elegoo { --workshop-driver: #28baa9; }
+.workshop-printer-card--moonraker { --workshop-driver: #63a8dd; }
+.workshop-printer-card--bambu { --workshop-driver: #4fc983; }
+
+.workshop-card-content { position: relative; }
+.workshop-card-content::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: 4px;
+  background: var(--workshop-driver, var(--workshop-teal));
+  opacity: 0.72;
+}
+
+.workshop-printer-name {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.018em;
+}
+
+.workshop-eyebrow {
+  margin: 0;
+  color: var(--workshop-driver, var(--workshop-teal));
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.workshop-driver-copy,
+.workshop-model-line {
+  margin: 0.15rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.79rem;
+}
+
+.workshop-printer-summary { display: grid; gap: 0.82rem; }
+.workshop-printer-summary__identity { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+
+.workshop-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 720;
+  line-height: 1;
+  white-space: nowrap;
+}
+.workshop-status__retained { padding-left: 0.35rem; border-left: 1px solid currentColor; opacity: 0.82; }
+.workshop-status--ready { color: var(--workshop-emerald); background: color-mix(in srgb, var(--workshop-emerald) 11%, transparent); }
+.workshop-status--waiting, .workshop-status--attention { color: var(--workshop-amber); background: color-mix(in srgb, var(--workshop-amber) 11%, transparent); }
+.workshop-status--stale, .workshop-status--disconnected { color: var(--workshop-retained); background: color-mix(in srgb, var(--workshop-retained) 12%, transparent); }
+.workshop-status--invalid { color: var(--workshop-coral); background: color-mix(in srgb, var(--workshop-coral) 12%, transparent); }
+.workshop-status--disabled { color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 11%, transparent); }
+
+.workshop-retained-notice,
+.workshop-unavailable {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.62rem 0.72rem;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.workshop-retained-notice { color: color-mix(in srgb, var(--workshop-retained) 84%, white); background: color-mix(in srgb, var(--workshop-retained) 10%, transparent); }
+.workshop-unavailable { color: var(--text-muted); background: color-mix(in srgb, var(--bg-primary) 52%, transparent); }
+
+.workshop-temperature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+  gap: 0.5rem;
+}
+.workshop-temperature {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.34rem;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--workshop-border) 78%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-primary) 52%, transparent);
+  color: var(--workshop-amber);
+}
+.workshop-temperature__label { color: var(--text-muted); font-size: 0.72rem; }
+.workshop-temperature strong { color: var(--text-primary); font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.workshop-temperature__target { color: var(--text-muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+
+.workshop-progress { display: grid; gap: 0.38rem; }
+.workshop-progress__topline { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.76rem; }
+.workshop-progress__topline strong { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.workshop-progress__track { height: 0.48rem; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--bg-primary) 68%, var(--workshop-teal) 10%); }
+.workshop-progress__track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--workshop-teal), var(--workshop-emerald)); transition: width 320ms ease; }
+.workshop-progress p { margin: 0; color: var(--text-muted); font-size: 0.72rem; }
+
+.workshop-page { max-width: 1760px; margin: 0 auto; }
+.workshop-app-shell { background: radial-gradient(circle at 78% -10%, color-mix(in srgb, var(--workshop-teal) 11%, transparent), transparent 32%), var(--workshop-navy); }
+.workshop-nav-rail { background: linear-gradient(180deg, color-mix(in srgb, var(--workshop-slate) 94%, transparent), var(--workshop-navy)); border-color: var(--workshop-border); box-shadow: 12px 0 34px rgba(5, 15, 25, 0.16); }
+.workshop-main { background: transparent; }
+.workshop-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: clamp(1rem, 1.7vw, 1.6rem);
+  border: 1px solid var(--workshop-border);
+  border-radius: 18px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--workshop-slate) 78%, transparent), color-mix(in srgb, var(--bg-secondary) 92%, transparent));
+  box-shadow: var(--workshop-shadow);
+}
+.workshop-page-title { letter-spacing: -0.035em; }
+.workshop-toolbar {
+  padding: 0.5rem;
+  border: 1px solid var(--workshop-border);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+}
+
+/* The first card becomes the visual workstation when the data order itself
+   selects it (the synthetic preview intentionally puts Bambu first). This is
+   layout-only; it does not select, mutate, or infer a printer's capabilities. */
+@media (min-width: 1180px) {
+  .workshop-fleet-grid > :first-child {
+    grid-column: span 2;
+  }
+  .workshop-fleet-grid > :first-child .workshop-printer-name { font-size: 1.25rem; }
+}
+
+@media (max-width: 720px) {
+  .workshop-page-header { align-items: stretch; flex-direction: column; }
+  .workshop-printer-summary__identity { align-items: flex-start; flex-direction: column; }
+  .workshop-status { white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workshop-printer-card,
+  .workshop-progress__track span { transition: none; }
 }
 
 /* Printer card control buttons: stack only when they clip */

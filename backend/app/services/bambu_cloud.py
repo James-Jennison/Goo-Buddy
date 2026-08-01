@@ -78,7 +78,7 @@ def invalidate_validation_cache(token: str | None = None) -> None:
 # OrcaSlicer fork was called out for in the May 2026 Bambu Lab blog post
 # ("Setting the record straight on cloud access and community"): we do not
 # introduce ourselves as official Bambu Studio.
-_USER_AGENT = "Bambuddy/1.0 (+https://github.com/maziggy/bambuddy)"
+_USER_AGENT = "Goo-Buddy/1.0 (+https://github.com/James-Jennison/Goo-Buddy)"
 
 # Cloudflare protection on Bambu Lab's edge intermittently returns interstitials /
 # challenges instead of the JSON the API normally produces (issue #1575). The
@@ -86,7 +86,7 @@ _USER_AGENT = "Bambuddy/1.0 (+https://github.com/maziggy/bambuddy)"
 # we can surface an actionable message instead of "Invalid response from Bambu Cloud".
 _CF_INTERSTITIAL_USER_MESSAGE = (
     "Bambu Cloud is temporarily blocking automated requests from your network. "
-    "This is a Cloudflare protection on Bambu Lab's side, not a Bambuddy issue. "
+    "This is a Cloudflare protection on Bambu Lab's side, not a Goo Buddy issue. "
     "Please wait a few minutes and try again. If it persists, signing in to "
     "bambulab.com once from a browser on the same network usually clears the "
     "challenge."

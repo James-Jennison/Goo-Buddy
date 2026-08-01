@@ -89,7 +89,9 @@ export function Layout() {
   const [changePasswordLoading, setChangePasswordLoading] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(() => {
     const stored = localStorage.getItem('sidebarExpanded');
-    return stored !== 'false';
+    // Workshop starts as an accessible icon rail; people who prefer labels can
+    // expand it and that preference remains local to their browser.
+    return stored === 'true';
   });
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -478,7 +480,7 @@ export function Layout() {
   }, [handleKeyDown]);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="workshop-app-shell flex min-h-screen">
       {/* Compact Header */}
       {isSidebarCompact && (
         <header className="fixed top-0 left-0 right-0 z-40 h-14 bg-bambu-dark-secondary border-b border-bambu-dark-tertiary flex items-center px-4">
@@ -491,7 +493,7 @@ export function Layout() {
           </button>
           <img
             src="/img/goo_buddy_logo.png"
-            alt="Goo Buddy, built on Bambuddy"
+            alt="Goo Buddy"
             className="h-8 ml-3"
           />
         </header>
@@ -507,17 +509,17 @@ export function Layout() {
 
       {/* Sidebar / Mobile Drawer */}
       <aside
-        className={`bg-bambu-dark-secondary border-r border-bambu-dark-tertiary flex flex-col transition-all duration-300 ${
+        className={`workshop-nav-rail bg-bambu-dark-secondary border-r border-bambu-dark-tertiary flex flex-col transition-all duration-300 ${
           isSidebarCompact
             ? `fixed inset-y-0 left-0 z-50 w-72 transform ${mobileDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`
-            : `fixed inset-y-0 left-0 z-30 ${sidebarExpanded ? 'w-64' : 'w-16'}`
+            : `fixed inset-y-0 left-0 z-30 ${sidebarExpanded ? 'w-64' : 'w-20'}`
         }`}
       >
         {/* Logo */}
         <div className={`border-b border-bambu-dark-tertiary flex items-center justify-center ${isSidebarCompact || sidebarExpanded ? 'p-4' : 'p-2'}`}>
           <img
             src="/img/goo_buddy_logo.png"
-            alt="Goo Buddy, built on Bambuddy"
+            alt="Goo Buddy"
             className={isSidebarCompact || sidebarExpanded ? 'h-16 w-auto' : 'h-8 w-8 object-cover object-left'}
           />
         </div>
@@ -543,6 +545,7 @@ export function Layout() {
                         rel="noopener noreferrer"
                         className={`flex items-center ${isSidebarCompact || sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-3 rounded-lg transition-colors group text-bambu-gray-light hover:bg-bambu-dark-tertiary hover:text-white`}
                         title={!isSidebarCompact && !sidebarExpanded ? link.name : undefined}
+                        aria-label={link.name}
                       >
                         {link.custom_icon ? (
                           <img
@@ -566,6 +569,7 @@ export function Layout() {
                           }`
                         }
                         title={!isSidebarCompact && !sidebarExpanded ? link.name : undefined}
+                        aria-label={link.name}
                       >
                         {link.custom_icon ? (
                           <img
@@ -605,6 +609,7 @@ export function Layout() {
                         }`
                       }
                       title={!isSidebarCompact && !sidebarExpanded ? t(labelKey) : undefined}
+                      aria-label={t(labelKey)}
                     >
                       <div className="relative">
                         <Icon className="w-5 h-5 flex-shrink-0" />
@@ -838,8 +843,8 @@ export function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className={`flex-1 bg-bambu-dark overflow-auto transition-all duration-300 ${
-        isSidebarCompact ? 'mt-14' : sidebarExpanded ? 'ml-64' : 'ml-16'
+      <main className={`workshop-main flex-1 bg-bambu-dark overflow-auto transition-all duration-300 ${
+        isSidebarCompact ? 'mt-14' : sidebarExpanded ? 'ml-64' : 'ml-20'
       }`}>
         {/* Debug logging indicator */}
         {debugLoggingState?.enabled && (

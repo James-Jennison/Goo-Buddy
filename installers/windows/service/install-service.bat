@@ -1,5 +1,6 @@
 @echo off
-REM Register Bambuddy as a Windows service via NSSM.
+REM Register Goo Buddy as a Windows service via NSSM; the service identifier
+REM remains Bambuddy for upgrade compatibility.
 REM
 REM Called from Inno Setup's [Run] section. Arguments:
 REM   %1 = install dir (e.g. C:\Program Files\Bambuddy)
@@ -42,8 +43,8 @@ if errorlevel 1 (
 
 REM Service configuration
 "%NSSM%" set Bambuddy AppDirectory "%APP_DIR%"
-"%NSSM%" set Bambuddy DisplayName "Bambuddy"
-"%NSSM%" set Bambuddy Description "Bambuddy — local-first Bambu Lab printer manager"
+"%NSSM%" set Bambuddy DisplayName "Goo Buddy"
+"%NSSM%" set Bambuddy Description "Goo Buddy — local-first 3D printer manager"
 "%NSSM%" set Bambuddy Start SERVICE_AUTO_START
 
 REM Shutdown behaviour. NSSM's stop sequence is Ctrl-C, then WM_CLOSE, then a
@@ -88,6 +89,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [install-service] Bambuddy service registered and started on port %PORT%
+echo [install-service] Goo Buddy service registered and started on port %PORT%
 endlocal
 exit /b 0

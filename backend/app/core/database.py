@@ -2206,7 +2206,7 @@ async def run_migrations(conn):
                                  NULL, :remote_iface, '391800001', 0)
                         """),
                         {
-                            "name": "Bambuddy",
+                            "name": "Goo Buddy",
                             "enabled": old_enabled,
                             "mode": old_mode or "archive",
                             "model": old_model,

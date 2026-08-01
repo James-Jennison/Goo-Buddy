@@ -1,5 +1,5 @@
 @echo off
-REM Stop and deregister the Bambuddy Windows service.
+REM Stop and deregister the Goo Buddy Windows service (legacy service name).
 REM
 REM Called from Inno Setup's [UninstallRun] section. Argument:
 REM   %1 = install dir (e.g. C:\Program Files\Bambuddy)
@@ -17,6 +17,6 @@ REM Remove the service registration. confirm flag skips the
 REM interactive prompt.
 "%NSSM%" remove Bambuddy confirm 2>nul
 
-echo [uninstall-service] Bambuddy service deregistered
+echo [uninstall-service] Goo Buddy service deregistered
 endlocal
 exit /b 0

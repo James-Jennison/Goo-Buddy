@@ -65,7 +65,7 @@ export function VirtualPrinterList() {
 
   const handleDownloadCert = () => {
     if (!caCert) return;
-    downloadTextFile(caCert.pem, 'bambuddy-virtual-printer-ca.crt', 'application/x-pem-file');
+    downloadTextFile(caCert.pem, 'goo-buddy-virtual-printer-ca.crt', 'application/x-pem-file');
   };
 
   if (isLoading) {

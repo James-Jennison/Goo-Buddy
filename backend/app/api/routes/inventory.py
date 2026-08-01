@@ -1000,7 +1000,7 @@ async def sync_from_filamentcolors(
             # outbound client (bambu_cloud, makerworld, firmware_check).
             async with httpx.AsyncClient(
                 timeout=120.0,
-                headers={"User-Agent": "Bambuddy/1.0 (+https://github.com/maziggy/bambuddy)"},
+                headers={"User-Agent": "Goo-Buddy/1.0 (+https://github.com/James-Jennison/Goo-Buddy)"},
             ) as client:
                 page = 1
                 while True:
@@ -1129,7 +1129,7 @@ async def export_spools_csv(
     content = serialize(spools)
     # Date-stamp the filename so repeat exports don't overwrite each other in
     # the browser's default download folder.
-    filename = f"bambuddy_inventory_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    filename = f"goo-buddy-inventory_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
     return Response(
         content=content,
         media_type="text/csv",

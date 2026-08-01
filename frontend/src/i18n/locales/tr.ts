@@ -3952,10 +3952,6 @@ export default {
     toastArchives: '{{count}} baskı Goo Buddy ile arşivlendi. Bağımsız kalmasını sağlayanları gör.',
     toastAnniversary: 'Goo Buddy ile bir yılı doldurdun! Projeyi bağımsız tutanları gör.',
     toastVersionUpdate: 'v{{version}} sürümüne güncellendi. Goo Buddy, destekçileri sayesinde ücretsiz kalıyor.',
-    toastBusiness: "Goo Buddy'yi {{count}} yazıcıda mı çalıştırıyorsunuz? Ekipler için bir destek planı var: öncelikli düzeltmeler, faturalandırma ve geliştiriciye doğrudan erişim.",
-    businessCta: 'Kurumsal Goo Buddy',
-    businessTitle: 'Kurumsal Goo Buddy',
-    businessTagline: '{{count}} yazıcı çalıştırıyorsunuz. Ekipler ve baskı çiftlikleri için öncelikli destek, ticari lisanslama ve faturalandırma mevcut.',
   },
 
   // Kütüphane (K Profilleri)

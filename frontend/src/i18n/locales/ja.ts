@@ -3962,10 +3962,6 @@ export default {
     toastArchives: '{{count}}件の印刷をGoo Buddyでアーカイブしました。独立を支えてくれている方々をご覧ください。',
     toastAnniversary: 'Goo Buddyとの1周年です！プロジェクトを支えてくれている方々をご覧ください。',
     toastVersionUpdate: 'v{{version}}にアップデートされました。Goo Buddyは支援者のおかげで無料で提供されています。',
-    toastBusiness: '{{count}}台のプリンターでGoo Buddyを運用中ですね。チーム向けのサポートプランがあります（優先対応、請求書発行、開発者への直接窓口）。',
-    businessCta: 'ビジネス向けGoo Buddy',
-    businessTitle: 'ビジネス向けGoo Buddy',
-    businessTagline: '{{count}}台のプリンターを運用中です。チームやプリントファーム向けに、優先サポート、商用ライセンス、請求書発行をご用意しています。',
   },
 
   // Library (K Profiles)

@@ -3950,10 +3950,6 @@ export default {
     toastArchives: '{{count}} impressões arquivadas com o Goo Buddy. Veja quem o mantém independente.',
     toastAnniversary: 'Um ano com o Goo Buddy! Veja quem mantém o projeto independente.',
     toastVersionUpdate: 'Atualizado para v{{version}}. O Goo Buddy continua gratuito graças a quem o apoia.',
-    toastBusiness: 'Você usa o Goo Buddy em {{count}} impressoras? Existe um plano de suporte para equipes: correções prioritárias, emissão de nota fiscal e contato direto com o mantenedor.',
-    businessCta: 'Goo Buddy para empresas',
-    businessTitle: 'Goo Buddy para empresas',
-    businessTagline: 'Você está gerenciando {{count}} impressoras. Suporte prioritário, licenciamento comercial e faturamento estão disponíveis para equipes e fazendas de impressão.',
   },
 
   // Library (K Profiles)

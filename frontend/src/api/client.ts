@@ -4877,7 +4877,7 @@ export const api = {
 
     // Get filename from Content-Disposition header
     const contentDisposition = response.headers.get('Content-Disposition');
-    let filename = 'bambuddy-backup.zip';
+    let filename = 'goo-buddy-backup.zip';
     if (contentDisposition) {
       const match = contentDisposition.match(/filename=([^;]+)/);
       if (match) filename = match[1].trim().replace(/^"(.*)"$/, '$1');
@@ -5463,7 +5463,7 @@ export const api = {
       throw new Error(error.detail || `HTTP ${response.status}`);
     }
     const disposition = response.headers.get('Content-Disposition');
-    const filename = parseContentDispositionFilename(disposition) || 'bambuddy_inventory.csv';
+    const filename = parseContentDispositionFilename(disposition) || 'goo-buddy-inventory.csv';
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -7526,7 +7526,7 @@ export const supportApi = {
     }
     // Get filename from Content-Disposition header or use default
     const disposition = response.headers.get('Content-Disposition');
-    const filename = parseContentDispositionFilename(disposition) || 'bambuddy-support.zip';
+    const filename = parseContentDispositionFilename(disposition) || 'goo-buddy-support.zip';
 
     // Download the blob
     const blob = await response.blob();

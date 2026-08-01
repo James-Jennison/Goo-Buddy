@@ -13,12 +13,10 @@
  */
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { api, sponsorPromptApi, type SponsorPromptCheckResponse } from '../api/client';
+import { sponsorPromptApi, type SponsorPromptCheckResponse } from '../api/client';
 import { getCurrencySymbol } from '../utils/currency';
-import { fleetAudience, sponsorHref, type SponsorAudience } from '../utils/fleetAudience';
 
 const TOAST_ID = 'sponsor-prompt';
 const SESSION_SHOWN_KEY = 'sponsorPromptShown';
@@ -35,15 +33,7 @@ function buildMessage(
   t: ReturnType<typeof useTranslation>['t'],
   trigger: SponsorPromptCheckResponse,
   currencyCode: string,
-  audience: SponsorAudience,
-  printerCount: number,
 ): string | null {
-  // A business install has earned the same milestone, but the ask is different:
-  // support contract and invoicing, not a personal donation. One toast either
-  // way — the fleet only changes which one.
-  if (audience === 'business') {
-    return t('sponsors.toastBusiness', { count: printerCount });
-  }
   const family = trigger.family;
   const payload = trigger.payload ?? {};
   const threshold = trigger.threshold ?? 0;
@@ -72,18 +62,8 @@ export function useSponsorPrompt(currencyCode = 'EUR') {
   const { showPersistentToast } = useToast();
   const firedRef = useRef(false);
 
-  // Fleet size decides which ask the toast makes. The printers list is already
-  // cached app-wide, so this is normally a cache read; on a cold start we wait
-  // for it rather than pitch a print farm as if it were a hobbyist. An error
-  // (no permission, offline) settles the query too and falls back to personal.
-  const { data: printers, isPending: printersPending } = useQuery({
-    queryKey: ['printers'],
-    queryFn: api.getPrinters,
-    retry: false,
-  });
-
   useEffect(() => {
-    if (loading || printersPending || firedRef.current) return;
+    if (loading || firedRef.current) return;
     if (sessionStorage.getItem(SESSION_SHOWN_KEY)) {
       firedRef.current = true;
       return;
@@ -91,22 +71,16 @@ export function useSponsorPrompt(currencyCode = 'EUR') {
     firedRef.current = true;
     sessionStorage.setItem(SESSION_SHOWN_KEY, '1');
 
-    const printerCount = printers?.length ?? 0;
-    const audience = fleetAudience(printerCount);
-
     (async () => {
       try {
         const result = await sponsorPromptApi.check();
         if (!result.show || !result.milestone) return;
-        const message = buildMessage(t, result, currencyCode, audience, printerCount);
+        const message = buildMessage(t, result, currencyCode);
         if (!message) return;
         showPersistentToast(TOAST_ID, message, 'info', {
           action: {
-            label:
-              audience === 'business'
-                ? t('sponsors.businessCta', 'Goo Buddy for business')
-                : t('sponsors.viewSupporters', 'View supporters'),
-            href: sponsorHref(audience, `app-toast-${result.milestone}`),
+            label: t('sponsors.viewSupporters', 'View supporters'),
+            href: `https://github.com/James-Jennison/Goo-Buddy?from=app-toast-${result.milestone}`,
           },
         });
         // Anchor the 14-day cooldown as soon as the toast is on screen, so an
@@ -116,5 +90,5 @@ export function useSponsorPrompt(currencyCode = 'EUR') {
         // Network / 401 — silently skip; next session retries.
       }
     })();
-  }, [loading, printersPending, printers, t, showPersistentToast, currencyCode]);
+  }, [loading, t, showPersistentToast, currencyCode]);
 }

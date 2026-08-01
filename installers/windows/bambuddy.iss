@@ -1,4 +1,4 @@
-; Bambuddy Windows Installer — Inno Setup script
+; Goo Buddy Windows Installer — Inno Setup script (legacy identifiers retained)
 ;
 ; Builds a self-contained installer that lays down:
 ;   - embedded Python 3.13 + pre-installed venv
@@ -11,9 +11,9 @@
 ;
 ; See installers/windows/README.md for the full pipeline.
 
-#define MyAppName "Bambuddy"
+#define MyAppName "Goo Buddy"
 #define MyAppPublisher "Martin Ziegler"
-#define MyAppURL "https://bambuddy.cool"
+#define MyAppURL "https://github.com/James-Jennison/Goo-Buddy"
 #define MyAppExeName "bambuddy.exe"
 #define ServiceName "Bambuddy"
 #define DefaultPort "8000"
@@ -49,7 +49,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ; Admin required: we register a Windows service and write to ProgramData
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=
-; Bambuddy branding — bambuddy.ico is a multi-resolution .ico (16/32/48/
+; Goo Buddy branding — bambuddy.ico is a compatibility-preserved filename for
+; a multi-resolution .ico (16/32/48/
 ; 64/128/256) generated from frontend/public/img/favicon.png; lives next
 ; to this .iss so the SourcePath-relative reference works during compile
 ; and the [Files] entry stages it into {app} for Add/Remove Programs.
@@ -67,7 +68,7 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
-Name: "firewallrule"; Description: "Add Windows Firewall rule for Bambuddy (port {#DefaultPort})"; GroupDescription: "Network:"
+Name: "firewallrule"; Description: "Add Windows Firewall rule for Goo Buddy (port {#DefaultPort})"; GroupDescription: "Network:"
 
 [Files]
 ; Embedded Python (entire tree)
@@ -92,14 +93,14 @@ Name: "{commonappdata}\Bambuddy\data"; Permissions: users-modify
 Name: "{commonappdata}\Bambuddy\logs"; Permissions: users-modify
 
 [Icons]
-Name: "{group}\Open Bambuddy Dashboard"; Filename: "http://localhost:{#DefaultPort}"; IconFilename: "{app}\bambuddy.ico"
-Name: "{group}\Bambuddy Logs"; Filename: "{commonappdata}\Bambuddy\logs"
-Name: "{group}\Uninstall Bambuddy"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\Bambuddy"; Filename: "http://localhost:{#DefaultPort}"; IconFilename: "{app}\bambuddy.ico"; Tasks: desktopicon
+Name: "{group}\Open Goo Buddy Dashboard"; Filename: "http://localhost:{#DefaultPort}"; IconFilename: "{app}\bambuddy.ico"
+Name: "{group}\Goo Buddy Logs"; Filename: "{commonappdata}\Bambuddy\logs"
+Name: "{group}\Uninstall Goo Buddy"; Filename: "{uninstallexe}"
+Name: "{commondesktop}\Goo Buddy"; Filename: "http://localhost:{#DefaultPort}"; IconFilename: "{app}\bambuddy.ico"; Tasks: desktopicon
 
 [Run]
 ; Register and start the Windows service
-Filename: "{app}\service\install-service.bat"; Parameters: """{app}"" ""{commonappdata}\Bambuddy"" {#DefaultPort}"; Flags: runhidden waituntilterminated; StatusMsg: "Registering Bambuddy service..."
+Filename: "{app}\service\install-service.bat"; Parameters: """{app}"" ""{commonappdata}\Bambuddy"" {#DefaultPort}"; Flags: runhidden waituntilterminated; StatusMsg: "Registering Goo Buddy service..."
 
 ; Open Windows Firewall on the dashboard port. We do this only if the
 ; user opted in via the firewallrule task — some environments manage
@@ -107,7 +108,7 @@ Filename: "{app}\service\install-service.bat"; Parameters: """{app}"" ""{commona
 Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""Bambuddy Dashboard"" dir=in action=allow protocol=TCP localport={#DefaultPort}"; Flags: runhidden waituntilterminated; Tasks: firewallrule; StatusMsg: "Adding firewall rule..."
 
 ; Open the dashboard in the user's default browser at the end of install
-Filename: "http://localhost:{#DefaultPort}"; Flags: shellexec postinstall nowait skipifsilent; Description: "Open Bambuddy Dashboard"
+Filename: "http://localhost:{#DefaultPort}"; Flags: shellexec postinstall nowait skipifsilent; Description: "Open Goo Buddy Dashboard"
 
 [UninstallRun]
 ; Stop + deregister the service before file removal. RunOnceId makes the

@@ -3950,10 +3950,6 @@ export default {
     toastArchives: '{{count}} stampe archiviate con Goo Buddy. Scopri chi lo mantiene indipendente.',
     toastAnniversary: 'Un anno con Goo Buddy! Scopri chi mantiene il progetto indipendente.',
     toastVersionUpdate: 'Aggiornato a v{{version}}. Goo Buddy resta gratuito grazie a chi lo sostiene.',
-    toastBusiness: 'Usi Goo Buddy su {{count}} stampanti? Esiste un piano di supporto per i team: correzioni prioritarie, fatturazione e un contatto diretto con il manutentore.',
-    businessCta: 'Goo Buddy per le aziende',
-    businessTitle: 'Goo Buddy per le aziende',
-    businessTagline: 'Stai gestendo {{count}} stampanti. Supporto prioritario, licenze commerciali e fatturazione sono disponibili per team e farm di stampa.',
   },
 
   // Library (K Profiles)

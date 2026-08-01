@@ -670,10 +670,12 @@ async def create_backup(
     from starlette.background import BackgroundTask
 
     try:
-        zip_file, filename = await create_backup_zip()
+        zip_file, _legacy_filename = await create_backup_zip()
         return FileResponse(
             path=zip_file,
-            filename=filename,
+            # Scheduled backups retain their legacy on-disk name for upgrade
+            # compatibility; browser downloads use the current product name.
+            filename=f"goo-buddy-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.zip",
             media_type="application/zip",
             background=BackgroundTask(lambda: zip_file.unlink(missing_ok=True)),
         )
@@ -1134,7 +1136,7 @@ async def restore_backup(
             await init_db()
 
             logger.info("Restore complete - restart required")
-            message = "Backup restored successfully. Please restart Bambuddy for changes to take effect."
+            message = "Backup restored successfully. Please restart Goo Buddy for changes to take effect."
             if skipped_dirs:
                 message += f" Note: Some directories could not be restored ({', '.join(skipped_dirs)})."
             return {

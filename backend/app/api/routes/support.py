@@ -1318,7 +1318,7 @@ async def generate_support_bundle(
 
     zip_buffer.seek(0)
 
-    filename = f"bambuddy-support-{timestamp}.zip"
+    filename = f"goo-buddy-support-{timestamp}.zip"
     logger.info("Generated support bundle: %s", filename)
 
     return StreamingResponse(

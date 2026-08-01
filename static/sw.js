@@ -1,6 +1,7 @@
 // Goo Buddy Service Worker
-const CACHE_NAME = 'goo-buddy-v1';
-const STATIC_CACHE = 'goo-buddy-static-v1';
+// Versioning retires visual assets from installations that predate Goo Buddy.
+const CACHE_NAME = 'goo-buddy-v2';
+const STATIC_CACHE = 'goo-buddy-static-v2';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -38,7 +39,7 @@ self.addEventListener('install', (event) => {
 // `controllerchange` listener, gated on whether the page already had a SW
 // controller at load time. That gate distinguishes first-install (where a
 // reload would race the in-flight React mount — observed on every fresh
-// *.demo.bambuddy.cool subdomain, and in Firefox the activate's waitUntil
+// a historical demo subdomain, and in Firefox the activate's waitUntil
 // hung on `client.navigate` until the document load was aborted with a
 // Corrupted-Content error) from upgrade-on-existing-client (where the reload
 // is wanted).

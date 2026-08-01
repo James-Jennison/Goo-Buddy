@@ -1,9 +1,9 @@
-# BamBuddy Systemd Service Template
+# Goo Buddy systemd service template (legacy service name retained)
 #
 # INSTALLATION:
 # 1. Copy this file to /etc/systemd/system/bambuddy.service
 # 2. Replace placeholders:
-#    - INSTALL_PATH: Where BamBuddy is installed (e.g., /opt/bambuddy)
+#    - INSTALL_PATH: Where Goo Buddy is installed (e.g., /opt/bambuddy)
 #    - SERVICE_USER: User to run as (e.g., bambuddy)
 #    - DATA_DIR: Data directory (e.g., /opt/bambuddy/data)
 #    - LOG_DIR: Log directory (e.g., /opt/bambuddy/logs)
@@ -15,8 +15,8 @@
 #
 
 [Unit]
-Description=BamBuddy - Bambu Lab Print Management
-Documentation=https://github.com/maziggy/bambuddy
+Description=Goo Buddy - Bambu Lab Print Management
+Documentation=https://github.com/James-Jennison/Goo-Buddy
 After=network.target
 
 [Service]

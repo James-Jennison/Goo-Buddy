@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # inventory). Previously this client leaked python-httpx/<version>, which
 # was both inconsistent with the rest of the project and a more obvious
 # bot signature for upstream WAFs.
-_USER_AGENT = "Bambuddy/1.0 (+https://github.com/maziggy/bambuddy)"
+_USER_AGENT = "Goo-Buddy/1.0 (+https://github.com/James-Jennison/Goo-Buddy)"
 
 
 def _looks_like_cloudflare_challenge(response: httpx.Response) -> bool:
@@ -185,7 +185,7 @@ class NotificationService:
         """Build notification title and body from template."""
         # Add common variables
         variables["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-        variables["app_name"] = "Bambuddy"
+        variables["app_name"] = "Goo Buddy"
 
         template = await self._get_template(db, event_type)
         if not template:
@@ -205,7 +205,7 @@ class NotificationService:
         if db:
             title, message = await self._build_message_from_template(db, "test", {})
         else:
-            title = "Bambuddy Test"
+            title = "Goo Buddy Test"
             message = "This is a test notification. If you see this, notifications are working!"
 
         try:
@@ -480,7 +480,7 @@ class NotificationService:
                 msg = MIMEMultipart("related")
                 msg["From"] = from_email
                 msg["To"] = to_email
-                msg["Subject"] = f"[Bambuddy] {subject}"
+                msg["Subject"] = f"[Goo Buddy] {subject}"
 
                 alt = MIMEMultipart("alternative")
                 alt.attach(MIMEText(body, "plain"))
@@ -509,7 +509,7 @@ class NotificationService:
                 msg = MIMEMultipart()
                 msg["From"] = from_email
                 msg["To"] = to_email
-                msg["Subject"] = f"[Bambuddy] {subject}"
+                msg["Subject"] = f"[Goo Buddy] {subject}"
                 msg.attach(MIMEText(body, "plain"))
 
             # smtplib is synchronous and blocking: a wedged / greylisting /
@@ -633,7 +633,7 @@ class NotificationService:
                 custom_field_title: title,
                 custom_field_message: message,
                 "timestamp": datetime.now().isoformat(),
-                "source": "Bambuddy",
+                "source": "Goo Buddy",
             }
 
         # For generic format, include structured event data for automation tools

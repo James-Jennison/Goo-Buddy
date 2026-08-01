@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Goo Buddy",
   "short_name": "Goo Buddy",
-  "description": "Local-first Bambu management with a synthetic read-only Elegoo foundation; Moonraker planned",
+  "description": "Self-hosted, local-first 3D printer management for Bambu Lab, Elegoo SDCP, and Moonraker monitoring.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a1a",
@@ -43,22 +43,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/img/screenshot-mobile.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Goo Buddy on mobile"
-    },
-    {
-      "src": "/img/screenshot-desktop.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Goo Buddy on desktop"
     }
   ],
   "categories": ["utilities", "productivity"],

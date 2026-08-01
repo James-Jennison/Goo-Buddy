@@ -174,7 +174,7 @@ async def render_local_inventory_labels(
     data_list = [_spool_to_label_data(s, deeplink_base) for s in ordered]
 
     pdf = render_labels(body.template, data_list, monochrome=body.monochrome)
-    filename = f"bambuddy-labels-{body.template}.pdf"
+    filename = f"goo-buddy-labels-{body.template}.pdf"
     return _stream_pdf(pdf, filename)
 
 
@@ -218,5 +218,5 @@ async def render_spoolman_labels(
     data_list = [_spoolman_dict_to_label_data(by_id[sid], deeplink_base) for sid in body.spool_ids]
 
     pdf = render_labels(body.template, data_list, monochrome=body.monochrome)
-    filename = f"bambuddy-labels-spoolman-{body.template}.pdf"
+    filename = f"goo-buddy-labels-spoolman-{body.template}.pdf"
     return _stream_pdf(pdf, filename)

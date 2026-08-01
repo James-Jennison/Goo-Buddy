@@ -57,7 +57,7 @@ _ALLOWED_DOWNLOAD_SUFFIXES = (".amazonaws.com",)
 # The Referer is kept because MakerWorld's CSRF / origin-check middleware uses
 # it on some endpoints — that's distinct from client impersonation.
 _CLIENT_HEADERS = {
-    "User-Agent": "Bambuddy/1.0 (+https://github.com/maziggy/bambuddy)",
+    "User-Agent": "Goo-Buddy/1.0 (+https://github.com/James-Jennison/Goo-Buddy)",
     "Accept": "text/html,application/json,*/*",
     "Accept-Language": "en-US,en;q=0.9",
     "Referer": "https://makerworld.com/",

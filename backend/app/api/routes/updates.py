@@ -863,9 +863,9 @@ async def apply_update(
             "is_ha_addon": True,
             "is_docker": True,
             "message": (
-                "Bambuddy is running as a Home Assistant addon. "
+                "Goo Buddy is running as a Home Assistant addon. "
                 "Updates are managed by the Home Assistant Supervisor "
-                "(Settings → Add-ons → Bambuddy → Update)."
+                "(Settings → Add-ons → Goo Buddy → Update)."
             ),
         }
     if _is_docker_environment():
@@ -888,7 +888,7 @@ async def apply_update(
             "is_windows_installer": True,
             "message": (
                 "Windows installations are updated by re-running the installer. "
-                "Download the latest installer from the Bambuddy releases page."
+                "Download the latest installer from the Goo Buddy releases page."
             ),
         }
 

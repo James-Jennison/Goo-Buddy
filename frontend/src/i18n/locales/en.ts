@@ -3991,10 +3991,6 @@ export default {
     toastArchives: '{{count}} prints archived with Goo Buddy. See who keeps it independent.',
     toastAnniversary: 'One year with Goo Buddy! See who keeps the project independent.',
     toastVersionUpdate: 'Updated to v{{version}}. Goo Buddy stays free thanks to its supporters.',
-    toastBusiness: "Running Goo Buddy on {{count}} printers? There's a support plan for teams — priority fixes, invoicing, and a direct line to the maintainer.",
-    businessCta: 'Goo Buddy for business',
-    businessTitle: 'Goo Buddy for business',
-    businessTagline: "You're running {{count}} printers. Priority support, commercial licensing and invoicing are available for teams and print farms.",
   },
 
   // Library (K Profiles)
