@@ -13,6 +13,12 @@ The recorded common fork point is
 been established under this new recurring process. Goo Buddy retains applicable
 AGPL, copyright, attribution, and Git-history obligations.
 
+The 2026-08-01 detachment-readiness package preserves the fork point, Git
+history, and this policy without changing the GitHub fork relationship. See
+[fork-detachment readiness](FORK_DETACHMENT_READINESS.md). A future detachment
+must retain this remote as a technical reference and continue the recurring
+human-classified review process.
+
 ## Recurring review procedure
 
 Run this review monthly and whenever Bambuddy publishes a security advisory or
