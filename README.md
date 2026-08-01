@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="static/img/bambuddy_logo_dark.png" alt="Goo Buddy" width="300">
+  <img src="static/img/goo_buddy_logo.png" alt="Goo Buddy logo" width="300">
 </p>
 
 <h1 align="center">Goo Buddy</h1>
