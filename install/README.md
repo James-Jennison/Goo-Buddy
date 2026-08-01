@@ -1,6 +1,11 @@
-# BamBuddy Installation Scripts
+# Goo Buddy Installation Scripts
 
-Interactive installation scripts for BamBuddy with support for both native and Docker deployments.
+Interactive installation scripts for Goo Buddy with support for both native and Docker deployments.
+
+> **Compatibility note:** current scripts retain legacy `bambuddy` service,
+> volume, environment-variable, and installation-path identifiers so upgrades
+> preserve existing data. They are operational identifiers, not current product
+> branding.
 
 ## Quick Start
 
@@ -8,12 +13,12 @@ Interactive installation scripts for BamBuddy with support for both native and D
 
 **Linux/macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/maziggy/bambuddy/main/install/docker-install.sh -o docker-install.sh && chmod +x docker-install.sh && ./docker-install.sh
+curl -fsSL https://raw.githubusercontent.com/James-Jennison/Goo-Buddy/main/install/docker-install.sh -o docker-install.sh && chmod +x docker-install.sh && ./docker-install.sh
 ```
 
 **Windows (Command Prompt or PowerShell):**
 ```cmd
-powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/maziggy/bambuddy/main/install/docker-install.ps1 -OutFile docker-install.ps1; .\docker-install.ps1"
+powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/James-Jennison/Goo-Buddy/main/install/docker-install.ps1 -OutFile docker-install.ps1; .\docker-install.ps1"
 ```
 
 > Requires Docker Desktop running. Printer auto-discovery is unavailable in Docker Desktop — add printers manually by IP.
@@ -22,7 +27,7 @@ powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercon
 
 **Linux/macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/maziggy/bambuddy/main/install/install.sh -o install.sh && chmod +x install.sh && ./install.sh
+curl -fsSL https://raw.githubusercontent.com/James-Jennison/Goo-Buddy/main/install/install.sh -o install.sh && chmod +x install.sh && ./install.sh
 ```
 
 ### Windows Native Installation
@@ -30,7 +35,7 @@ curl -fsSL https://raw.githubusercontent.com/maziggy/bambuddy/main/install/insta
 **Windows PowerShell:**
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/maziggy/bambuddy/main/install/windows-installer.ps1 -OutFile windows-installer.ps1; .\windows-installer.ps1"
+powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/James-Jennison/Goo-Buddy/main/install/windows-installer.ps1 -OutFile windows-installer.ps1; .\windows-installer.ps1"
 ```
 
 **Unattended:**
@@ -55,7 +60,7 @@ powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercon
 
 ### `install.sh` (Linux/macOS)
 
-Installs BamBuddy with Python virtual environment and optional systemd/launchd service.
+Installs Goo Buddy with Python virtual environment and optional systemd/launchd service.
 
 **Supported Systems:**
 - Debian/Ubuntu (apt)
@@ -96,10 +101,10 @@ Installs BamBuddy with Python virtual environment and optional systemd/launchd s
 Windows PowerShell (run as Administrator — the installer self-elevates via UAC if not):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/maziggy/bambuddy/main/install/windows-installer.ps1 -OutFile windows-installer.ps1; .\windows-installer.ps1"
+powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/James-Jennison/Goo-Buddy/main/install/windows-installer.ps1 -OutFile windows-installer.ps1; .\windows-installer.ps1"
 ```
 
-> Installs Bambuddy natively on Windows using Git, Python, a virtual environment, and optional NSSM Windows Service registration. See the [Windows Installer Guide](https://wiki.bambuddy.cool/getting-started/windows-installer/) for full parameter reference.
+> Installs Goo Buddy natively on Windows using Git, Python, a virtual environment, and optional NSSM Windows Service registration. See the [Windows Installer Guide](https://github.com/James-Jennison/Goo-Buddy#readme/getting-started/windows-installer/) for full parameter reference.
 
 **Parameters:**
 ```powershell
@@ -108,7 +113,7 @@ powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercon
 -Yes              Non-interactive mode, accept defaults
 -Silent           Non-interactive mode with reduced console output
 -NoService        Skip Windows Service setup
--NoStart          Do not start Bambuddy at the end
+-NoStart          Do not start Goo Buddy at the end
 -LocalOnly        Bind to 127.0.0.1 instead of all LAN interfaces
 ```
 
@@ -116,7 +121,7 @@ The installer stores the Git checkout in `INSTALL_DIR\bambuddy`, user data in
 `INSTALL_DIR\data`, and application logs in `INSTALL_DIR\logs` so updates and
 re-clones do not delete runtime data. If an earlier Windows installer run left
 runtime data in the Git checkout, the installer moves known data and log paths
-to the new locations before starting Bambuddy.
+to the new locations before starting Goo Buddy.
 
 ---
 
@@ -124,7 +129,7 @@ to the new locations before starting Bambuddy.
 
 ### `docker-install.sh` (Linux/macOS)
 
-Installs BamBuddy using Docker containers.
+Installs Goo Buddy using Docker containers.
 
 **Options:**
 ```
@@ -194,7 +199,7 @@ All scripts support these configuration options:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| Install Path | Where BamBuddy is installed | `/opt/bambuddy` (Linux/Docker) |
+| Install Path | Where Goo Buddy is installed | `/opt/bambuddy` (Linux/Docker) |
 | Port | HTTP port for web interface | `8000` |
 | Timezone | Server timezone | System timezone or `UTC` |
 | Data Directory | Database and archives | `INSTALL_PATH/data` |
@@ -206,7 +211,7 @@ All scripts support these configuration options:
 
 ## Post-Installation
 
-### Accessing BamBuddy
+### Accessing Goo Buddy
 
 After installation, open your browser to:
 ```
@@ -255,7 +260,7 @@ docker compose logs -f      # View logs
 
 **Native installation:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/maziggy/bambuddy/main/install/update.sh -o update.sh
+curl -fsSL https://raw.githubusercontent.com/James-Jennison/Goo-Buddy/main/install/update.sh -o update.sh
 chmod +x update.sh
 sudo ./update.sh
 ```
@@ -315,7 +320,7 @@ sudo ./install.sh
 ```
 
 ### Docker: Printer Discovery Not Working
-Docker Desktop for macOS doesn't support host networking. Add printers manually by IP address in the BamBuddy web interface.
+Docker Desktop for macOS doesn't support host networking. Add printers manually by IP address in the Goo Buddy web interface.
 
 ### Service Won't Start
 Check logs for errors:
@@ -368,6 +373,6 @@ Get-Content "C:\Bambuddy\bambuddy-runtime-error.log" -Tail 100
 
 ## Support
 
-- **Documentation:** https://wiki.bambuddy.cool
+- **Documentation:** https://github.com/James-Jennison/Goo-Buddy#readme
 - **Discord:** https://discord.gg/aFS3ZfScHM
-- **Issues:** https://github.com/maziggy/bambuddy/issues
+- **Issues:** https://github.com/James-Jennison/Goo-Buddy/issues

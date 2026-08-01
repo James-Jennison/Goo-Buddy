@@ -1,6 +1,15 @@
 # Container build validation
 
-Goo Buddy preserves Bambuddy's Linux container support for both `linux/amd64`
+## Current state
+
+AMD64 and ARM64 container builds are validated in CI, including non-networked
+smoke checks. No Goo Buddy container image has been published. Raspberry Pi
+users currently build locally from this repository; GitHub Container Registry
+distribution is planned under the [multi-architecture container distribution
+and Raspberry Pi installation goal](GOO_BUDDY_ROADMAP.md#goal-multi-architecture-container-distribution-and-raspberry-pi-installation).
+This planning note does not authorize publication.
+
+Goo Buddy preserves the inherited Linux container support for both `linux/amd64`
 and `linux/arm64` (Raspberry Pi 4/5). The production Dockerfile uses BuildKit
 cache mounts, so use Docker Buildx rather than Docker's legacy builder.
 

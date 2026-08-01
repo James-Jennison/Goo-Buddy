@@ -2,15 +2,15 @@
 
 ## Reporting a Vulnerability
 
-The Bambuddy team takes security seriously. We appreciate your efforts to responsibly disclose your findings.
+The Goo Buddy maintainers take security seriously. We appreciate your efforts to responsibly disclose your findings.
 
 ### How to Report
 
 **Please DO NOT report security vulnerabilities through public GitHub.**
 
-Instead, please report them via email to:
+Instead, open a private security advisory in this repository:
 
-**security@bambuddy.cool**
+[Create a private Goo Buddy security advisory](https://github.com/James-Jennison/Goo-Buddy/security/advisories/new)
 
 ### What to Include
 
@@ -18,7 +18,7 @@ Please include the following information in your report:
 
 - **Description** of the vulnerability
 - **Steps to reproduce** the issue
-- **Affected versions** of Bambuddy
+- **Affected versions** of Goo Buddy
 - **Potential impact** of the vulnerability
 - **Any suggested fixes** (if you have them)
 
@@ -41,14 +41,14 @@ Please include the following information in your report:
 
 ### Network Security
 
-Bambuddy communicates with your printers over your local network using:
+Goo Buddy communicates with your printers over your local network using:
 
 - **MQTT over TLS** (port 8883) - Encrypted printer communication
 - **FTPS** (port 990) - Encrypted file transfers
 
 ### Recommendations
 
-1. **Run on trusted network**: Bambuddy should only be accessible on your local network
+1. **Run on trusted network**: Goo Buddy should only be accessible on your local network
 2. **Use reverse proxy**: If exposing to the internet, use a reverse proxy with HTTPS
 3. **Keep updated**: Always run the latest version for security patches
 4. **Secure API keys**: Treat API keys like passwords; don't share them publicly
@@ -81,7 +81,7 @@ The following are **out of scope**:
 - Denial of service (DoS) attacks
 - Issues requiring physical access to the server
 
-## Bambuddy Security Stance
+## Goo Buddy Security Stance
 
 The following rules apply to every PR that touches authentication,
 authorization, permission gating, secret handling, or any code that
@@ -149,7 +149,7 @@ tests catch *specific* regressions in the new code.
 
 ### 5. Path joins under a trusted parent use the safe-join helper
 
-Anywhere a Bambuddy code path joins a string from outside the function's
+Anywhere a Goo Buddy code path joins a string from outside the function's
 scope (request body, query/path param, `UploadFile.filename`, ZIP
 `namelist()` entry, tarfile member, **printer FTP-listing entry**) under
 a trusted directory, the join must route through
@@ -165,7 +165,7 @@ same line. CI walks **both** `backend/app/api/routes/` and
 `backend/app/services/` and fails the build on any
 ``<dir-like> / <variable>`` join without either the helper or the
 marker. The services layer is in scope because it receives values from
-the routes verbatim and from external sources Bambuddy has no control
+the routes verbatim and from external sources Goo Buddy has no control
 over (the compromised-printer threat model: a malicious printer can
 serve crafted FTP-listing entries that flow straight into a path join).
 
@@ -186,4 +186,4 @@ must explain why.
 
 ---
 
-Thank you for helping keep Bambuddy and its users safe!
+Thank you for helping keep Goo Buddy and its users safe!

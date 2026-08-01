@@ -138,7 +138,7 @@ downloading a ZIP or tarball from GitHub, reinstall from scratch:
 
   2. Remove the old install and reinstall via install.sh:
        sudo rm -rf $INSTALL_DIR
-       curl -fsSL https://raw.githubusercontent.com/maziggy/bambuddy/main/install/install.sh \\
+       curl -fsSL https://raw.githubusercontent.com/James-Jennison/Goo-Buddy/main/install/install.sh \\
          -o /tmp/install.sh && sudo bash /tmp/install.sh --path $INSTALL_DIR
 
   3. Restore your data:
@@ -169,14 +169,14 @@ log "Current commit: ${old_commit:-unknown}"
 log "Remote commit: ${remote_commit:-unknown}"
 
 if git diff --quiet HEAD "origin/$BRANCH"; then
-  log "You are already running the latest version of Bambuddy."
+  log "You are already running the latest version of Goo Buddy."
   read -r -p "Do you want to run the update process anyway? [y/N]: " run_anyway
   case "${run_anyway:-}" in
     y|Y|yes|YES) ;;
     *) exit 0 ;;
   esac
 else
-  read -r -p "An update for Bambuddy is available. Install now? [y/N]: " install_now
+  read -r -p "An update for Goo Buddy is available. Install now? [y/N]: " install_now
   case "${install_now:-}" in
     y|Y|yes|YES) ;;
     *) exit 0 ;;

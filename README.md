@@ -145,6 +145,7 @@ control capabilities.
 - [Moonraker / Klipper read-only alpha](docs/MOONRAKER_READ_ONLY_ALPHA.md)
 - [Raspberry Pi first run](docs/RASPBERRY_PI_FIRST_RUN.md)
 - [Container and ARM64 validation](docs/CONTAINER_BUILDS.md)
+- [Project roadmap](docs/GOO_BUDDY_ROADMAP.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 
