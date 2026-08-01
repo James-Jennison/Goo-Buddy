@@ -27,6 +27,7 @@ def test_normalizes_only_observed_sdcp_fields_and_advertised_capabilities():
     assert snapshot.state == "printing"
     assert snapshot.temperatures["nozzle"].current_c == 215
     assert snapshot.job is not None
+    assert snapshot.job.name is None
     assert snapshot.job.progress_percent == 25
     assert snapshot.job.current_layer == 5
     assert snapshot.job.total_layers == 20
@@ -104,9 +105,24 @@ def test_driver_separates_current_stale_disconnected_and_retained_snapshots():
     assert disconnected.current is None
     assert disconnected.retained is not None
     assert disconnected.retained.reason is RetentionReason.DISCONNECTED
+    assert Capability.TEMPERATURES in disconnected.capabilities
 
 
-def test_driver_rejects_superseded_or_out_of_order_session_observations():
+def test_driver_retains_a_complete_observation_when_disconnect_precedes_first_dashboard_poll():
+    driver = SyntheticElegooSdcpV3Driver("synthetic-centauri-1")
+    driver.start_session("fixture-session-a")
+    driver.observe_status("fixture-session-a", status(), NOW)
+    driver.observe_attributes("fixture-session-a", attributes(), NOW)
+    driver.disconnect("fixture-session-a")
+
+    observation = driver.observation(NOW)
+    assert observation.phase is ConnectionPhase.DISCONNECTED
+    assert observation.current is None
+    assert observation.retained is not None
+    assert observation.retained.reason is RetentionReason.DISCONNECTED
+
+
+def test_driver_rejects_superseded_sessions_but_accepts_both_documented_topic_orders():
     driver = SyntheticElegooSdcpV3Driver("synthetic-centauri-1")
     driver.start_session("fixture-session-a")
     driver.observe_status("fixture-session-a", status(), NOW)
@@ -119,10 +135,11 @@ def test_driver_rejects_superseded_or_out_of_order_session_observations():
 
     driver = SyntheticElegooSdcpV3Driver("synthetic-centauri-1")
     driver.start_session("fixture-session-a")
-    driver.observe_status("fixture-session-a", status(), NOW)
+    # Attributes can be pushed before status; timestamps are local arrival
+    # ordering per topic, never interpreted as a printer tick unit.
     driver.observe_attributes("fixture-session-a", attributes(), NOW - timedelta(seconds=1))
-    assert driver.observation(NOW).phase is ConnectionPhase.INVALID
-    assert driver.observation(NOW).error == "out-of-order observation"
+    driver.observe_status("fixture-session-a", status(), NOW)
+    assert driver.observation(NOW).phase is ConnectionPhase.READY
 
 
 def test_driver_fails_closed_when_the_freshness_clock_regresses():
