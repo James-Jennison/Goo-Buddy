@@ -1527,7 +1527,7 @@ export function SettingsPage() {
           <div className="flex-1 min-w-0">
             <p className="text-base font-semibold text-white">
               {sponsorAudience === 'business'
-                ? t('sponsors.businessTitle', 'Bambuddy for business')
+                ? t('sponsors.businessTitle', 'Goo Buddy for business')
                 : t('sponsors.sectionTitle', 'Independent & community-funded')}
             </p>
             <p className="text-sm text-bambu-gray mt-0.5">
@@ -1539,13 +1539,13 @@ export function SettingsPage() {
                   )
                 : t(
                     'sponsors.tagline',
-                    'Bambuddy is free and stays that way because people choose to support it. No VC, no cloud lock-in.'
+                    'Goo Buddy is free and stays that way because people choose to support it. No VC, no cloud lock-in.'
                   )}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-bambu-green/20 text-bambu-green group-hover:bg-bambu-green/30 text-sm font-medium whitespace-nowrap self-start md:self-auto">
             {sponsorAudience === 'business'
-              ? t('sponsors.businessCta', 'Bambuddy for business')
+              ? t('sponsors.businessCta', 'Goo Buddy for business')
               : t('sponsors.viewSupporters', 'View supporters')}
             <ExternalLink className="w-4 h-4" />
           </div>
@@ -2609,7 +2609,7 @@ export function SettingsPage() {
                           {t('settings.updateViaDocker')}
                         </p>
                         <code className="block text-xs bg-bambu-dark p-2 rounded text-bambu-green font-mono">
-                          docker compose pull && docker compose up -d
+                          docker compose up -d --build
                         </code>
                       </div>
                     ) : updateCheck?.update_method === 'windows_installer' ? (
@@ -2618,7 +2618,7 @@ export function SettingsPage() {
                           {t('settings.updateViaWindowsInstaller')}
                         </p>
                         <a
-                          href={updateCheck.installer_download_url || updateCheck.release_url || `https://github.com/maziggy/bambuddy/releases/tag/v${updateCheck.latest_version}`}
+                          href={updateCheck.installer_download_url || updateCheck.release_url || `https://github.com/James-Jennison/Goo-Buddy/releases/tag/v${updateCheck.latest_version}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bambu-dark disabled:opacity-50 bg-bambu-green hover:bg-bambu-green-light text-white focus:ring-bambu-green px-4 py-2 text-sm gap-2 min-h-[44px] md:min-h-0"
@@ -4433,7 +4433,7 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs text-bambu-gray">
-                {t('settings.concurrentUploadsDescription', 'How many printers the queue may send files to at the same time. Printers receive files slowly (a large print can take several minutes), and each one waits its turn — so on a bigger fleet, raising this is what stops the last printer in a batch from waiting out every transfer before it. Lower it if your network or Bambuddy host struggles with parallel transfers.')}
+                {t('settings.concurrentUploadsDescription', 'How many printers the queue may send files to at the same time. Printers receive files slowly (a large print can take several minutes), and each one waits its turn — so on a bigger fleet, raising this is what stops the last printer in a batch from waiting out every transfer before it. Lower it if your network or Goo Buddy host struggles with parallel transfers.')}
               </p>
               <div className="w-full sm:w-1/2">
                 <label className="block text-xs text-bambu-gray mb-1">
@@ -4537,7 +4537,7 @@ export function SettingsPage() {
                   </button>
                 </div>
                 <p className="text-xs text-bambu-gray mb-2">
-                  {t('settings.preheatFilamentTargetsHint', 'Bambuddy picks the highest target across the loaded AMS slots; PLA-only prints derive 0 and skip the chamber phase automatically.')}
+                  {t('settings.preheatFilamentTargetsHint', 'Goo Buddy picks the highest target across the loaded AMS slots; PLA-only prints derive 0 and skip the chamber phase automatically.')}
                 </p>
                 <PreheatFilamentTargetsEditor
                   value={localSettings.preheat_filament_targets ?? ''}

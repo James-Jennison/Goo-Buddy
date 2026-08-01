@@ -28,7 +28,7 @@ export default {
     smartSwitches: 'Smart Switches',
     logout: 'Abmelden',
     installApp: 'App installieren',
-    installAppSuccess: 'Bambuddy wurde installiert',
+    installAppSuccess: 'Goo Buddy wurde installiert',
   },
 
   // Common
@@ -284,7 +284,7 @@ export default {
       confirmMidPrintTitle: 'Wartungsmodus während des Drucks aktivieren?',
       confirmMidPrintMessage: '{{name}} druckt gerade. Der Wartungsmodus trennt die MQTT-Verbindung und beendet das Fortschritts-Tracking sowie Abschlussbenachrichtigungen für diesen Auftrag. Fortfahren?',
       editFieldLabel: 'Wartungsmodus',
-      editFieldHelp: 'Wenn aktiviert, ist dieser Drucker von MQTT, Warteschlangenversand und Benachrichtigungen pausiert — nützlich für Reparaturen, parallele Bambuddy-Installationen oder temporäre Außerbetriebnahme.',
+      editFieldHelp: 'Wenn aktiviert, ist dieser Drucker von MQTT, Warteschlangenversand und Benachrichtigungen pausiert — nützlich für Reparaturen, parallele Goo Buddy-Installationen oder temporäre Außerbetriebnahme.',
     },
     // Chamber light
     chamberLightOn: 'Kammerbeleuchtung einschalten',
@@ -736,7 +736,7 @@ export default {
     title: 'Druckarchiv',
     no3mfBanner: {
       title: 'Einige kürzliche Drucke konnten nicht mit Vorschaubild archiviert werden',
-      body: 'Der Slicer hat die .gcode.3mf-Datei nicht auf der SD-Karte des Druckers hinterlegt, daher konnte Bambuddy weder Vorschaubild noch Slicer-Metadaten abrufen. Üblicherweise liegt das daran, dass "Gesendete Dateien auf externem Speicher speichern" im Slicer (Geräte-Tab in Bambu Studio / OrcaSlicer) deaktiviert ist.',
+      body: 'Der Slicer hat die .gcode.3mf-Datei nicht auf der SD-Karte des Druckers hinterlegt, daher konnte Goo Buddy weder Vorschaubild noch Slicer-Metadaten abrufen. Üblicherweise liegt das daran, dass "Gesendete Dateien auf externem Speicher speichern" im Slicer (Geräte-Tab in Bambu Studio / OrcaSlicer) deaktiviert ist.',
       docsLink: 'Installationsschritt 4 anzeigen',
       dismissLabel: 'Hinweis schließen',
     },
@@ -1702,7 +1702,7 @@ export default {
       disabled: 'LDAP-Authentifizierung deaktiviert',
       feature1: 'Benutzer können sich mit LDAP-Anmeldedaten anmelden',
       feature2: 'Lokales Admin-Konto bleibt als Fallback erhalten',
-      feature3: 'LDAP-Gruppen werden bei der Anmeldung BamBuddy-Gruppen zugeordnet',
+      feature3: 'LDAP-Gruppen werden bei der Anmeldung Goo Buddy-Gruppen zugeordnet',
       serverConfig: 'LDAP-Server-Konfiguration',
       serverUrl: 'Server-URL',
       serverUrlHint: 'Verwenden Sie ldap:// für Standard oder ldaps:// für SSL-Verbindungen',
@@ -1715,12 +1715,12 @@ export default {
       userFilterHint: '{username} wird durch den Anmeldenamen ersetzt. Verwenden Sie (uid={username}) für OpenLDAP.',
       advanced: 'Erweitert',
       autoProvision: 'Benutzer automatisch anlegen',
-      autoProvisionHint: 'Automatisch ein BamBuddy-Konto bei der ersten LDAP-Anmeldung erstellen',
+      autoProvisionHint: 'Automatisch ein Goo Buddy-Konto bei der ersten LDAP-Anmeldung erstellen',
       defaultGroup: 'Standardgruppe',
       defaultGroupNone: '— Keine (kein Fallback) —',
       defaultGroupHint: 'Fallback-Gruppe, die zugewiesen wird, wenn sich ein LDAP-Benutzer authentifiziert, aber in keiner zugeordneten LDAP-Gruppe enthalten ist. Leer lassen, um nicht zugeordnete Benutzer ohne Berechtigungen zu belassen.',
       groupMapping: 'Gruppenzuordnung (JSON)',
-      groupMappingHint: 'LDAP-Gruppen-DNs BamBuddy-Gruppen zuordnen. Verfügbare Gruppen: ',
+      groupMappingHint: 'LDAP-Gruppen-DNs Goo Buddy-Gruppen zuordnen. Verfügbare Gruppen: ',
       testConnection: 'Verbindung testen',
       settingsSaved: 'LDAP-Einstellungen gespeichert',
       errors: {
@@ -2090,7 +2090,7 @@ export default {
     tempFanPresetsFan: 'Lüftergeschwindigkeit',
     tempFanPresetsReset: 'Auf Standardwerte zurücksetzen',
     concurrentUploadsTitle: 'Gleichzeitige Uploads',
-    concurrentUploadsDescription: 'Wie viele Drucker die Warteschlange gleichzeitig mit Dateien versorgen darf. Drucker nehmen Dateien nur langsam entgegen (ein großer Druck kann mehrere Minuten dauern), und jeder wartet, bis er an der Reihe ist — bei größeren Farmen verhindert ein höherer Wert also, dass der letzte Drucker eines Stapels erst alle anderen Übertragungen abwarten muss. Verringern Sie ihn, wenn Ihr Netzwerk oder der Bambuddy-Host mit parallelen Übertragungen Probleme hat.',
+    concurrentUploadsDescription: 'Wie viele Drucker die Warteschlange gleichzeitig mit Dateien versorgen darf. Drucker nehmen Dateien nur langsam entgegen (ein großer Druck kann mehrere Minuten dauern), und jeder wartet, bis er an der Reihe ist — bei größeren Farmen verhindert ein höherer Wert also, dass der letzte Drucker eines Stapels erst alle anderen Übertragungen abwarten muss. Verringern Sie ihn, wenn Ihr Netzwerk oder der Goo Buddy-Host mit parallelen Übertragungen Probleme hat.',
     concurrentUploadsLabel: 'Gleichzeitig belieferte Drucker',
     concurrentUploadsHelp: '1 beliefert immer nur einen Drucker (das bisherige Verhalten). Standard ist 4.',
     staggeredStart: 'Versetzter Start',
@@ -2100,7 +2100,7 @@ export default {
     preheatEnabled: 'Vorheizen & Soak aktivieren',
     preheatEnabledDesc: 'Wenn aus, starten Drucke aus der Warteschlange sofort. Jeder Warteschlangeneintrag kann das pro Druck überschreiben.',
     preheatFilamentTargetsLabel: 'Kammer-Ziel je Filament (°C)',
-    preheatFilamentTargetsHint: 'Bambuddy wählt das höchste Ziel über die geladenen AMS-Slots; reine PLA-Drucke ergeben 0 und überspringen die Kammerphase automatisch.',
+    preheatFilamentTargetsHint: 'Goo Buddy wählt das höchste Ziel über die geladenen AMS-Slots; reine PLA-Drucke ergeben 0 und überspringen die Kammerphase automatisch.',
     preheatFilamentTargetsReset: 'Auf Standardwerte zurücksetzen',
     preheatFilamentTargetsDefaultRow: 'Sonstige / nicht zugeordnet',
     preheatMaxWait: 'Max. Wartezeit (Sekunden)',
@@ -2155,7 +2155,7 @@ export default {
     authentication: 'Authentifizierung',
     authEnabledDescription: 'Ihre Instanz ist mit Benutzerauthentifizierung gesichert',
     authDisabledDescription: 'Aktivieren Sie die Anmeldepflicht und verwalten Sie den Benutzerzugriff',
-    authDisabledMessage: 'Aktivieren Sie die Authentifizierung, um Benutzerkonten zu erstellen, Berechtigungen zu verwalten und Ihre Bambuddy-Instanz zu sichern.',
+    authDisabledMessage: 'Aktivieren Sie die Authentifizierung, um Benutzerkonten zu erstellen, Berechtigungen zu verwalten und Ihre Goo Buddy-Instanz zu sichern.',
     enableAuthentication: 'Authentifizierung aktivieren',
     currentUser: 'Aktueller Benutzer',
     changePassword: 'Passwort ändern',
@@ -2194,10 +2194,10 @@ export default {
     deleteGroup: 'Gruppe löschen',
     // Modal: Disable auth
     disableAuthenticationTitle: 'Authentifizierung deaktivieren',
-    disableAuthenticationMessage: 'Möchten Sie die Authentifizierung wirklich deaktivieren? Dadurch wird Ihre Bambuddy-Instanz ohne Anmeldung zugänglich. Alle Benutzer bleiben in der Datenbank, aber die Authentifizierung wird deaktiviert.',
+    disableAuthenticationMessage: 'Möchten Sie die Authentifizierung wirklich deaktivieren? Dadurch wird Ihre Goo Buddy-Instanz ohne Anmeldung zugänglich. Alle Benutzer bleiben in der Datenbank, aber die Authentifizierung wird deaktiviert.',
     disableAuthentication: 'Authentifizierung deaktivieren',
     // Additional settings
-    configureBambuddy: 'Bambuddy konfigurieren',
+    configureBambuddy: 'Goo Buddy konfigurieren',
     systemDefault: 'Systemstandard',
     archiveSettings: 'Archiv-Einstellungen',
     newWindow: 'Neues Fenster',
@@ -2424,7 +2424,7 @@ export default {
     autoArchivePrints: 'Drucke automatisch archivieren',
     autoArchiveDescription: '3MF-Dateien automatisch speichern, wenn Drucke abgeschlossen sind',
     saveThumbnailsDescription: 'Vorschaubilder aus 3MF-Dateien extrahieren und speichern',
-    captureFinishPhotoDescription: 'Foto von der Druckerkamera aufnehmen, wenn der Druck abgeschlossen ist. Bambuddy zeichnet während des Drucks einen kurzen Zeitraffer auf, damit das Foto aus dem Moment vor dem Absenken der Druckplatte stammen kann. Die Zeitraffer-Datei bleibt erhalten, wenn du den Zeitraffer für diesen Druck aktiviert hast, andernfalls wird sie nach Aufnahme des Fotos automatisch gelöscht.',
+    captureFinishPhotoDescription: 'Foto von der Druckerkamera aufnehmen, wenn der Druck abgeschlossen ist. Goo Buddy zeichnet während des Drucks einen kurzen Zeitraffer auf, damit das Foto aus dem Moment vor dem Absenken der Druckplatte stammen kann. Die Zeitraffer-Datei bleibt erhalten, wenn du den Zeitraffer für diesen Druck aktiviert hast, andernfalls wird sie nach Aufnahme des Fotos automatisch gelöscht.',
     ffmpegNotInstalled: 'ffmpeg nicht installiert',
     ffmpegRequired: 'Kameraaufnahme benötigt ffmpeg. Installieren über <brew>brew install ffmpeg</brew> (macOS) oder <apt>apt install ffmpeg</apt> (Linux).',
     // Camera
@@ -2462,13 +2462,13 @@ export default {
     // Updates
     printerFirmware: 'Drucker-Firmware',
     checkFirmwareDescription: 'Nach Firmware-Updates von Bambu Lab suchen',
-    bambuddySoftware: 'Bambuddy-Software',
+    bambuddySoftware: 'Goo Buddy-Software',
     autoCheckDescription: 'Automatisch beim Start nach neuen Versionen suchen',
     checkNow: 'Jetzt prüfen',
     updateAvailableVersion: 'Update verfügbar: v{{version}}',
     releaseNotes: 'Versionshinweise',
     updateViaDocker: 'Update über Docker Compose:',
-    updateViaHomeAssistant: 'Updates werden vom Home Assistant Supervisor verwaltet. Öffne Einstellungen → Add-ons → Bambuddy in Home Assistant, um die neue Version zu installieren.',
+    updateViaHomeAssistant: 'Updates werden vom Home Assistant Supervisor verwaltet. Öffne Einstellungen → Add-ons → Goo Buddy in Home Assistant, um die neue Version zu installieren.',
     updateViaWindowsInstaller: 'Windows-Installationen werden durch erneutes Ausführen des Installers aktualisiert. Lade die neue Version unten herunter — deine Daten, Einstellungen und Drucker bleiben erhalten.',
     downloadWindowsInstaller: 'Installer für v{{version}} herunterladen',
     installUpdate: 'Update installieren',
@@ -2480,8 +2480,8 @@ export default {
     goToBackup: 'Zur Sicherung',
     // Network tab
     externalUrl: 'Externe URL',
-    externalUrlDescription: 'Die externe URL, unter der Bambuddy erreichbar ist. Wird für Benachrichtigungsbilder und externe Integrationen verwendet.',
-    bambuddyUrl: 'Bambuddy-URL',
+    externalUrlDescription: 'Die externe URL, unter der Goo Buddy erreichbar ist. Wird für Benachrichtigungsbilder und externe Integrationen verwendet.',
+    bambuddyUrl: 'Goo Buddy-URL',
     externalUrlHint: 'Protokoll und Port angeben (z.B. http://192.168.1.100:8000)',
     ftpRetry: 'FTP-Wiederholung',
     ftpRetryDescription: 'FTP-Operationen bei unzuverlässigem Drucker-WLAN wiederholen. Gilt für 3MF-Downloads, Druck-Uploads, Zeitraffer-Downloads und Firmware-Updates.',
@@ -2507,7 +2507,7 @@ export default {
     haConnectionFailed: 'Verbindung zu Home Assistant fehlgeschlagen.',
     // MQTT
     mqttPublishing: 'MQTT-Veröffentlichung',
-    mqttDescription: 'BamBuddy-Ereignisse an einen externen MQTT-Broker zur Integration mit Node-RED, Home Assistant und anderen Automatisierungssystemen veröffentlichen.',
+    mqttDescription: 'Goo Buddy-Ereignisse an einen externen MQTT-Broker zur Integration mit Node-RED, Home Assistant und anderen Automatisierungssystemen veröffentlichen.',
     mqttEnableDescription: 'Ereignisse an externen MQTT-Broker veröffentlichen',
     brokerHostname: 'Broker-Hostname',
     port: 'Port',
@@ -2652,7 +2652,7 @@ export default {
       enabledFromFile: 'At-Rest-Verschlüsselung aktiv (Schlüssel aus dem Datenverzeichnis geladen)',
       enabledGenerated: 'At-Rest-Verschlüsselung aktiv mit automatisch generiertem Schlüssel',
       notConfigured: 'At-Rest-Verschlüsselung nicht konfiguriert',
-      notConfiguredDesc: 'TOTP-Geheimnisse und OIDC-Client-Secrets werden im Klartext gespeichert. Setze MFA_ENCRYPTION_KEY oder starte Bambuddy mit beschreibbarem Datenverzeichnis neu, damit ein Schlüssel automatisch erzeugt wird.',
+      notConfiguredDesc: 'TOTP-Geheimnisse und OIDC-Client-Secrets werden im Klartext gespeichert. Setze MFA_ENCRYPTION_KEY oder starte Goo Buddy mit beschreibbarem Datenverzeichnis neu, damit ein Schlüssel automatisch erzeugt wird.',
       allEncrypted: 'Alle MFA-Geheimnisse sind verschlüsselt gespeichert.',
       legacyRowsLabel: 'Klartext-Zeilen (Altbestand)',
       encryptedRowsLabel: 'Verschlüsselte Zeilen',
@@ -2660,7 +2660,7 @@ export default {
       backupHint: 'Der automatisch erzeugte Schlüssel liegt unter DATA_DIR/.mfa_encryption_key und wird in lokalen Backup-ZIPs mitgesichert. Backups sicher aufbewahren oder MFA_ENCRYPTION_KEY explizit setzen.',
       decryptionBrokenTitle: 'Verschlüsselungsschlüssel fehlt',
       decryptionBrokenError: '{{count}} verschlüsselte Datensätze können nicht entschlüsselt werden, weil der Schlüssel nicht mehr verfügbar ist. Den vorherigen MFA_ENCRYPTION_KEY oder DATA_DIR/.mfa_encryption_key wiederherstellen.',
-      migrationErrorWarning: '{{count}} Legacy-Eintrag/Einträge konnten beim Start nicht verschlüsselt werden. Prüfen Sie die Server-Logs und starten Sie Bambuddy neu.',
+      migrationErrorWarning: '{{count}} Legacy-Eintrag/Einträge konnten beim Start nicht verschlüsselt werden. Prüfen Sie die Server-Logs und starten Sie Goo Buddy neu.',
     },
 
 
@@ -2823,7 +2823,7 @@ export default {
     actionFailed: 'Aktion konnte nicht gesendet werden',
     runoutExpectedSlot: 'Das Filament in {{ranOut}} ist aufgebraucht. Der Drucker wartet jetzt auf kompatibles Filament in {{expected}}. Legen Sie eine Spule in {{expected}} ein und wählen Sie dann Wiederholen.',
     runoutExpectedSlotOnly: 'Der Drucker wartet auf kompatibles Filament in {{expected}}. Legen Sie dort eine Spule ein und wählen Sie dann Wiederholen.',
-    runoutSlotUnknown: 'Das Filament ist aufgebraucht und der Druck ist pausiert. Bambuddy konnte nicht ermitteln, welchen Slot der Drucker jetzt erwartet — prüfen Sie am Druckerdisplay, welcher Slot angefordert wird.',
+    runoutSlotUnknown: 'Das Filament ist aufgebraucht und der Druck ist pausiert. Goo Buddy konnte nicht ermitteln, welchen Slot der Drucker jetzt erwartet — prüfen Sie am Druckerdisplay, welcher Slot angefordert wird.',
     actions: {
       RESUME_PRINTING: 'Druck fortsetzen',
       RESUME_PRINTING_DEFECTS: 'Fortsetzen (Mängel akzeptabel)',
@@ -2909,7 +2909,7 @@ export default {
 
   // Login page
   login: {
-    title: 'Bambuddy Anmeldung',
+    title: 'Goo Buddy Anmeldung',
     subtitle: 'Melden Sie sich bei Ihrem Konto an',
     username: 'Benutzername',
     usernamePlaceholder: 'Benutzername eingeben',
@@ -2957,7 +2957,7 @@ export default {
     sending: 'Wird gesendet...',
     sendResetEmail: 'Zurücksetzungs-E-Mail senden',
     howToReset: 'So setzen Sie Ihr Passwort zurück:',
-    resetStep1: 'Kontaktieren Sie Ihren Bambuddy-Administrator',
+    resetStep1: 'Kontaktieren Sie Ihren Goo Buddy-Administrator',
     resetStep2: 'Bitten Sie ihn, Ihr Passwort in der Benutzerverwaltung zurückzusetzen',
     resetStep3: 'Er kann ein neues temporäres Passwort für Sie festlegen',
     resetStep4: 'Melden Sie sich mit dem neuen Passwort an und ändern Sie es in den Einstellungen',
@@ -2982,7 +2982,7 @@ export default {
       methodAuthenticator: 'Authenticator-App',
       methodEmail: 'E-Mail-Code',
       methodBackup: 'Wiederherstellungscode',
-      instructionsTotp: 'Öffnen Sie Ihre Authenticator-App und geben Sie den 6-stelligen Code für Bambuddy ein.',
+      instructionsTotp: 'Öffnen Sie Ihre Authenticator-App und geben Sie den 6-stelligen Code für Goo Buddy ein.',
       instructionsEmail: 'Ein 6-stelliger Code wurde an Ihre E-Mail-Adresse gesendet. Er ist 10 Minuten gültig.',
       instructionsEmailNotSent: 'Klicken Sie unten, um einen Bestätigungscode per E-Mail zu erhalten.',
       instructionsBackup: 'Geben Sie einen Ihrer 8-stelligen Wiederherstellungscodes ein. Jeder Code kann nur einmal verwendet werden.',
@@ -3007,8 +3007,8 @@ export default {
 
   // Setup page
   setup: {
-    title: 'Bambuddy Einrichtung',
-    subtitle: 'Konfigurieren Sie die Authentifizierung für Ihre Bambuddy-Instanz',
+    title: 'Goo Buddy Einrichtung',
+    subtitle: 'Konfigurieren Sie die Authentifizierung für Ihre Goo Buddy-Instanz',
     enableAuth: 'Authentifizierung aktivieren',
     adminAccount: 'Admin-Konto',
     adminAccountDesc: 'Wenn bereits Admin-Benutzer existieren, wird die Authentifizierung mit den vorhandenen Admin-Konten aktiviert. Lassen Sie die Felder unten leer, um vorhandene Admins zu verwenden, oder geben Sie neue Anmeldedaten ein, um einen neuen Admin-Benutzer zu erstellen.',
@@ -3165,7 +3165,7 @@ export default {
   // Users management
   users: {
     title: 'Benutzerverwaltung',
-    subtitle: 'Benutzer und deren Zugriff auf Ihre Bambuddy-Instanz verwalten',
+    subtitle: 'Benutzer und deren Zugriff auf Ihre Goo Buddy-Instanz verwalten',
     backToSettings: 'Zurück zu Einstellungen',
     createUser: 'Benutzer erstellen',
     noPermission: 'Sie haben keine Berechtigung, auf diese Seite zuzugreifen.',
@@ -3282,11 +3282,11 @@ export default {
       connectButton: 'Orca Cloud verbinden',
       connect: {
         title: 'Mit Orca Cloud verbinden',
-        description: 'Melden Sie sich bei Ihrem Orca Cloud-Konto an, um Ihre Slicer-Profile in Bambuddy zu synchronisieren.',
+        description: 'Melden Sie sich bei Ihrem Orca Cloud-Konto an, um Ihre Slicer-Profile in Goo Buddy zu synchronisieren.',
       },
       device: {
-        title: 'Bambuddy in Orca Cloud genehmigen',
-        instruction: 'Öffnen Sie Orca Cloud und genehmigen Sie diesen Code. Bambuddy verbindet sich automatisch, sobald Sie genehmigt haben.',
+        title: 'Goo Buddy in Orca Cloud genehmigen',
+        instruction: 'Öffnen Sie Orca Cloud und genehmigen Sie diesen Code. Goo Buddy verbindet sich automatisch, sobald Sie genehmigt haben.',
         codeLabel: 'Ihr Kopplungscode',
         openButton: 'Orca Cloud-Genehmigungsseite öffnen',
         manualHint: 'Oder gehen Sie zu {{url}} und geben Sie den obigen Code ein.',
@@ -3955,16 +3955,16 @@ export default {
   // Sponsor surface (System page)
   sponsors: {
     sectionTitle: 'Unabhängig & von der Community finanziert',
-    tagline: 'Bambuddy ist kostenlos und bleibt es, weil Menschen es freiwillig unterstützen. Kein VC, kein Cloud-Zwang.',
+    tagline: 'Goo Buddy ist kostenlos und bleibt es, weil Menschen es freiwillig unterstützen. Kein VC, kein Cloud-Zwang.',
     viewSupporters: 'Unterstützer ansehen',
-    toastPrints: 'Du hast {{count}} Drucke mit Bambuddy abgeschlossen. Bambuddy bleibt kostenlos dank seiner Unterstützer.',
-    toastCost: 'Du hast {{total}} an Filament mit Bambuddy verfolgt. Sieh dir an, wer das Projekt unabhängig hält.',
-    toastArchives: '{{count}} Drucke mit Bambuddy archiviert. Sieh dir an, wer es unabhängig hält.',
-    toastAnniversary: 'Ein Jahr mit Bambuddy! Sieh dir an, wer das Projekt unabhängig hält.',
-    toastVersionUpdate: 'Aktualisiert auf v{{version}}. Bambuddy bleibt kostenlos dank seiner Unterstützer.',
-    toastBusiness: 'Sie betreiben Bambuddy auf {{count}} Druckern. Für Teams gibt es Support-Pakete – bevorzugte Fehlerbehebung, Rechnungsstellung und einen direkten Draht zum Maintainer.',
-    businessCta: 'Bambuddy für Unternehmen',
-    businessTitle: 'Bambuddy für Unternehmen',
+    toastPrints: 'Du hast {{count}} Drucke mit Goo Buddy abgeschlossen. Goo Buddy bleibt kostenlos dank seiner Unterstützer.',
+    toastCost: 'Du hast {{total}} an Filament mit Goo Buddy verfolgt. Sieh dir an, wer das Projekt unabhängig hält.',
+    toastArchives: '{{count}} Drucke mit Goo Buddy archiviert. Sieh dir an, wer es unabhängig hält.',
+    toastAnniversary: 'Ein Jahr mit Goo Buddy! Sieh dir an, wer das Projekt unabhängig hält.',
+    toastVersionUpdate: 'Aktualisiert auf v{{version}}. Goo Buddy bleibt kostenlos dank seiner Unterstützer.',
+    toastBusiness: 'Sie betreiben Goo Buddy auf {{count}} Druckern. Für Teams gibt es Support-Pakete – bevorzugte Fehlerbehebung, Rechnungsstellung und einen direkten Draht zum Maintainer.',
+    businessCta: 'Goo Buddy für Unternehmen',
+    businessTitle: 'Goo Buddy für Unternehmen',
     businessTagline: 'Sie betreiben {{count}} Drucker. Für Teams und Druckfarmen gibt es priorisierten Support, kommerzielle Lizenzen und Rechnungsstellung.',
   },
 
@@ -4215,8 +4215,8 @@ export default {
       invalidHex: '6 Hex-Zeichen (RRGGBB) oder 8 (RRGGBBAA) eingeben. Anderenfalls wird das Feld nicht übernommen.',
     },
     spoolmanMixedContentTitle: 'Spoolman lässt sich nicht über HTTPS laden — Browser blockiert gemischte Inhalte',
-    spoolmanMixedContentBody: 'Bambuddy wird über HTTPS ausgeliefert (über deinen Reverse-Proxy), aber deine Spoolman-URL ist nach wie vor HTTP. Browser blockieren gemischte Inhalte aus Sicherheitsgründen, daher kann die eingebettete Spoolman-Oberfläche nicht geladen werden. Spoolman muss ebenfalls über HTTPS erreichbar sein.',
-    spoolmanMixedContentFixReverseProxy: 'Stelle Spoolman hinter denselben Reverse-Proxy wie Bambuddy (Traefik / Nginx / Caddy) mit HTTPS und aktualisiere die Spoolman-URL in den Einstellungen auf die neue HTTPS-Adresse.',
+    spoolmanMixedContentBody: 'Goo Buddy wird über HTTPS ausgeliefert (über deinen Reverse-Proxy), aber deine Spoolman-URL ist nach wie vor HTTP. Browser blockieren gemischte Inhalte aus Sicherheitsgründen, daher kann die eingebettete Spoolman-Oberfläche nicht geladen werden. Spoolman muss ebenfalls über HTTPS erreichbar sein.',
+    spoolmanMixedContentFixReverseProxy: 'Stelle Spoolman hinter denselben Reverse-Proxy wie Goo Buddy (Traefik / Nginx / Caddy) mit HTTPS und aktualisiere die Spoolman-URL in den Einstellungen auf die neue HTTPS-Adresse.',
     spoolmanMixedContentFixOpenNewTab: 'Als Workaround kannst du Spoolman in einem neuen Tab über HTTP öffnen — gemischte Inhalte werden nur innerhalb eingebetteter Frames blockiert, ein eigener Tab funktioniert weiterhin.',
     spoolmanOpenInNewTab: 'Spoolman in neuem Tab öffnen',
     labels: {
@@ -4664,8 +4664,8 @@ export default {
     cloudLoginRequiredShort: 'Cloud-Login erforderlich',
     githubDescription: 'Synchronisieren Sie Ihre Profile automatisch mit einem privaten GitHub-Repository für Backup und Versionsverlauf.',
     repoIsPrivate: 'Repository ist privat — Sicherung möglich.',
-    repoIsPublicWarning: 'Das Repository ist ÖFFENTLICH. Bambuddy-Backups enthalten MQTT-Zugangsdaten, Home-Assistant-Tokens, Prometheus-Tokens, Ihre Bambu-Cloud-E-Mail-Adresse und über K-Profile auch Drucker-Zugangscodes. Speichern ist blockiert, bis Sie das Repository in den Einstellungen Ihres Anbieters auf privat stellen.',
-    repoVisibilityUnknown: 'Die Sichtbarkeit des Repositories konnte nicht bestimmt werden. Bambuddy sichert nur in Repositories, die nachweislich privat sind; Speichern wird blockiert.',
+    repoIsPublicWarning: 'Das Repository ist ÖFFENTLICH. Goo Buddy-Backups enthalten MQTT-Zugangsdaten, Home-Assistant-Tokens, Prometheus-Tokens, Ihre Bambu-Cloud-E-Mail-Adresse und über K-Profile auch Drucker-Zugangscodes. Speichern ist blockiert, bis Sie das Repository in den Einstellungen Ihres Anbieters auf privat stellen.',
+    repoVisibilityUnknown: 'Die Sichtbarkeit des Repositories konnte nicht bestimmt werden. Goo Buddy sichert nur in Repositories, die nachweislich privat sind; Speichern wird blockiert.',
     repositoryUrl: 'Repository-URL',
     repoUrlPlaceholderGitHub: 'https://github.com/username/repo-name',
 	repoUrlPlaceholderGitea: 'https://gitea.example.com/username/repo-name',
@@ -4695,7 +4695,7 @@ export default {
     cloudProfiles: 'Cloud-Profile',
     cloudProfilesDescription: 'Filament-, Drucker- und Prozessprofile aus der Bambu Cloud',
     appSettings: 'App-Einstellungen',
-    appSettingsDescription: 'Bambuddy-Konfiguration (komplette Datenbank)',
+    appSettingsDescription: 'Goo Buddy-Konfiguration (komplette Datenbank)',
     spoolInventory: 'Spulenbestand',
     spoolInventoryDescription: 'Filamentspulen, Nutzungsverlauf und Kostenverfolgung',
     printArchives: 'Druckarchive',
@@ -4730,7 +4730,7 @@ export default {
 
     // Local Backup
     localBackup: 'Lokale Sicherung',
-    localBackupDescription: 'Erstellen Sie eine vollständige Sicherung Ihrer Bambuddy-Daten einschließlich Datenbank, Archive, Uploads und aller Dateien.',
+    localBackupDescription: 'Erstellen Sie eine vollständige Sicherung Ihrer Goo Buddy-Daten einschließlich Datenbank, Archive, Uploads und aller Dateien.',
     downloadBackupLabel: 'Sicherung herunterladen',
     completeBackupZip: 'Vollständige Sicherung: Datenbank + alle Dateien (ZIP)',
     download: 'Herunterladen',
@@ -4746,7 +4746,7 @@ export default {
     restoreConfirmMessage: 'Sind Sie sicher, dass Sie von "{{filename}}" wiederherstellen möchten? Dies ersetzt Ihre aktuelle Datenbank und alle Dateien vollständig. Die Anwendung muss nach der Wiederherstellung neu gestartet werden.',
     restoreConfirmButton: 'Sicherung wiederherstellen',
     uploadingFile: 'Sicherungsdatei wird hochgeladen...',
-    backupRestoredRestart: 'Sicherung wiederhergestellt. Bitte starten Sie Bambuddy neu.',
+    backupRestoredRestart: 'Sicherung wiederhergestellt. Bitte starten Sie Goo Buddy neu.',
     failedToRestore: 'Sicherung wiederherstellen fehlgeschlagen. Bitte überprüfen Sie das Dateiformat.',
     reloadNow: 'Jetzt neu laden',
     creatingBackup: 'Sicherung erstellen',
@@ -4821,17 +4821,17 @@ export default {
     defaultPathLabel: 'Standard:',
     // Backup output-path probe (#2544)
     pathCheck: {
-      title: 'Bambuddy kann nicht in dieses Verzeichnis schreiben',
+      title: 'Goo Buddy kann nicht in dieses Verzeichnis schreiben',
       howToFix: 'So beheben Sie das:',
-      sandboxed: 'Der Bambuddy-Dienst kann nicht nach {{path}} schreiben. Seine systemd-Unit läuft mit ProtectSystem=strict, wodurch jedes Verzeichnis außerhalb der Installations-, Daten- und Log-Verzeichnisse für den Dienst schreibgeschützt ist - auch eines, in das Sie aus Ihrer eigenen Shell schreiben können.',
+      sandboxed: 'Der Goo Buddy-Dienst kann nicht nach {{path}} schreiben. Seine systemd-Unit läuft mit ProtectSystem=strict, wodurch jedes Verzeichnis außerhalb der Installations-, Daten- und Log-Verzeichnisse für den Dienst schreibgeschützt ist - auch eines, in das Sie aus Ihrer eigenen Shell schreiben können.',
       read_only: '{{path}} liegt auf einem schreibgeschützten Dateisystem.',
-      permission_denied: 'Bambuddy darf nicht nach {{path}} schreiben. Prüfen Sie Eigentümer und Rechte des Verzeichnisses.',
+      permission_denied: 'Goo Buddy darf nicht nach {{path}} schreiben. Prüfen Sie Eigentümer und Rechte des Verzeichnisses.',
       no_space: 'Das Dateisystem, auf dem {{path}} liegt, ist voll.',
       not_a_directory: '{{path}} existiert, ist aber kein Verzeichnis.',
       missing: '{{path}} existiert nicht und konnte nicht angelegt werden.',
-      error: 'Bambuddy kann nicht nach {{path}} schreiben.',
+      error: 'Goo Buddy kann nicht nach {{path}} schreiben.',
       ephemeralTitle: 'Diese Backups überleben einen Container-Neustart nicht',
-      container_ephemeral: '{{path}} liegt im Bambuddy-Container, nicht auf dem Host. Dort geschriebene Backups gehen verloren, sobald der Container neu erstellt wird. Binden Sie das Verzeichnis vom Host ein:',
+      container_ephemeral: '{{path}} liegt im Goo Buddy-Container, nicht auf dem Host. Dort geschriebene Backups gehen verloren, sobald der Container neu erstellt wird. Binden Sie das Verzeichnis vom Host ein:',
     },
 
     // Category labels
@@ -4991,7 +4991,7 @@ export default {
       right: 'Rechts',
       notes: 'Notizen (lokal gespeichert)',
       notesPlaceholder: 'Notizen zu diesem Profil hinzufügen...',
-      notesHelp: 'Notizen werden in Bambuddy gespeichert, nicht auf dem Drucker',
+      notesHelp: 'Notizen werden in Goo Buddy gespeichert, nicht auf dem Drucker',
       syncing: 'Synchronisiert mit Drucker...',
       savingExtruder: 'Speichern auf Extruder {{current}}/{{total}}...',
       pleaseWait: 'Bitte warten',
@@ -5046,7 +5046,7 @@ export default {
     },
     enable: {
       title: 'Virtuellen Drucker aktivieren',
-      visibleInSlicer: 'Sichtbar als "Bambuddy" in der Slicer-Erkennung',
+      visibleInSlicer: 'Sichtbar als "Goo Buddy" in der Slicer-Erkennung',
       proxyingTo: 'Proxy zu {{name}}',
       notActive: 'Nicht aktiv',
     },
@@ -5081,7 +5081,7 @@ export default {
       configured: 'Schnittstellenüberschreibung aktiv',
       optional: 'Optional - verwenden wenn die automatisch erkannte IP falsch ist (z.B. mehrere NICs, Docker, VPN)',
       placeholder: 'Automatisch erkennen (Standard)...',
-      hint: 'Überschreibt die per SSDP beworbene und im TLS-Zertifikat verwendete IP-Adresse. Nützlich wenn Bambuddy mehrere Netzwerkschnittstellen hat.',
+      hint: 'Überschreibt die per SSDP beworbene und im TLS-Zertifikat verwendete IP-Adresse. Nützlich wenn Goo Buddy mehrere Netzwerkschnittstellen hat.',
     },
     mode: {
       title: 'Modus',
@@ -5123,7 +5123,7 @@ export default {
     },
     caCert: {
       title: 'Slicer-Zertifikat',
-      description: 'Virtuelle Drucker verwenden ein TLS-Zertifikat, das von der Bambuddy-CA signiert ist. Importieren Sie dieses CA-Zertifikat einmalig in den Vertrauensspeicher Ihres Slicers, damit er die Verbindung akzeptiert — kein Abrufen über die Kommandozeile mehr nötig.',
+      description: 'Virtuelle Drucker verwenden ein TLS-Zertifikat, das von der Goo Buddy-CA signiert ist. Importieren Sie dieses CA-Zertifikat einmalig in den Vertrauensspeicher Ihres Slicers, damit er die Verbindung akzeptiert — kein Abrufen über die Kommandozeile mehr nötig.',
       copy: 'Kopieren',
       copied: 'Kopiert',
       download: 'Herunterladen',
@@ -5132,7 +5132,7 @@ export default {
     howItWorks: {
       title: 'So funktioniert es',
       step1: 'Im selben LAN erscheinen virtuelle Drucker automatisch in deinem Slicer (Bambu Studio / OrcaSlicer). Aus anderen Netzwerken füge sie manuell per IP-Adresse und Zugangscode hinzu.',
-      step2: 'Im Archiv-, Überprüfungs- und Warteschlangen-Modus verwende die "Senden"-Funktion im Slicer, um 3MF-Dateien an Bambuddy zu senden. Der Slicer zeigt "Druck erfolgreich" — die Datei wird gespeichert, nicht gedruckt.',
+      step2: 'Im Archiv-, Überprüfungs- und Warteschlangen-Modus verwende die "Senden"-Funktion im Slicer, um 3MF-Dateien an Goo Buddy zu senden. Der Slicer zeigt "Druck erfolgreich" — die Datei wird gespeichert, nicht gedruckt.',
       step3: 'Im Proxy-Modus leitet der virtuelle Drucker den gesamten Datenverkehr an einen echten Drucker weiter — Drucke starten sofort wie bei einer direkten Verbindung.',
     },
     status: {
@@ -5392,7 +5392,7 @@ export default {
     restEnergyTotalMultiplier: 'Multiplikator Gesamtzähler',
     restEnergyTotalPathHint: 'z.B. aenergy.total',
     restEnergyTotalHint:
-      'Viele Steckdosen — darunter alle Shellys — liefern nur einen Gesamtzähler, der nie zurückgesetzt wird. Er gehört hierher, nicht in das Feld darüber: als Tagesverbrauch gelesen würde er um Mitternacht nie zurückspringen, und Gestern und Gesamt blieben leer. Bambuddy errechnet Heute und Gestern daraus, wofür ein bis zwei Tage an Messwerten nötig sind. Ein Shelly liefert Wattstunden, also Multiplikator 0.001 verwenden.',
+      'Viele Steckdosen — darunter alle Shellys — liefern nur einen Gesamtzähler, der nie zurückgesetzt wird. Er gehört hierher, nicht in das Feld darüber: als Tagesverbrauch gelesen würde er um Mitternacht nie zurückspringen, und Gestern und Gesamt blieben leer. Goo Buddy errechnet Heute und Gestern daraus, wofür ein bis zwei Tage an Messwerten nötig sind. Ein Shelly liefert Wattstunden, also Multiplikator 0.001 verwenden.',
     restEnergyMultiplier: 'Energie Multiplikator',
     restUrlRequired: 'Mindestens eine URL (ON oder OFF) ist für REST-Steckdosen erforderlich',
     restHeadersHint: 'z. B. {"Authorization": "Bearer your-token"}',
@@ -5684,7 +5684,7 @@ export default {
     title: 'Seitenleisten-Links',
     sidebarLayout: 'Seitenleiste',
     sidebarLayoutDescription: 'Integrierte Seiten ein- oder ausblenden, externe Links hinzufügen und Elemente ziehen, um die Seitenleisten-Navigation neu zu ordnen.',
-    systemPages: 'Bambuddy-Seiten',
+    systemPages: 'Goo Buddy-Seiten',
     externalLinks: 'Externe Links',
     visibleInSidebar: 'In Seitenleiste sichtbar',
     hiddenFromSidebar: 'In Seitenleiste ausgeblendet',
@@ -5899,7 +5899,7 @@ export default {
   // Email Settings
   emailSettings: {
     placeholders: {
-      fromName: 'Bambuddy',
+      fromName: 'Goo Buddy',
     },
   },
 
@@ -6154,7 +6154,7 @@ export default {
       hostname: 'Host',
       uptime: 'Betriebszeit',
       systemConfig: 'Backend & Auth',
-      backendUrl: 'Bambuddy Backend URL',
+      backendUrl: 'Goo Buddy Backend URL',
       apiToken: 'API-Token',
       apiTokenPlaceholder: 'API-Token eingeben',
       saveConfig: 'Konfiguration speichern',
@@ -6303,13 +6303,13 @@ export default {
       network_mode: {
         title: 'Docker-Netzwerkmodus',
         pass: 'Läuft im Host-Netzwerkmodus.',
-        warn: 'Bambuddy läuft im Docker-Bridge-Netzwerkmodus. Die Druckererkennung und der virtuelle Drucker benötigen den Host-Netzwerkmodus — erstellen Sie den Container mit "network_mode: host" neu.',
+        warn: 'Goo Buddy läuft im Docker-Bridge-Netzwerkmodus. Die Druckererkennung und der virtuelle Drucker benötigen den Host-Netzwerkmodus — erstellen Sie den Container mit "network_mode: host" neu.',
         skip: 'Läuft nicht in Docker — nicht zutreffend.',
       },
       subnet: {
         title: 'Netzwerk-Subnetz',
-        pass: 'Drucker und Bambuddy befinden sich im selben Subnetz.',
-        warn: 'Der Drucker ({{printer_ip}}) und Bambuddy ({{host_ip}}) befinden sich in unterschiedlichen Subnetzen. Sie können sich möglicherweise nicht erreichen, sofern kein Routing zwischen den Subnetzen konfiguriert ist.',
+        pass: 'Drucker und Goo Buddy befinden sich im selben Subnetz.',
+        warn: 'Der Drucker ({{printer_ip}}) und Goo Buddy ({{host_ip}}) befinden sich in unterschiedlichen Subnetzen. Sie können sich möglicherweise nicht erreichen, sofern kein Routing zwischen den Subnetzen konfiguriert ist.',
         skip: 'Subnetz konnte nicht ermittelt werden — übersprungen.',
       },
       mqtt_auth: {
@@ -6351,12 +6351,12 @@ export default {
       'ftp-auth-rejected': {
         name: 'Drucker hat den Zugriffscode abgelehnt',
         cause: 'Der Drucker hat die Anmeldung für die Dateiübertragung abgelehnt. Der Zugriffscode ist falsch oder hat sich nach dem Umschalten des Entwicklermodus geändert.',
-        fix: 'Kopiere den Zugriffscode erneut vom Druckerbildschirm (LAN-Einstellungen) und aktualisiere ihn in den Druckereinstellungen in Bambuddy.',
+        fix: 'Kopiere den Zugriffscode erneut vom Druckerbildschirm (LAN-Einstellungen) und aktualisiere ihn in den Druckereinstellungen in Goo Buddy.',
       },
       'ftp-connection-timeout': {
         name: 'Zeitüberschreitung bei der Dateiübertragung',
-        cause: 'Bambuddy konnte den Dateiübertragungs-Port des Druckers (FTPS 990) nicht erreichen. Der Port ist blockiert, oder der Drucker ist aus oder in einem anderen Subnetz.',
-        fix: 'Stelle sicher, dass Port 990 zwischen Bambuddy und dem Drucker nicht blockiert wird und beide im selben Netzwerk sind.',
+        cause: 'Goo Buddy konnte den Dateiübertragungs-Port des Druckers (FTPS 990) nicht erreichen. Der Port ist blockiert, oder der Drucker ist aus oder in einem anderen Subnetz.',
+        fix: 'Stelle sicher, dass Port 990 zwischen Goo Buddy und dem Drucker nicht blockiert wird und beide im selben Netzwerk sind.',
       },
       'ftp-ssl-error': {
         name: 'Sicherer Dateiübertragungs-Handshake fehlgeschlagen',
@@ -6376,7 +6376,7 @@ export default {
       'database-locked': {
         name: 'Datenbank-Schreibkonflikte',
         cause: 'Die SQLite-Datenbank meldet unter Last "database is locked"-Fehler — häufig beim Betrieb mehrerer Drucker gleichzeitig.',
-        fix: 'Stelle Bambuddy auf eine externe PostgreSQL-Datenbank um. Siehe die PostgreSQL-Anleitung in der Dokumentation.',
+        fix: 'Stelle Goo Buddy auf eine externe PostgreSQL-Datenbank um. Siehe die PostgreSQL-Anleitung in der Dokumentation.',
       },
     },
   },
@@ -6399,7 +6399,7 @@ export default {
       },
       running: {
         title: 'Dienste laufen',
-        fail: 'Der virtuelle Drucker ist aktiviert, aber seine Dienste laufen nicht. Prüfen Sie das Bambuddy-Protokoll — meist stoppt sie ein Bind-IP-Konflikt oder ein Berechtigungsfehler.',
+        fail: 'Der virtuelle Drucker ist aktiviert, aber seine Dienste laufen nicht. Prüfen Sie das Goo Buddy-Protokoll — meist stoppt sie ein Bind-IP-Konflikt oder ein Berechtigungsfehler.',
       },
       bind_interface: {
         title: 'Bind-Netzwerkschnittstelle',
@@ -6428,8 +6428,8 @@ export default {
       },
       certificate: {
         title: 'TLS-Zertifikat',
-        pass: 'Zertifikat bereit. Stellen Sie sicher, dass das Bambuddy-CA-Zertifikat (oben) in den Vertrauensspeicher Ihres Slicers importiert ist.',
-        fail: 'Das TLS-Zertifikat für diesen virtuellen Drucker fehlt. Prüfen Sie, ob das Bambuddy-Datenverzeichnis beschreibbar ist.',
+        pass: 'Zertifikat bereit. Stellen Sie sicher, dass das Goo Buddy-CA-Zertifikat (oben) in den Vertrauensspeicher Ihres Slicers importiert ist.',
+        fail: 'Das TLS-Zertifikat für diesen virtuellen Drucker fehlt. Prüfen Sie, ob das Goo Buddy-Datenverzeichnis beschreibbar ist.',
       },
     },
   },
@@ -6494,7 +6494,7 @@ export default {
     pollInterval: 'Prüfintervall (Sekunden)',
     pollIntervalHint: 'Wie oft jeder Drucker während eines laufenden Drucks geprüft wird. Minimum 5 s, Maximum 120 s.',
     externalUrlMissing: 'Externe URL ist nicht gesetzt.',
-    externalUrlHint: 'Die ML-API ruft das Kamera-Snapshot per URL ab. Setze die externe URL in den allgemeinen Einstellungen, damit der ML-API-Container Bambuddy erreichen kann.',
+    externalUrlHint: 'Die ML-API ruft das Kamera-Snapshot per URL ab. Setze die externe URL in den allgemeinen Einstellungen, damit der ML-API-Container Goo Buddy erreichen kann.',
     perPrinterTitle: 'Überwachte Drucker',
     perPrinterHint: 'Wähle, welche Drucker vom Erkennungsdienst überwacht werden.',
     monitorAll: 'Alle verbundenen Drucker überwachen',
@@ -6509,14 +6509,14 @@ export default {
 
   makerworld: {
     title: 'MakerWorld',
-    description: 'Füge eine MakerWorld-Modell-URL ein, um es direkt aus Bambuddy zu importieren und zu drucken — ohne die Bambu Handy App zu öffnen.',
+    description: 'Füge eine MakerWorld-Modell-URL ein, um es direkt aus Goo Buddy zu importieren und zu drucken — ohne die Bambu Handy App zu öffnen.',
     pasteUrlHeader: 'Von MakerWorld importieren',
     pasteUrlPlaceholder: 'https://makerworld.com/de/models/… oder beliebigen MakerWorld-Link einfügen',
     resolveButton: 'Laden',
     signInRequiredTitle: 'Bambu-Cloud-Anmeldung für Download erforderlich',
     signInRequiredBody: 'Modell-Details können anonym angezeigt werden, aber MakerWorld verlangt eine Bambu-Cloud-Anmeldung zum Herunterladen der 3MF-Dateien.',
     signInExpiredTitle: 'Bambu-Cloud-Anmeldung abgelaufen',
-    signInExpiredBody: 'Sie sind weiterhin bei Bambuddy angemeldet, aber Bambu Lab akzeptiert das gespeicherte Token nicht mehr, daher schlagen Downloads fehl. Melden Sie sich erneut bei Bambu Cloud an.',
+    signInExpiredBody: 'Sie sind weiterhin bei Goo Buddy angemeldet, aber Bambu Lab akzeptiert das gespeicherte Token nicht mehr, daher schlagen Downloads fehl. Melden Sie sich erneut bei Bambu Cloud an.',
     openCloudSettings: 'Cloud-Einstellungen öffnen',
     untitledModel: 'Unbenanntes Modell',
     byCreator: 'von {{name}}',
@@ -6534,7 +6534,7 @@ export default {
     alsoCompatible: 'Auch kompatibel: {{printers}}',
     importToLibrary: 'Speichern',
     sliceIn: 'Speichern & in {{slicer}} öffnen',
-    disclaimer: 'Die MakerWorld-Integration verwendet von der Community dokumentierte API-Endpunkte. Bambuddy ist nicht mit MakerWorld oder Bambu Lab verbunden oder von diesen unterstützt.',
+    disclaimer: 'Die MakerWorld-Integration verwendet von der Community dokumentierte API-Endpunkte. Goo Buddy ist nicht mit MakerWorld oder Bambu Lab verbunden oder von diesen unterstützt.',
     lastImportSuccess: 'In deine Bibliothek importiert',
     lastImportAlreadyInLibrary: 'Bereits in deiner Bibliothek',
     viewInLibrary: 'Im Dateimanager anzeigen',
@@ -6630,7 +6630,7 @@ export default {
     effect1: 'Passende Dateien werden in den Papierkorb verschoben — noch nicht von der Festplatte gelöscht.',
     effect2: 'Du kannst sie bis zum Ablauf der Aufbewahrungsfrist jederzeit wiederherstellen.',
     effect3: 'Nach Ablauf der Frist löscht der Papierkorb-Sweeper sie endgültig von der Festplatte.',
-    effect4: 'Dateien in externen (verknüpften) Ordnern werden übersprungen — Bambuddy löscht keine Bytes, die ihm nicht gehören.',
+    effect4: 'Dateien in externen (verknüpften) Ordnern werden übersprungen — Goo Buddy löscht keine Bytes, die ihm nicht gehören.',
     previewLoading: 'Prüfe, wie viele Dateien passen…',
     previewFailed: 'Vorschau konnte nicht geladen werden.',
     previewSummary: '{{count}} Dateien · {{size}} würden in den Papierkorb verschoben',

@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Bambuddy",
-  "short_name": "Bambuddy",
-  "description": "Monitor and manage your Bambu Lab 3D printers",
+  "name": "Goo Buddy",
+  "short_name": "Goo Buddy",
+  "description": "Local-first Bambu management with a synthetic read-only Elegoo foundation; Moonraker planned",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a1a",
@@ -51,14 +51,14 @@
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Bambuddy on mobile"
+      "label": "Goo Buddy on mobile"
     },
     {
       "src": "/img/screenshot-desktop.png",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Bambuddy on desktop"
+      "label": "Goo Buddy on desktop"
     }
   ],
   "categories": ["utilities", "productivity"],

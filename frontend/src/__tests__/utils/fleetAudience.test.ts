@@ -29,13 +29,13 @@ describe('fleetAudience', () => {
 describe('sponsorHref', () => {
   it('sends a personal audience to the sponsor tiers', () => {
     expect(sponsorHref('personal', 'app-settings')).toBe(
-      'https://bambuddy.cool/sponsors.html?from=app-settings',
+      'https://github.com/James-Jennison/Goo-Buddy?from=app-settings',
     );
   });
 
   it('sends a business audience to the commercial page', () => {
     expect(sponsorHref('business', 'app-settings')).toBe(
-      'https://bambuddy.cool/business.html?from=app-settings',
+      'https://github.com/James-Jennison/Goo-Buddy?from=app-settings',
     );
   });
 

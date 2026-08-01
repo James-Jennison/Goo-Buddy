@@ -9,8 +9,8 @@ body:
         Thanks for taking the time to report a bug!
 
         **Before you submit, please:**
-        1. Search [existing issues](https://github.com/maziggy/bambuddy/issues?q=is%3Aissue) — your problem may already be reported or resolved.
-        2. Skim the [Troubleshooting wiki](https://wiki.bambuddy.cool/reference/troubleshooting/) — roughly 1 in 5 closed bug reports turn out to be setup or configuration issues already documented there.
+        1. Search [existing issues](https://github.com/James-Jennison/Goo-Buddy/issues?q=is%3Aissue) — your problem may already be reported or resolved.
+        2. Read the [Goo Buddy documentation](https://github.com/James-Jennison/Goo-Buddy/tree/main/docs) and run the in-app diagnostic where applicable.
         3. If your printer won't connect / won't print / camera won't load, run the in-app **Connection Diagnostic** (printer card or System → Diagnostics) FIRST. Most connection bugs are diagnosed in 30 seconds by the diagnostic and need no GitHub issue.
         4. Generate a **Support Package** from System → Download Support Package — without it, most bugs cannot be investigated.
 
@@ -20,7 +20,7 @@ body:
       label: Product
       description: Which product is affected?
       options:
-        - Bambuddy
+        - Goo Buddy
         - SpoolBuddy
     validations:
       required: true
@@ -123,8 +123,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Bambuddy Version
-      description: Which version of Bambuddy are you running? (Check Settings page)
+      label: Goo Buddy Version
+      description: Which version of Goo Buddy are you running? (Check Settings page)
       placeholder: e.g., 0.2.5
     validations:
       required: true
@@ -147,7 +147,7 @@ body:
     id: installation
     attributes:
       label: Installation Method
-      description: How did you install Bambuddy?
+      description: How did you install Goo Buddy?
       options:
         - Manual (git clone)
         - Docker
@@ -159,7 +159,7 @@ body:
     id: os
     attributes:
       label: Operating System
-      description: What OS is Bambuddy running on?
+      description: What OS is Goo Buddy running on?
       options:
         - Linux (Ubuntu/Debian)
         - Linux (Other)
@@ -179,7 +179,7 @@ body:
         Create and attach a **Support Package** from **System → Download Support Package**.
         It bundles logs, system info, and configuration (sensitive data redacted) — without it, most bugs cannot be reproduced or investigated.
 
-        Detailed instructions: [Debug Logging Guide](https://wiki.bambuddy.cool/features/system-info/?h=debug#enable-debug-logging)
+        See the [Goo Buddy documentation](https://github.com/James-Jennison/Goo-Buddy/tree/main/docs) for current implementation notes.
 
   - type: textarea
     id: logs
@@ -188,7 +188,7 @@ body:
       description: |
         Drag and drop your support package .zip here, or paste relevant logs. Enable DEBUG mode for verbose logging.
 
-        Reports without a Support Package or logs almost always go back-and-forth for a week before any progress is made. If you genuinely cannot generate one (e.g. Bambuddy itself won't start), write WHY here.
+        Reports without a Support Package or logs almost always go back-and-forth for a week before any progress is made. If you genuinely cannot generate one (e.g. Goo Buddy itself won't start), write WHY here.
       placeholder: |
         Drag and drop your support package .zip file here, or paste logs / explain why you cannot attach one...
     validations:
@@ -215,9 +215,9 @@ body:
       options:
         - label: I searched existing (open AND closed) issues and this bug hasn't already been reported or resolved
           required: true
-        - label: I checked the [Troubleshooting wiki](https://wiki.bambuddy.cool/reference/troubleshooting/) and the relevant feature page for my issue
+        - label: I checked the [Goo Buddy documentation](https://github.com/James-Jennison/Goo-Buddy/tree/main/docs) and the relevant feature page for my issue
           required: true
-        - label: I am using the latest version of Bambuddy (or the latest daily build)
+        - label: I am using the latest version of Goo Buddy
           required: true
         - label: My printer is set to LAN Only mode
           required: true

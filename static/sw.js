@@ -1,6 +1,6 @@
-// Bambuddy Service Worker
-const CACHE_NAME = 'bambuddy-v30';
-const STATIC_CACHE = 'bambuddy-static-v29';
+// Goo Buddy Service Worker
+const CACHE_NAME = 'goo-buddy-v1';
+const STATIC_CACHE = 'goo-buddy-static-v1';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -191,7 +191,7 @@ self.addEventListener('push', (event) => {
 
   const data = event.data.json();
   const options = {
-    body: data.body || 'New notification from Bambuddy',
+    body: data.body || 'New notification from Goo Buddy',
     icon: '/img/android-chrome-192x192.png',
     badge: '/img/favicon-32x32.png',
     vibrate: [100, 50, 100],
@@ -201,7 +201,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Bambuddy', options)
+    self.registration.showNotification(data.title || 'Goo Buddy', options)
   );
 });
 

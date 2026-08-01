@@ -150,9 +150,8 @@ describe('useSponsorPrompt', () => {
  *
  * A print farm has no use for a "chip in $5" toast — it wants a support
  * contract. At/above BUSINESS_FLEET_THRESHOLD configured printers the toast
- * makes the commercial ask instead, and points at business.html rather than
- * sponsors.html. Same milestone, same cooldown, same single interruption; only
- * the ask changes.
+ * makes the business-oriented copy instead. Both paths link to the Goo Buddy
+ * repository until a separate sponsorship or commercial-support program exists.
  */
 describe('useSponsorPrompt — fleet-size audience', () => {
   beforeEach(() => {
@@ -176,18 +175,17 @@ describe('useSponsorPrompt — fleet-size audience', () => {
 
     await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1));
     const [, message, , options] = showPersistentToast.mock.calls[0];
-    expect(options.action.href).toContain('sponsors.html');
-    expect(options.action.href).not.toContain('business.html');
+    expect(options.action.href).toContain('github.com/James-Jennison/Goo-Buddy');
     expect(message).toContain('30'); // the prints milestone copy, not the fleet copy
   });
 
-  it('makes the commercial ask at the threshold, pointing at business.html', async () => {
+  it('makes the business-oriented ask at the threshold', async () => {
     withFleet(5);
     renderHook(() => useSponsorPrompt('EUR'), { wrapper: wrapper() });
 
     await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1));
     const [, message, , options] = showPersistentToast.mock.calls[0];
-    expect(options.action.href).toContain('business.html');
+    expect(options.action.href).toContain('github.com/James-Jennison/Goo-Buddy');
     // Attribution still rides on the milestone, so Matomo keeps segmenting it.
     expect(options.action.href).toContain('from=app-toast-prints-25');
     expect(message).toContain('5'); // fleet size, not the print count
@@ -217,7 +215,7 @@ describe('useSponsorPrompt — fleet-size audience', () => {
 
     await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1));
     const [, message, , options] = showPersistentToast.mock.calls[0];
-    expect(options.action.href).toContain('business.html');
+    expect(options.action.href).toContain('github.com/James-Jennison/Goo-Buddy');
     expect(message).toContain('8');
   });
 
@@ -243,6 +241,6 @@ describe('useSponsorPrompt — fleet-size audience', () => {
     renderHook(() => useSponsorPrompt('EUR'), { wrapper: wrapper() });
 
     await waitFor(() => expect(showPersistentToast).toHaveBeenCalledTimes(1), { timeout: 2000 });
-    expect(showPersistentToast.mock.calls[0][3].action.href).toContain('business.html');
+    expect(showPersistentToast.mock.calls[0][3].action.href).toContain('github.com/James-Jennison/Goo-Buddy');
   });
 });

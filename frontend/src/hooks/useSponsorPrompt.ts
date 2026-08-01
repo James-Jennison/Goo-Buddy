@@ -104,7 +104,7 @@ export function useSponsorPrompt(currencyCode = 'EUR') {
           action: {
             label:
               audience === 'business'
-                ? t('sponsors.businessCta', 'Bambuddy for business')
+                ? t('sponsors.businessCta', 'Goo Buddy for business')
                 : t('sponsors.viewSupporters', 'View supporters'),
             href: sponsorHref(audience, `app-toast-${result.milestone}`),
           },

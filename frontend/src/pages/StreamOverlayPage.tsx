@@ -229,7 +229,7 @@ export function StreamOverlayPage() {
   useEffect(() => {
     document.title = printer ? `${printer.name} - ${t('streamOverlay.title')}` : t('streamOverlay.title');
     return () => {
-      document.title = 'Bambuddy';
+      document.title = 'Goo Buddy';
     };
   }, [printer, t]);
 
@@ -280,16 +280,16 @@ export function StreamOverlayPage() {
         />
       )}
 
-      {/* Bambuddy logo - top right */}
+      {/* Goo Buddy logo - top right */}
       <a
-        href="https://github.com/maziggy/bambuddy"
+        href="https://github.com/James-Jennison/Goo-Buddy"
         target="_blank"
         rel="noopener noreferrer"
         className="absolute top-4 right-4 z-10"
       >
         <img
           src="/img/bambuddy_logo_dark_transparent.png"
-          alt="Bambuddy"
+          alt="Goo Buddy"
           className={`${sizes.logoHeight} object-contain drop-shadow-lg hover:scale-105 transition-transform`}
         />
       </a>

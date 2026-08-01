@@ -20,7 +20,6 @@ export function fleetAudience(printerCount: number): SponsorAudience {
 }
 
 /** Landing page for each audience, carrying the Matomo `?from=` attribution. */
-export function sponsorHref(audience: SponsorAudience, from: string): string {
-  const page = audience === 'business' ? 'business.html' : 'sponsors.html';
-  return `https://bambuddy.cool/${page}?from=${from}`;
+export function sponsorHref(_audience: SponsorAudience, from: string): string {
+  return `https://github.com/James-Jennison/Goo-Buddy?from=${from}`;
 }

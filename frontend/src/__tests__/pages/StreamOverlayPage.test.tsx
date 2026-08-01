@@ -115,11 +115,11 @@ describe('StreamOverlayPage', () => {
       });
     });
 
-    it('shows Bambuddy logo', async () => {
+    it('shows the Goo Buddy logo', async () => {
       renderOverlayPage(1);
 
       await waitFor(() => {
-        expect(screen.getByAltText('Bambuddy')).toBeInTheDocument();
+        expect(screen.getByAltText('Goo Buddy')).toBeInTheDocument();
       });
     });
 
@@ -127,9 +127,9 @@ describe('StreamOverlayPage', () => {
       renderOverlayPage(1);
 
       await waitFor(() => {
-        const logo = screen.getByAltText('Bambuddy');
+        const logo = screen.getByAltText('Goo Buddy');
         const link = logo.closest('a');
-        expect(link).toHaveAttribute('href', 'https://github.com/maziggy/bambuddy');
+        expect(link).toHaveAttribute('href', 'https://github.com/James-Jennison/Goo-Buddy');
       });
     });
   });
@@ -193,7 +193,7 @@ describe('StreamOverlayPage', () => {
 
       await waitFor(() => {
         // Just verify it renders without error
-        expect(screen.getByAltText('Bambuddy')).toBeInTheDocument();
+        expect(screen.getByAltText('Goo Buddy')).toBeInTheDocument();
       });
     });
 

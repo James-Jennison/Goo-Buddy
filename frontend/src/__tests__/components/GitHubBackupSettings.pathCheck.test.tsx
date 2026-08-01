@@ -48,7 +48,7 @@ const SANDBOXED = {
   code: 'sandboxed',
   detail: "[Errno 30] Read-only file system: '/mnt/nasbackup/.bambuddy-write-test-x'",
   remedy: 'sudo systemctl edit bambuddy.service\n\n[Service]\nReadWritePaths=/mnt/nasbackup',
-  message: '/mnt/nasbackup is read-only for the Bambuddy service.',
+  message: '/mnt/nasbackup is read-only for the Goo Buddy service.',
   warning: null,
 };
 

@@ -484,7 +484,7 @@ describe('SettingsPage', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('docker compose pull && docker compose up -d')).toBeInTheDocument();
+        expect(screen.getByText('docker compose up -d --build')).toBeInTheDocument();
       });
       expect(screen.queryByText(/Home Assistant Supervisor/i)).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /install update/i })).not.toBeInTheDocument();
@@ -1381,16 +1381,16 @@ describe('SettingsPage — sponsor banner audience', () => {
     render(<SettingsPage />);
 
     const banner = await screen.findByRole('link', { name: /Independent & community-funded/i });
-    expect(banner).toHaveAttribute('href', 'https://bambuddy.cool/sponsors.html?from=app-settings');
-    expect(screen.queryByText(/Bambuddy for business/i)).not.toBeInTheDocument();
+    expect(banner).toHaveAttribute('href', 'https://github.com/James-Jennison/Goo-Buddy?from=app-settings');
+    expect(screen.queryByText(/Goo Buddy for business/i)).not.toBeInTheDocument();
   });
 
   it('shows the commercial ask for a business-sized fleet', async () => {
     fleet(6);
     render(<SettingsPage />);
 
-    const banner = await screen.findByRole('link', { name: /Bambuddy for business/i });
-    expect(banner).toHaveAttribute('href', 'https://bambuddy.cool/business.html?from=app-settings');
+    const banner = await screen.findByRole('link', { name: /Goo Buddy for business/i });
+    expect(banner).toHaveAttribute('href', 'https://github.com/James-Jennison/Goo-Buddy?from=app-settings');
     // The donation copy is replaced, not merely supplemented.
     expect(screen.queryByText(/Independent & community-funded/i)).not.toBeInTheDocument();
     // The ask names the fleet back to them.

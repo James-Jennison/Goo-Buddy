@@ -68,7 +68,7 @@ describe('SystemHealthPanel', () => {
     const link = screen.getByRole('link', { name: /How to fix/i });
     expect(link).toHaveAttribute(
       'href',
-      'https://wiki.bambuddy.cool/reference/troubleshooting/#wrong-access-code',
+      'https://github.com/James-Jennison/Goo-Buddy/tree/main/docs#wrong-access-code',
     );
   });
 });
