@@ -91,7 +91,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { api, discoveryApi, firmwareApi, withStreamToken, ApiError } from '../api/client';
 import { formatDateOnly, formatETA, formatDuration, parseUTCDate } from '../utils/date';
-import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult, ElegooSourceCreate } from '../api/client';
+import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult, ElegooSourceCreate, MoonrakerSourceCreate } from '../api/client';
 import { Card, CardContent } from '../components/Card';
 import { Button } from '../components/Button';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -1749,7 +1749,7 @@ function isCanonicalRfc1918Ipv4(value: string): boolean {
   return numbers[0] === 10 || (numbers[0] === 172 && numbers[1] >= 16 && numbers[1] <= 31) || (numbers[0] === 192 && numbers[1] === 168);
 }
 
-function ElegooPrinterCard({ printer }: { printer: Printer }) {
+export function ElegooPrinterCard({ printer }: { printer: Printer }) {
   const queryClient = useQueryClient();
   const [editingEndpoint, setEditingEndpoint] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -1798,10 +1798,10 @@ function ElegooPrinterCard({ printer }: { printer: Printer }) {
         </div>
         {status?.retained && <p className="rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-200">Retained data — not current. Waiting for a fresh printer observation.</p>}
         {!printer.is_active && <p className="text-sm text-bambu-gray">Disabled. Enable only when you want Goo Buddy to open its passive read-only connection.</p>}
-        {printer.is_active && !status?.last_observation_at && <p className="text-sm text-bambu-gray">Waiting for a printer-pushed SDCP status and attributes observation. Goo Buddy does not request one.</p>}
+        {printer.is_active && !status?.last_observation_at && ['connecting', 'waiting', 'reconnecting'].includes(status?.phase ?? 'connecting') && <p className="text-sm text-bambu-gray">Waiting for a printer-pushed SDCP status and attributes observation. Goo Buddy does not request one.</p>}
         {status?.error && <p className="text-sm text-red-300">Connection: {status.error.replaceAll('_', ' ')}</p>}
         {(status?.model || status?.firmware) && <p className="text-sm text-bambu-gray">{status.model ?? 'Centauri'}{status.firmware ? ` · firmware ${status.firmware}` : ''}</p>}
-        {temperatures && <div className="grid grid-cols-2 gap-2 text-sm"><span>Nozzle {temperatures.nozzle?.current_c ?? '—'}°C / {temperatures.nozzle?.target_c ?? '—'}°C</span><span>Bed {temperatures.bed?.current_c ?? '—'}°C / {temperatures.bed?.target_c ?? '—'}°C</span></div>}
+        {temperatures && <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2"><span>Nozzle {temperatures.nozzle?.current_c ?? '—'}°C / {temperatures.nozzle?.target_c ?? '—'}°C</span><span>Bed {temperatures.bed?.current_c ?? '—'}°C / {temperatures.bed?.target_c ?? '—'}°C</span>{temperatures.chamber && <span>Chamber {temperatures.chamber.current_c ?? '—'}°C / {temperatures.chamber.target_c ?? '—'}°C</span>}</div>}
         {job && <div className="text-sm text-bambu-gray"><p>{job.state ?? status?.state ?? 'Unknown'}{job.progress_percent != null ? ` · ${Math.round(job.progress_percent)}%` : ''}</p>{job.current_layer != null && <p>Layer {job.current_layer}{job.total_layers != null ? ` / ${job.total_layers}` : ''}</p>}</div>}
         <div className="flex items-center justify-between gap-3 border-t border-bambu-dark-tertiary pt-3"><span className="text-xs text-bambu-gray">Camera, files, console, maintenance, and controls are unavailable.</span><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setEditingEndpoint(true)}>Change endpoint</Button><Button variant="secondary" onClick={() => toggle.mutate()} disabled={toggle.isPending}>{printer.is_active ? 'Disable' : 'Enable'}</Button><Button variant="danger" onClick={() => setConfirmingDelete(true)}>Remove</Button></div></div>
         {editingEndpoint && <form className="space-y-2 rounded border border-bambu-dark-tertiary p-3" onSubmit={(event) => { event.preventDefault(); replaceEndpoint.mutate(); }}><p className="text-sm text-amber-200">Changing the private address immediately disconnects the old source and leaves this printer disabled. Re-enable it deliberately after saving.</p><label htmlFor={`elegoo-replace-${printer.id}`} className="block text-xs text-bambu-gray">New private IPv4 address</label><input id={`elegoo-replace-${printer.id}`} required inputMode="numeric" value={replacementAddress} onChange={(event) => setReplacementAddress(event.target.value)} placeholder="192.168.1.50" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /><label htmlFor={`elegoo-replace-ack-${printer.id}`} className="flex gap-2 text-xs text-bambu-gray"><input id={`elegoo-replace-ack-${printer.id}`} required type="checkbox" checked={replacementAcknowledged} onChange={(event) => setReplacementAcknowledged(event.target.checked)} />I confirm this replacement remains read-only.</label><div className="flex gap-2"><Button type="button" variant="secondary" onClick={() => setEditingEndpoint(false)}>Cancel</Button><Button type="submit" disabled={!validReplacementAddress || !replacementAcknowledged || replaceEndpoint.isPending}>Save and disable</Button></div></form>}
@@ -1809,6 +1809,36 @@ function ElegooPrinterCard({ printer }: { printer: Printer }) {
       </CardContent>
     </Card>
   );
+}
+
+export function MoonrakerPrinterCard({ printer }: { printer: Printer }) {
+  const queryClient = useQueryClient();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [editingConfiguration, setEditingConfiguration] = useState(false);
+  const [replacementAddress, setReplacementAddress] = useState('');
+  const [replacementPort, setReplacementPort] = useState(String(printer.port ?? 7125));
+  const [replacementScheme, setReplacementScheme] = useState<'http' | 'https'>(printer.scheme ?? 'http');
+  const [replacementApiKey, setReplacementApiKey] = useState('');
+  const [replacementAcknowledged, setReplacementAcknowledged] = useState(false);
+  const { data: status } = useQuery({ queryKey: ['moonraker-status', -1_000_000 - printer.id], queryFn: () => api.getMoonrakerStatus(-1_000_000 - printer.id), refetchInterval: 3000 });
+  const toggle = useMutation({ mutationFn: () => api.updateMoonrakerSource(-1_000_000 - printer.id, { is_enabled: !printer.is_active }), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['printers'] }); queryClient.invalidateQueries({ queryKey: ['moonraker-status', -1_000_000 - printer.id] }); } });
+  const remove = useMutation({ mutationFn: () => api.deleteMoonrakerSource(-1_000_000 - printer.id), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['printers'] }) });
+  const replace = useMutation({ mutationFn: () => api.updateMoonrakerSource(-1_000_000 - printer.id, { private_ipv4: replacementAddress, port: Number(replacementPort), scheme: replacementScheme, api_key: replacementApiKey || undefined, read_only_acknowledged: replacementAcknowledged }), onSuccess: () => { setEditingConfiguration(false); queryClient.invalidateQueries({ queryKey: ['printers'] }); queryClient.invalidateQueries({ queryKey: ['moonraker-status', -1_000_000 - printer.id] }); } });
+  const current = status?.freshness === 'current';
+  return <Card className="overflow-hidden border-sky-500/30"><CardContent className="space-y-3">
+    <div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-white">{printer.name}</h3><p className="text-xs text-bambu-gray">Klipper via Moonraker · alpha read-only</p></div><span className={`rounded-full px-2 py-1 text-xs ${current ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>{printer.is_active ? status?.phase ?? 'connecting' : 'disabled'}</span></div>
+    {status?.retained && <p className="rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-200">Retained data — not current. Waiting for validated Moonraker status.</p>}
+    {!printer.is_active && <p className="text-sm text-bambu-gray">Disabled. Enable only when you want Goo Buddy to open its read-only monitoring connection.</p>}
+    {printer.is_active && !status?.last_observation_at && ['connecting', 'waiting', 'reconnecting'].includes(status?.phase ?? 'connecting') && <p className="text-sm text-bambu-gray">Connecting to the saved private Moonraker endpoint and waiting for validated status.</p>}
+    {status?.error && <p className="break-words text-sm text-red-300">Connection: {status.error.replaceAll('_', ' ')}</p>}
+    {status?.error === 'unauthorized' && <p className="text-sm text-amber-200">Moonraker authentication needs attention. Review the saved API-key configuration; Goo Buddy never displays the key.</p>}
+    {(status?.model || status?.firmware) && <p className="text-sm text-bambu-gray">{status.model ?? 'Klipper'}{status.firmware ? ` · Moonraker ${status.firmware}` : ''}</p>}
+    {status?.temperatures && <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2"><span>Nozzle {status.temperatures.nozzle?.current_c ?? '—'}°C / {status.temperatures.nozzle?.target_c ?? '—'}°C</span><span>Bed {status.temperatures.bed?.current_c ?? '—'}°C / {status.temperatures.bed?.target_c ?? '—'}°C</span>{status.temperatures.chamber && <span>Chamber {status.temperatures.chamber.current_c ?? '—'}°C / {status.temperatures.chamber.target_c ?? '—'}°C</span>}</div>}
+    {status?.job && <div className="text-sm text-bambu-gray"><p>{status.job.name ?? 'Active job'} · {status.job.state ?? status.state ?? 'Unknown'}{status.job.progress_percent != null ? ` · ${Math.round(status.job.progress_percent)}%` : ''}</p>{status.job.current_layer != null && <p>Layer {status.job.current_layer}{status.job.total_layers != null ? ` / ${status.job.total_layers}` : ''}</p>}{status.job.elapsed_seconds != null && <p>Elapsed {formatDuration(status.job.elapsed_seconds)}{status.job.estimated_remaining_seconds != null ? ` · estimated remaining ${formatDuration(status.job.estimated_remaining_seconds)}` : ''}</p>}</div>}
+    <div className="flex items-center justify-between gap-3 border-t border-bambu-dark-tertiary pt-3"><span className="text-xs text-bambu-gray">Camera, files, console, maintenance, upload, and controls are unavailable.</span><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setEditingConfiguration(true)}>Change connection</Button><Button variant="secondary" onClick={() => toggle.mutate()} disabled={toggle.isPending}>{printer.is_active ? 'Disable' : 'Enable'}</Button><Button variant="danger" onClick={() => setConfirmingDelete(true)}>Remove</Button></div></div>
+    {editingConfiguration && <form className="space-y-2 rounded border border-bambu-dark-tertiary p-3" onSubmit={(event) => { event.preventDefault(); replace.mutate(); }}><p className="text-sm text-amber-200">Changing the endpoint, transport, port, or API key immediately closes this session and leaves monitoring disabled. Re-enable it deliberately after saving.</p><label className="block text-xs text-bambu-gray">New private IPv4 address<input required inputMode="numeric" value={replacementAddress} onChange={(event) => setReplacementAddress(event.target.value)} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></label><div className="grid grid-cols-2 gap-2"><label className="block text-xs text-bambu-gray">Transport<select value={replacementScheme} onChange={(event) => setReplacementScheme(event.target.value as 'http' | 'https')} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white"><option value="http">HTTP</option><option value="https">HTTPS</option></select></label><label className="block text-xs text-bambu-gray">Port<input required inputMode="numeric" value={replacementPort} onChange={(event) => setReplacementPort(event.target.value)} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></label></div><label className="block text-xs text-bambu-gray">Replacement API key (optional)<input type="password" autoComplete="off" value={replacementApiKey} onChange={(event) => setReplacementApiKey(event.target.value)} className="mt-1 w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></label><label className="flex gap-2 text-xs text-bambu-gray"><input required type="checkbox" checked={replacementAcknowledged} onChange={(event) => setReplacementAcknowledged(event.target.checked)} />I confirm this replacement remains read-only.</label><div className="flex gap-2"><Button type="button" variant="secondary" onClick={() => setEditingConfiguration(false)}>Cancel</Button><Button type="submit" disabled={!isCanonicalRfc1918Ipv4(replacementAddress) || !Number.isInteger(Number(replacementPort)) || Number(replacementPort) < 1 || Number(replacementPort) > 65535 || !replacementAcknowledged || replace.isPending}>Save and disable</Button></div></form>}
+    {confirmingDelete && <div className="space-y-3 rounded border border-red-500/40 p-3"><p className="text-sm text-bambu-gray">Remove this Moonraker read-only source? Its connection is cancelled and its protected configuration is deleted.</p><div className="flex gap-2"><Button variant="secondary" onClick={() => setConfirmingDelete(false)}>Cancel</Button><Button variant="danger" onClick={() => remove.mutate()} disabled={remove.isPending}>Remove printer</Button></div></div>}
+  </CardContent></Card>;
 }
 
 function BambuPrinterCard({
@@ -6649,6 +6679,7 @@ function PrinterCard(props: Parameters<typeof BambuPrinterCard>[0]) {
   if (props.printer.platform === 'elegoo') {
     return <ElegooPrinterCard printer={props.printer} />;
   }
+  if (props.printer.platform === 'moonraker') return <MoonrakerPrinterCard printer={props.printer} />;
   return <BambuPrinterCard {...props} />;
 }
 
@@ -6658,15 +6689,22 @@ export function AddPrinterModal({
   existingSerials,
 }: {
   onClose: () => void;
-  onAdd: (data: PrinterCreate | ElegooSourceCreate) => void;
+  onAdd: (data: PrinterCreate | ElegooSourceCreate | MoonrakerSourceCreate) => void;
   existingSerials: string[];
 }) {
   const { t } = useTranslation();
-  const [platform, setPlatform] = useState<'bambu' | 'elegoo'>('bambu');
+  const [platform, setPlatform] = useState<'bambu' | 'elegoo' | 'moonraker'>('bambu');
   const [elegooName, setElegooName] = useState('');
   const [elegooAddress, setElegooAddress] = useState('');
   const [elegooAcknowledged, setElegooAcknowledged] = useState(false);
   const [elegooEnabled, setElegooEnabled] = useState(false);
+  const [moonrakerName, setMoonrakerName] = useState('');
+  const [moonrakerAddress, setMoonrakerAddress] = useState('');
+  const [moonrakerPort, setMoonrakerPort] = useState('7125');
+  const [moonrakerScheme, setMoonrakerScheme] = useState<'http' | 'https'>('http');
+  const [moonrakerApiKey, setMoonrakerApiKey] = useState('');
+  const [moonrakerAcknowledged, setMoonrakerAcknowledged] = useState(false);
+  const [moonrakerEnabled, setMoonrakerEnabled] = useState(false);
   const [form, setForm] = useState<PrinterCreate>({
     name: '',
     serial_number: '',
@@ -6872,9 +6910,10 @@ export function AddPrinterModal({
             <h2 className="text-xl font-semibold mb-4">Add printer</h2>
             <div className="mb-4">
               <label htmlFor="elegoo-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label>
-              <select id="elegoo-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo')}>
+              <select id="elegoo-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo' | 'moonraker')}>
                 <option value="bambu">Bambu Lab</option>
                 <option value="elegoo">Elegoo SDCP v3 (read-only)</option>
+                <option value="moonraker">Klipper via Moonraker (alpha read-only)</option>
               </select>
             </div>
             <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); onAdd({ name: elegooName.trim(), private_ipv4: elegooAddress, read_only_acknowledged: elegooAcknowledged, is_enabled: elegooEnabled }); }}>
@@ -6891,6 +6930,12 @@ export function AddPrinterModal({
     );
   }
 
+  if (platform === 'moonraker') {
+    const port = Number(moonrakerPort);
+    const valid = isCanonicalRfc1918Ipv4(moonrakerAddress) && Number.isInteger(port) && port >= 1 && port <= 65535;
+    return <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto" onClick={onClose}><Card className="w-full max-w-md my-auto" onClick={(e: React.MouseEvent) => e.stopPropagation()}><CardContent><h2 className="text-xl font-semibold mb-4">Add printer</h2><div className="mb-4"><label htmlFor="moonraker-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label><select id="moonraker-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo' | 'moonraker')}><option value="bambu">Bambu Lab</option><option value="elegoo">Elegoo SDCP v3 (read-only)</option><option value="moonraker">Klipper via Moonraker (alpha read-only)</option></select></div><form className="space-y-4" onSubmit={(event) => { event.preventDefault(); onAdd({ name: moonrakerName.trim(), private_ipv4: moonrakerAddress, port, scheme: moonrakerScheme, api_key: moonrakerApiKey || undefined, read_only_acknowledged: moonrakerAcknowledged, is_enabled: moonrakerEnabled }); }}><p className="text-sm text-bambu-gray">Moonraker alpha support is manual and read-only. Goo Buddy uses a closed status/object subscription allowlist; it cannot upload, start, control, or send G-code.</p><div><label htmlFor="moonraker-display-name" className="block text-sm text-bambu-gray mb-1">Display name</label><input id="moonraker-display-name" required value={moonrakerName} onChange={(e) => setMoonrakerName(e.target.value)} className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></div><div><label htmlFor="moonraker-private-ipv4" className="block text-sm text-bambu-gray mb-1">Private IPv4 address</label><input id="moonraker-private-ipv4" required inputMode="numeric" value={moonrakerAddress} onChange={(e) => setMoonrakerAddress(e.target.value)} placeholder="192.168.1.50" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /><p className="mt-1 text-xs text-bambu-gray">RFC1918 IPv4 only. Goo Buddy derives the fixed Moonraker paths internally and never shows the endpoint.</p></div><div className="grid grid-cols-2 gap-3"><div><label htmlFor="moonraker-scheme" className="block text-sm text-bambu-gray mb-1">Transport</label><select id="moonraker-scheme" value={moonrakerScheme} onChange={(e) => setMoonrakerScheme(e.target.value as 'http' | 'https')} className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white"><option value="http">HTTP</option><option value="https">HTTPS</option></select></div><div><label htmlFor="moonraker-port" className="block text-sm text-bambu-gray mb-1">Moonraker port</label><input id="moonraker-port" required inputMode="numeric" value={moonrakerPort} onChange={(e) => setMoonrakerPort(e.target.value)} className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></div></div><div><label htmlFor="moonraker-api-key" className="block text-sm text-bambu-gray mb-1">API key <span className="text-bambu-gray">(optional)</span></label><input id="moonraker-api-key" type="password" autoComplete="off" value={moonrakerApiKey} onChange={(e) => setMoonrakerApiKey(e.target.value)} className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /><p className="mt-1 text-xs text-bambu-gray">Stored using Goo Buddy’s protected-secret mechanism and never returned after saving.</p></div><label className="flex gap-2 text-sm text-bambu-gray"><input required type="checkbox" checked={moonrakerAcknowledged} onChange={(e) => setMoonrakerAcknowledged(e.target.checked)} />I understand Moonraker support is alpha and read-only.</label><label className="flex gap-2 text-sm text-bambu-gray"><input type="checkbox" checked={moonrakerEnabled} onChange={(e) => setMoonrakerEnabled(e.target.checked)} />Enable monitoring after saving</label><div className="flex gap-3 pt-2"><Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t('common.cancel')}</Button><Button type="submit" disabled={!valid || !moonrakerName.trim() || !moonrakerAcknowledged} className="flex-1">Add read-only printer</Button></div></form></CardContent></Card></div>;
+  }
+
   return (
     <>
     <div
@@ -6900,7 +6945,7 @@ export function AddPrinterModal({
       <Card className="w-full max-w-md my-auto max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <CardContent>
           <h2 className="text-xl font-semibold mb-4">{t('printers.addPrinter')}</h2>
-          <div className="mb-4"><label htmlFor="printer-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label><select id="printer-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo')}><option value="bambu">Bambu Lab</option><option value="elegoo">Elegoo SDCP v3 (read-only)</option></select></div>
+          <div className="mb-4"><label htmlFor="printer-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label><select id="printer-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo' | 'moonraker')}><option value="bambu">Bambu Lab</option><option value="elegoo">Elegoo SDCP v3 (read-only)</option><option value="moonraker">Klipper via Moonraker (alpha read-only)</option></select></div>
 
           {/* Discovery Section */}
           <div className="mb-4 pb-4 border-b border-bambu-dark-tertiary">
@@ -8098,8 +8143,10 @@ export function PrintersPage() {
   ) || {};
 
   const addMutation = useMutation({
-    mutationFn: (data: PrinterCreate | ElegooSourceCreate) =>
-      'private_ipv4' in data ? api.createElegooSource(data) : api.createPrinter(data),
+    mutationFn: (data: PrinterCreate | ElegooSourceCreate | MoonrakerSourceCreate) => {
+      if ('private_ipv4' in data && 'port' in data) return api.createMoonrakerSource(data);
+      return 'private_ipv4' in data ? api.createElegooSource(data) : api.createPrinter(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['printers'] });
       queryClient.invalidateQueries({ queryKey: ['maintenanceOverview'] });

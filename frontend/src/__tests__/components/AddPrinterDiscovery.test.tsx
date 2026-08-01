@@ -71,6 +71,21 @@ describe('AddPrinterModal Discovery', () => {
     expect(screen.getByRole('button', { name: /add read-only printer/i })).toBeEnabled();
   });
 
+  it('offers manual Moonraker alpha setup without exposing Bambu discovery', async () => {
+    render(<PrintersPage />);
+    await waitFor(() => expect(screen.getByText('X1 Carbon')).toBeInTheDocument());
+
+    await userEvent.click(screen.getByText(/add printer/i));
+    await userEvent.selectOptions(screen.getByLabelText('Printer platform'), 'moonraker');
+
+    expect(screen.getByText(/Moonraker alpha support is manual and read-only/i)).toBeInTheDocument();
+    expect(screen.queryByText(/subnet to scan/i)).not.toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Display name'), 'Synthetic Klipper');
+    await userEvent.type(screen.getByLabelText('Private IPv4 address'), '192.168.10.21');
+    await userEvent.click(screen.getByLabelText(/Moonraker support is alpha and read-only/i));
+    expect(screen.getByRole('button', { name: /add read-only printer/i })).toBeEnabled();
+  });
+
   it('auto-populates subnet from discovery info in Docker mode', async () => {
     server.use(
       http.get('/api/v1/discovery/info', () => {

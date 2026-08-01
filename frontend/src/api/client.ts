@@ -370,11 +370,14 @@ export interface Printer {
   updated_at: string;
   // Goo Buddy's opt-in passive SDCP source is projected alongside Bambu
   // printers but never exposes its address or operational controls.
-  platform?: 'elegoo';
+  platform?: 'elegoo' | 'moonraker';
   driver?: string;
   read_only?: boolean;
   endpoint_configured?: boolean;
   endpoint_hint?: string;
+  port?: number;
+  scheme?: 'http' | 'https';
+  api_key_configured?: boolean;
   firmware?: string | null;
 }
 
@@ -385,8 +388,18 @@ export interface ElegooSourceCreate {
   is_enabled: boolean;
 }
 
+export interface MoonrakerSourceCreate {
+  name: string;
+  private_ipv4: string;
+  port: number;
+  scheme: 'http' | 'https';
+  api_key?: string;
+  read_only_acknowledged: boolean;
+  is_enabled: boolean;
+}
+
 export interface ElegooDashboardStatus {
-  phase: 'disabled' | 'connecting' | 'waiting' | 'ready' | 'stale' | 'reconnecting' | 'disconnected' | 'invalid';
+  phase: 'disabled' | 'connecting' | 'waiting' | 'ready' | 'stale' | 'reconnecting' | 'disconnected' | 'invalid' | 'unauthorized';
   freshness: 'current' | 'retained' | 'unavailable';
   retained: boolean;
   last_observation_at: string | null;
@@ -395,9 +408,11 @@ export interface ElegooDashboardStatus {
   model: string | null;
   firmware: string | null;
   temperatures: Record<string, { current_c: number | null; target_c: number | null }> | null;
-  job: { state: string | null; progress_percent: number | null; current_layer: number | null; total_layers: number | null } | null;
+  job: { name?: string | null; state: string | null; progress_percent: number | null; current_layer: number | null; total_layers: number | null; elapsed_seconds?: number | null; estimated_remaining_seconds?: number | null } | null;
   capabilities: string[];
 }
+
+export type MoonrakerDashboardStatus = ElegooDashboardStatus;
 
 export interface HMSError {
   code: string;
@@ -3868,6 +3883,13 @@ export const api = {
   getElegooStatus: (id: number) => request<ElegooDashboardStatus>(`/printers/elegoo/${id}/status`),
   deleteElegooSource: (id: number) =>
     request<{ status: string }>(`/printers/elegoo/${id}`, { method: 'DELETE' }),
+  createMoonrakerSource: (data: MoonrakerSourceCreate) =>
+    request<Printer>('/printers/moonraker', { method: 'POST', body: JSON.stringify(data) }),
+  updateMoonrakerSource: (id: number, data: Partial<MoonrakerSourceCreate>) =>
+    request<Printer>(`/printers/moonraker/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  getMoonrakerStatus: (id: number) => request<MoonrakerDashboardStatus>(`/printers/moonraker/${id}/status`),
+  deleteMoonrakerSource: (id: number) =>
+    request<{ status: string }>(`/printers/moonraker/${id}`, { method: 'DELETE' }),
   updatePrinter: (id: number, data: Partial<PrinterCreate>) =>
     request<Printer>(`/printers/${id}`, {
       method: 'PATCH',
