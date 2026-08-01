@@ -10,9 +10,10 @@
 </p>
 
 > **Development status:** Bambu Lab functionality is inherited and remains the
-> operational integration. Elegoo SDCP v3 is currently a synthetic, read-only
-> driver foundation only—there is no transport, discovery, credential handling,
-> or printer control. Moonraker/Klipper is planned and not implemented.
+> operational integration. Elegoo SDCP v3 provides a manual, opt-in,
+> read-only Centauri/OpenCentauri source. It permits only documented liveness
+> and information operations—never printer control. Moonraker/Klipper is
+> planned and not implemented.
 
 > **Forked from Bambuddy:** Goo Buddy is an AGPL-3.0 derivative of
 > [Bambuddy](https://github.com/maziggy/bambuddy), preserved under the
@@ -39,7 +40,7 @@
 | Platform | Status in this fork |
 | --- | --- |
 | Bambu Lab | Existing Bambuddy integration, retained unchanged |
-| Elegoo stock/OpenCentauri (SDCP v3) | Synthetic, read-only normalization foundation; no printer transport or activation |
+| Elegoo stock/OpenCentauri (SDCP v3) | Manual, opt-in read-only status source; no controls, files, camera, or discovery scanning |
 | Klipper/COSMOS (Moonraker) | Planned; no Moonraker transport or capability claim yet |
 
 Goo Buddy is developed first for Linux and Raspberry Pi 4/5 ARM64. For a Pi,
@@ -511,8 +512,10 @@ Optional but recommended — drop the [`slicer-api/` Compose stack](slicer-api/R
 - For existing Bambu functionality: a Bambu Lab printer with **Developer Mode** enabled
 - For existing Bambu archive previews: **"Store sent files on external storage"** enabled in Bambu Studio/OrcaSlicer
 
-> The Elegoo SDCP v3 work in this repository is synthetic-only and read-only.
-> It does not connect to, discover, or control a printer. Moonraker support is planned.
+> The Elegoo SDCP v3 source is manual and read-only. It can use only the
+> documented `ping`, status-refresh, and attributes-refresh information
+> operations; it has no printer-control, file, camera, or discovery-scanning
+> capability. Moonraker support is planned.
 
 ### Installation
 

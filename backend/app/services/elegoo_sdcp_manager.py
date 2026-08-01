@@ -1,8 +1,8 @@
-"""Opt-in, passive SDCP v3 WebSocket lifecycle.
+"""Opt-in SDCP v3 lifecycle with a closed, non-mutating request allowlist.
 
-No request, command, G-code, discovery, credential, ping, or heartbeat is
-sent by this module. A connection is useful only when the printer itself
-pushes documented status and attributes envelopes.
+The transport can emit only the documented text ``ping`` heartbeat plus Cmd 0
+(status refresh) and Cmd 1 (attributes).  It cannot construct arbitrary SDCP
+commands, issue G-code, discover a subnet, or use an alternate endpoint.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ import hashlib
 import json
 import random
 import socket
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -21,12 +22,24 @@ import aiohttp
 from backend.app.drivers.contract import ConnectionPhase, DriverObservation
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4
+from backend.app.services.elegoo_sdcp_read_only import (
+    ReadOnlyInformationOperation,
+    mainboard_id_from_discovery,
+    serialize_heartbeat,
+    serialize_information_request,
+    validate_mainboard_id,
+)
 
 CONNECT_TIMEOUT_SECONDS = 8
 HANDSHAKE_TIMEOUT_SECONDS = 12
 MAX_FRAME_BYTES = 128 * 1024
 STALE_AFTER = timedelta(seconds=45)
 MAX_BACKOFF_SECONDS = 60
+PASSIVE_IDENTITY_WAIT_SECONDS = 1
+IDENTITY_DISCOVERY_TIMEOUT_SECONDS = 2
+PONG_TIMEOUT_SECONDS = 5
+NO_INBOUND_TRAFFIC_TIMEOUT_SECONDS = 45
+_IDENTITY_DISCOVERY_MESSAGE = b"M99999"
 
 
 @dataclass
@@ -39,6 +52,12 @@ class _LiveSource:
     connected: bool = False
     reconnecting: bool = False
     error: str | None = None
+    mainboard_id: str | None = None
+    identity_discovery_attempted: bool = False
+    identity_ready: asyncio.Event = field(default_factory=asyncio.Event)
+    pong_received: asyncio.Event = field(default_factory=asyncio.Event)
+    liveness_received: asyncio.Event = field(default_factory=asyncio.Event)
+    last_liveness_at: float | None = None
     _payload_hashes: dict[str, str] = field(default_factory=dict)
 
 
@@ -107,12 +126,18 @@ class ElegooSDCPManager:
         return observation
 
     async def _run(self, live: _LiveSource) -> None:
+        # The documented identity lookup precedes the WebSocket session. It is
+        # still bounded to one exact-address unicast per enabled source.
+        await self._prepare_identity(live)
         attempt = 0
         while not live.stop.is_set():
             session_id = uuid.uuid4().hex
             live.driver.start_session(session_id)
             live.connected = False
             live.reconnecting = attempt > 0
+            live.pong_received.clear()
+            live.liveness_received.clear()
+            live.last_liveness_at = None
             try:
                 timeout = aiohttp.ClientTimeout(total=HANDSHAKE_TIMEOUT_SECONDS, sock_connect=CONNECT_TIMEOUT_SECONDS)
                 # The only endpoint accepted by the source schema is the fixed
@@ -131,7 +156,7 @@ class ElegooSDCPManager:
                     live.connected = True
                     live.reconnecting = False
                     live.error = None
-                    await self._consume(websocket, live, session_id)
+                    await self._serve_connection(websocket, live, session_id)
             except asyncio.CancelledError:
                 live.driver.disconnect(session_id)
                 raise
@@ -160,6 +185,166 @@ class ElegooSDCPManager:
             except asyncio.TimeoutError:
                 continue
 
+    async def _prepare_identity(self, live: _LiveSource) -> None:
+        """Acquire a required identity before opening the fixed WebSocket endpoint."""
+
+        if live.mainboard_id is None:
+            await self._discover_mainboard_id_unicast(live)
+
+    async def _serve_connection(
+        self, websocket: aiohttp.ClientWebSocketResponse, live: _LiveSource, session_id: str
+    ) -> None:
+        """Run one session; no request can be emitted outside this method."""
+
+        consume_task = asyncio.create_task(self._consume(websocket, live, session_id))
+        try:
+            # Start the documented liveness exchange immediately, but do not
+            # wait idly for it before acquiring the identity required for the
+            # two documented information requests.  A bounded pong deadline
+            # still closes this session fail-closed below.
+            heartbeat_started = asyncio.get_running_loop().time()
+            if not await self._send_heartbeat(websocket, live):
+                return
+
+            mainboard_id = live.mainboard_id
+            if mainboard_id is None:
+                try:
+                    await asyncio.wait_for(live.identity_ready.wait(), timeout=PASSIVE_IDENTITY_WAIT_SECONDS)
+                except asyncio.TimeoutError:
+                    pass
+                mainboard_id = live.mainboard_id
+            if mainboard_id is None:
+                mainboard_id = await self._discover_mainboard_id_unicast(live)
+
+            if mainboard_id is None:
+                # Exactly one unicast discovery attempt is permitted per enabled
+                # source. Keep the connected session passive after that attempt.
+                live.error = "identity_unavailable"
+            elif not live.stop.is_set():
+                await self._send_information_request(
+                    websocket, live, ReadOnlyInformationOperation.STATUS_REFRESH, mainboard_id
+                )
+                await self._send_information_request(
+                    websocket, live, ReadOnlyInformationOperation.ATTRIBUTES, mainboard_id
+                )
+
+            remaining_liveness_timeout = PONG_TIMEOUT_SECONDS - (asyncio.get_running_loop().time() - heartbeat_started)
+            if not await self._await_initial_liveness(websocket, live, max(0, remaining_liveness_timeout)):
+                return
+            await self._wait_for_inbound_traffic(websocket, live, consume_task)
+        finally:
+            if not consume_task.done():
+                consume_task.cancel()
+                try:
+                    await consume_task
+                except asyncio.CancelledError:
+                    pass
+
+    async def _await_initial_liveness(
+        self, websocket: aiohttp.ClientWebSocketResponse, live: _LiveSource, timeout: float
+    ) -> bool:
+        """Accept text pong or a validated allowed SDCP inbound message once."""
+
+        if live.liveness_received.is_set():
+            return True
+        liveness_wait = asyncio.create_task(live.liveness_received.wait())
+        try:
+            await asyncio.wait_for(liveness_wait, timeout=timeout)
+        except asyncio.TimeoutError:
+            live.error = "heartbeat_timeout"
+            await websocket.close()
+            return False
+        finally:
+            if not liveness_wait.done():
+                liveness_wait.cancel()
+                try:
+                    await liveness_wait
+                except asyncio.CancelledError:
+                    pass
+        return True
+
+    async def _wait_for_inbound_traffic(
+        self, websocket: aiohttp.ClientWebSocketResponse, live: _LiveSource, consume_task: asyncio.Task[None]
+    ) -> None:
+        """Keep an established session only while validated inbound traffic remains fresh."""
+
+        loop = asyncio.get_running_loop()
+        while not consume_task.done() and not live.stop.is_set():
+            last_liveness_at = live.last_liveness_at or loop.time()
+            remaining = NO_INBOUND_TRAFFIC_TIMEOUT_SECONDS - (loop.time() - last_liveness_at)
+            if remaining <= 0:
+                live.error = "inbound_timeout"
+                await websocket.close()
+                return
+            update_wait = asyncio.create_task(live.liveness_received.wait())
+            done, _pending = await asyncio.wait(
+                {consume_task, update_wait}, timeout=remaining, return_when=asyncio.FIRST_COMPLETED
+            )
+            if update_wait in done:
+                live.liveness_received.clear()
+                continue
+            if not update_wait.done():
+                update_wait.cancel()
+                try:
+                    await update_wait
+                except asyncio.CancelledError:
+                    pass
+            if consume_task in done:
+                return
+            live.error = "inbound_timeout"
+            await websocket.close()
+            return
+
+    async def _send_heartbeat(self, websocket: aiohttp.ClientWebSocketResponse, live: _LiveSource) -> bool:
+        """Transmit the one allowed liveness message after immediate serialization."""
+
+        if live.stop.is_set():
+            return False
+        await websocket.send_str(serialize_heartbeat())
+        return True
+
+    async def _send_information_request(
+        self,
+        websocket: aiohttp.ClientWebSocketResponse,
+        live: _LiveSource,
+        operation: ReadOnlyInformationOperation,
+        mainboard_id: str,
+    ) -> None:
+        """Transmit Cmd 0 or Cmd 1 only; the serializer rejects every other value."""
+
+        if live.stop.is_set():
+            return
+        await websocket.send_str(serialize_information_request(operation, mainboard_id))
+
+    async def _discover_mainboard_id_unicast(self, live: _LiveSource) -> str | None:
+        """Perform at most one exact-address UDP identity lookup, never broadcast."""
+
+        if live.identity_discovery_attempted or live.stop.is_set():
+            return live.mainboard_id
+        live.identity_discovery_attempted = True
+        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_socket.setblocking(False)
+        try:
+            # ``private_ipv4`` was independently canonicalized at the I/O
+            # boundary; connect() forces this one datagram to that exact host.
+            udp_socket.connect((live.private_ipv4, 3000))
+            loop = asyncio.get_running_loop()
+            await loop.sock_sendall(udp_socket, _IDENTITY_DISCOVERY_MESSAGE)
+            raw = await asyncio.wait_for(loop.sock_recv(udp_socket, 8192), timeout=IDENTITY_DISCOVERY_TIMEOUT_SECONDS)
+            try:
+                payload = json.loads(raw.decode("utf-8"))
+                mainboard_id = mainboard_id_from_discovery(payload)
+            except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+                live.error = "identity_unavailable"
+                return None
+            self._set_mainboard_id(live, mainboard_id)
+            return live.mainboard_id
+        except (OSError, asyncio.TimeoutError):
+            live.error = "identity_unavailable"
+            return None
+        finally:
+            udp_socket.close()
+
     async def _consume(self, websocket: aiohttp.ClientWebSocketResponse, live: _LiveSource, session_id: str) -> None:
         async for message in websocket:
             if live.stop.is_set():
@@ -178,6 +363,10 @@ class ElegooSDCPManager:
             # Binary, ping and unknown WebSocket frames are deliberately ignored.
 
     def _observe_text(self, live: _LiveSource, session_id: str, raw: str) -> None:
+        if raw == "pong":
+            live.pong_received.set()
+            self._mark_liveness(live)
+            return
         try:
             envelope = json.loads(raw)
         except (TypeError, json.JSONDecodeError):
@@ -197,7 +386,31 @@ class ElegooSDCPManager:
         elif topic.startswith(attributes_prefix) and len(topic) > len(attributes_prefix):
             kind = "attributes"
         else:
+            response_prefix = "sdcp/response/"
+            if topic.startswith(response_prefix) and len(topic) > len(response_prefix):
+                response = envelope.get("Data")
+                if (
+                    self._set_mainboard_id(live, topic[len(response_prefix) :])
+                    and isinstance(response, dict)
+                    and type(response.get("Cmd")) is int
+                    and response["Cmd"] in {0, 1}
+                ):
+                    self._mark_liveness(live)
             # A future topic is not an error and never becomes a capability.
+            return
+        if not self._set_mainboard_id(live, topic[len(status_prefix if kind == "status" else attributes_prefix) :]):
+            return
+        # Centauri status/attributes use documented top-level ``Status`` /
+        # ``Attributes`` records, while fixtures and some implementations
+        # nest them under ``Data``. Both shapes are already normalized by the
+        # driver; neither a bare topic nor an unrelated object is liveness.
+        record_name = "Status" if kind == "status" else "Attributes"
+        nested_data = envelope.get("Data")
+        has_documented_record = isinstance(envelope.get(record_name), dict) or (
+            isinstance(nested_data, dict) and isinstance(nested_data.get(record_name), dict)
+        )
+        if not has_documented_record:
+            live.error = "invalid_envelope"
             return
         digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
         if live._payload_hashes.get(kind) == digest:
@@ -208,6 +421,27 @@ class ElegooSDCPManager:
             live.driver.observe_status(session_id, envelope, observed_at)
         else:
             live.driver.observe_attributes(session_id, envelope, observed_at)
+        self._mark_liveness(live)
+
+    @staticmethod
+    def _set_mainboard_id(live: _LiveSource, candidate: object) -> bool:
+        try:
+            mainboard_id = validate_mainboard_id(candidate)
+        except ValueError:
+            live.error = "invalid_identity"
+            return False
+        if live.mainboard_id is None:
+            live.mainboard_id = mainboard_id
+            live.identity_ready.set()
+        elif live.mainboard_id != mainboard_id:
+            live.error = "identity_mismatch"
+            return False
+        return True
+
+    @staticmethod
+    def _mark_liveness(live: _LiveSource) -> None:
+        live.last_liveness_at = time.monotonic()
+        live.liveness_received.set()
 
 
 elegoo_sdcp_manager = ElegooSDCPManager()

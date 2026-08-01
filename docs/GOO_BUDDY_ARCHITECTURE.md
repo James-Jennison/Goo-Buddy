@@ -29,13 +29,16 @@ commands, storage, routes, and migrations remain unchanged.
 | Source | Initial role | Status |
 | --- | --- | --- |
 | Bambu | Existing Bambuddy MQTT/FTP integration, passively adaptable to the observation contract | Unchanged |
-| Elegoo SDCP v3 | Stock and OpenCentauri read-only observations | Synthetic-only normalization and state machine; no transport or activation |
+| Elegoo SDCP v3 | Stock and OpenCentauri read-only observations | Manual, opt-in transport with a closed ping/Cmd 0/Cmd 1 information allowlist |
 | Moonraker | COSMOS and full-Klipper sources | Future driver kind only; no transport or inferred data |
 
-The Elegoo foundation accepts injected synthetic status and attributes payloads.
-It has no discovery, network client, credentials, LAN address input, commands,
-G-code, persistence, migration, CANVAS fabrication, or printer activation.
-It models waiting, ready, stale, disconnected, and invalid phases. A snapshot
+The Elegoo source accepts manual canonical-private-IPv4 configuration and
+normalizes synthetic or SDCP status and attributes payloads. Its transport is
+restricted to the documented text `ping`, Cmd 0 status-refresh, and Cmd 1
+attributes-refresh operations; it has no generic command surface, G-code,
+controls, files, camera, CANVAS fabrication, or discovery scanning. The
+source has isolated persistence and models waiting, ready, stale,
+disconnected, and invalid phases. A snapshot
 is current only while fresh; otherwise the last valid snapshot is explicitly
 retained and labeled with its retention reason. Observations are session-bound:
 superseded and out-of-order observations fail closed.
