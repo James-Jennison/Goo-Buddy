@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "preview:synthetic-printers": "node scripts/synthetic-printer-preview.mjs",
+    "test:synthetic-printers": "node --test scripts/synthetic-printer-preview.test.mjs",
     "test": "vitest",
     "test:run": "vitest run && npm run check:i18n",
     "test:coverage": "vitest run --coverage",
