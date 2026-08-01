@@ -80,4 +80,6 @@ rather than exception or endpoint text.
 - CANVAS is unavailable. There is no tested authoritative mapping here.
 - Printer tick units are not interpreted. Progress is only a bounded ratio of
   observed current/total values; freshness uses local arrival time.
-- Moonraker/Klipper transport remains planned and is not part of this feature.
+- Moonraker/Klipper is a separate alpha read-only source; see
+  [Moonraker read-only alpha](MOONRAKER_READ_ONLY_ALPHA.md). It does not
+  broaden the Elegoo SDCP transport or its ping/Cmd 0/Cmd 1 allowlist.

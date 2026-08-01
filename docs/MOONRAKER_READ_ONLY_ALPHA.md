@@ -1,0 +1,52 @@
+# Moonraker/Klipper read-only alpha
+
+Goo Buddy's Moonraker integration is a manual, opt-in monitoring source. It
+accepts only a canonical RFC1918 IPv4 literal, an explicit port (default
+`7125`), and HTTP or HTTPS. It derives the following fixed endpoints itself:
+`/server/info`, `/printer/objects/list`, and `/websocket`. Redirects, URLs,
+hostnames, queries, fragments, proxies, and alternate paths are rejected.
+
+An optional API key is held by the existing protected-secret mechanism and is
+used only in the `X-Api-Key` request header. It is never returned by source,
+list, dashboard, or validation-error APIs. Neither the address nor raw
+Moonraker data is logged.
+
+## Closed monitoring surface
+
+The HTTP GET allowlist is `/server/info` and `/printer/objects/list`. The
+WebSocket JSON-RPC allowlist is exactly:
+
+- `printer.objects.query`
+- `printer.objects.subscribe`
+
+The locally selected object set is limited to `webhooks`, `print_stats`,
+`virtual_sdcard`, `display_status`, `toolhead`, `extruder`, `heater_bed`, and
+`chamber`, and is intersected with the server's discovered list. No generic
+JSON-RPC API exists in Goo Buddy.
+
+In particular Goo Buddy cannot serialize `printer.gcode.script`, print start,
+pause/resume/cancel, emergency stop, heating, fans, lights, motion, homing,
+extrusion, files, uploads, restart/update, or machine/service operations.
+
+Validated status result/notification data is the sole inbound liveness signal.
+Malformed, unknown, binary, oversized, or unsupported-object frames do not
+refresh it. A session closes after 45 seconds without validated inbound status;
+reconnect backoff is capped. Disable, delete, endpoint/API-key replacement,
+and shutdown cancel the active task. Transport or secret edits always leave a
+source disabled until the owner explicitly enables it again.
+
+## Alpha compatibility and privacy
+
+The dashboard shows only validated Klipper/Moonraker state, available
+temperatures, safe job display name, progress, current/total layers when
+reported in `print_stats.info`, elapsed duration, and a progress-derived
+remaining estimate when both input values are present. It labels retained
+data separately from current data. Camera, files, console, uploads,
+maintenance, and all controls remain unavailable.
+
+Moonraker API reference: [Server administration](https://moonraker.readthedocs.io/en/latest/external_api/server/), [Printer objects](https://moonraker.readthedocs.io/en/latest/printer_objects/), and [WebSocket/API overview](https://moonraker.readthedocs.io/en/latest/external_api/introduction/).
+
+For an alpha report, provide Goo Buddy version, connection phase, and a
+redacted description of the available fields. Do not publish raw payloads,
+API keys, access codes, serials, MAC addresses, filenames, paths, or network
+addresses.

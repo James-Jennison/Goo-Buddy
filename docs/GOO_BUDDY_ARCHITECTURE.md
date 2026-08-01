@@ -30,7 +30,7 @@ commands, storage, routes, and migrations remain unchanged.
 | --- | --- | --- |
 | Bambu | Existing Bambuddy MQTT/FTP integration, passively adaptable to the observation contract | Unchanged |
 | Elegoo SDCP v3 | Stock and OpenCentauri read-only observations | Manual, opt-in transport with a closed ping/Cmd 0/Cmd 1 information allowlist |
-| Moonraker | COSMOS and full-Klipper sources | Future driver kind only; no transport or inferred data |
+| Moonraker | Klipper sources exposing Moonraker | Manual, opt-in alpha monitor with fixed HTTP discovery and closed object query/subscribe allowlist |
 
 The Elegoo source accepts manual canonical-private-IPv4 configuration and
 normalizes synthetic or SDCP status and attributes payloads. Its transport is
@@ -42,6 +42,15 @@ disconnected, and invalid phases. A snapshot
 is current only while fresh; otherwise the last valid snapshot is explicitly
 retained and labeled with its retention reason. Observations are session-bound:
 superseded and out-of-order observations fail closed.
+
+Moonraker follows the same isolated-source model. It accepts a manual private
+IPv4 literal, explicit port, HTTP/HTTPS selection, and an optional protected
+API key. Fixed HTTP discovery (`/server/info`, `/printer/objects/list`) is
+followed by only `printer.objects.query` and `printer.objects.subscribe` on
+the fixed WebSocket path. Its object selection is intersected with a local
+temperature/job-status allowlist. It has no generic JSON-RPC, G-code, file,
+or control surface; endpoint or credential edits cancel a session and require
+explicit re-enablement.
 
 ## Platform target
 

@@ -12,8 +12,8 @@
 > **Development status:** Bambu Lab functionality is inherited and remains the
 > operational integration. Elegoo SDCP v3 provides a manual, opt-in,
 > read-only Centauri/OpenCentauri source. It permits only documented liveness
-> and information operations—never printer control. Moonraker/Klipper is
-> planned and not implemented.
+> and information operations—never printer control. Moonraker/Klipper is an
+> alpha, manual, read-only monitoring source with no upload or control path.
 
 > **Forked from Bambuddy:** Goo Buddy is an AGPL-3.0 derivative of
 > [Bambuddy](https://github.com/maziggy/bambuddy), preserved under the
@@ -41,11 +41,16 @@
 | --- | --- |
 | Bambu Lab | Existing Bambuddy integration, retained unchanged |
 | Elegoo stock/OpenCentauri (SDCP v3) | Manual, opt-in read-only status source; no controls, files, camera, or discovery scanning |
-| Klipper/COSMOS (Moonraker) | Planned; no Moonraker transport or capability claim yet |
+| Klipper via Moonraker | Alpha manual, opt-in read-only monitoring; no G-code, upload, print, or controls |
 
 Goo Buddy is developed first for Linux and Raspberry Pi 4/5 ARM64. For a Pi,
 build locally with the [ARM64 container instructions](docs/CONTAINER_BUILDS.md);
 no Goo Buddy container image is published by this change.
+
+Read the [Moonraker read-only alpha policy](docs/MOONRAKER_READ_ONLY_ALPHA.md)
+and [Raspberry Pi first-run guide](docs/RASPBERRY_PI_FIRST_RUN.md) before
+enabling either alpha source. OrcaSlicer continues to submit Elegoo jobs using
+ElegooLink directly; Goo Buddy does not submit jobs for Elegoo or Moonraker.
 
 ---
 
@@ -515,7 +520,9 @@ Optional but recommended — drop the [`slicer-api/` Compose stack](slicer-api/R
 > The Elegoo SDCP v3 source is manual and read-only. It can use only the
 > documented `ping`, status-refresh, and attributes-refresh information
 > operations; it has no printer-control, file, camera, or discovery-scanning
-> capability. Moonraker support is planned.
+> capability. Moonraker is a separate manual alpha monitor; it uses fixed
+> server/object discovery and a closed object query/subscribe allowlist, with
+> no G-code, upload, print, or control operation.
 
 ### Installation
 
