@@ -1,0 +1,200 @@
+2026-07-31 17:46:58,495 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:47:01,162 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 177950 bytes
+2026-07-31 17:47:25,188 INFO [backend.app.api.routes.websocket] [-] WebSocket client disconnected normally
+2026-07-31 17:47:29,018 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:47:29,019 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:47:31,681 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 183246 bytes
+2026-07-31 17:47:55,442 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:47:55,442 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:47:58,066 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 181819 bytes
+2026-07-31 17:48:23,894 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:48:23,894 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:48:26,467 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 169539 bytes
+2026-07-31 17:48:52,372 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:48:52,373 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:48:54,966 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 165114 bytes
+2026-07-31 17:49:18,065 INFO [backend.app.main] [-] Recorded 3 AMS sensor history entries
+2026-07-31 17:49:20,902 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:49:20,903 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:49:23,820 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 134266 bytes
+2026-07-31 17:49:51,369 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:49:51,369 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:49:53,944 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 166852 bytes
+2026-07-31 17:50:19,830 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:50:19,830 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:50:22,436 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 177308 bytes
+2026-07-31 17:50:46,250 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:50:46,250 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:50:48,830 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 171191 bytes
+2026-07-31 17:51:12,720 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:51:12,720 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:51:15,401 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 176263 bytes
+2026-07-31 17:51:45,304 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:51:45,304 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:51:48,056 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 174665 bytes
+2026-07-31 17:52:17,897 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:52:17,897 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:52:20,511 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 183750 bytes
+2026-07-31 17:52:56,580 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:52:56,581 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:52:59,105 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 162674 bytes
+2026-07-31 17:53:31,217 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:53:31,217 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:53:33,867 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 164480 bytes
+2026-07-31 17:54:17,968 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:54:17,968 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:54:18,086 INFO [backend.app.main] [-] Recorded 3 AMS sensor history entries
+2026-07-31 17:54:20,622 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 182528 bytes
+2026-07-31 17:54:48,548 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:54:48,549 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:54:51,155 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 164809 bytes
+2026-07-31 17:55:19,104 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:55:19,105 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:55:22,083 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 144931 bytes
+2026-07-31 17:55:47,657 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:55:47,657 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:55:50,350 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 169960 bytes
+2026-07-31 17:56:16,165 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:56:16,165 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:56:18,833 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 168913 bytes
+2026-07-31 17:56:42,626 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:56:42,626 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:56:45,245 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 177051 bytes
+2026-07-31 17:57:09,106 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:57:09,106 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:57:11,778 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 180309 bytes
+2026-07-31 17:57:37,607 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:57:37,608 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:57:40,154 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 167879 bytes
+2026-07-31 17:58:06,100 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:58:06,100 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:58:08,666 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 165260 bytes
+2026-07-31 17:58:18,364 INFO [uvicorn.access] [-] [IP]:56471 - "POST /api/v1/printers/camera/stream-token HTTP/1.1" 200
+2026-07-31 17:58:18,440 INFO [uvicorn.access] [-] [IP]:56477 - "POST /api/v1/auth/ws-token HTTP/1.1" 200
+2026-07-31 17:58:18,465 INFO [backend.app.api.routes.websocket] [-] WebSocket client connecting (principal=<anonymous>)
+2026-07-31 17:58:18,465 INFO [backend.app.api.routes.websocket] [-] WebSocket client connected
+2026-07-31 17:58:18,466 INFO [backend.app.api.routes.websocket] [-] Sent initial status for 3 printers
+2026-07-31 17:58:18,584 INFO [backend.app.api.routes.cloud] [2caef838] get_filament_info called with 1 IDs: ['GFL99']
+2026-07-31 17:58:18,595 INFO [uvicorn.access] [-] [IP]:56477 - "POST /api/v1/cloud/filament-info HTTP/1.1" 200
+2026-07-31 17:58:34,614 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:58:34,614 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:58:37,291 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 182596 bytes
+2026-07-31 17:58:41,609 INFO [backend.app.services.bambu_mqtt] [dde1ff81] [[SERIAL]] Set chamber lights on (seq=49)
+2026-07-31 17:58:41,611 INFO [uvicorn.access] [-] [IP]:53383 - "POST /api/v1/printers/2/chamber-light?on=true HTTP/1.1" 200
+2026-07-31 17:58:43,539 INFO [backend.app.services.bambu_mqtt] [2ee71f19] [[SERIAL]] Set chamber lights off (seq=51)
+2026-07-31 17:58:43,540 INFO [uvicorn.access] [-] [IP]:53383 - "POST /api/v1/printers/2/chamber-light?on=false HTTP/1.1" 200
+2026-07-31 17:58:44,379 INFO [backend.app.services.bambu_mqtt] [cf00c3fc] [[SERIAL]] Set chamber lights on (seq=53)
+2026-07-31 17:58:44,381 INFO [uvicorn.access] [-] [IP]:53383 - "POST /api/v1/printers/2/chamber-light?on=true HTTP/1.1" 200
+2026-07-31 17:58:46,256 INFO [backend.app.services.bambu_mqtt] [941f048a] [[SERIAL]] Set chamber lights off (seq=55)
+2026-07-31 17:58:46,258 INFO [uvicorn.access] [-] [IP]:53383 - "POST /api/v1/printers/2/chamber-light?on=false HTTP/1.1" 200
+2026-07-31 17:59:01,112 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:59:01,112 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:59:03,677 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 167991 bytes
+2026-07-31 17:59:06,055 INFO [backend.app.services.bambu_mqtt] [a03697d4] [[SERIAL]] Sent ams_filament_drying: {"print": {"sequence_id": "17", "command": "ams_filament_drying", "ams_id": 0, "temp": 45, "cooling_temp": 20, "duration": 12, "humidity": 0, "mode": 1, "rotate_tray": false, "filament": "PLA", "close_power_conflict": false}}
+2026-07-31 17:59:06,055 INFO [uvicorn.access] [-] [IP]:53403 - "POST /api/v1/printers/3/drying/start?ams_id=0&temp=45&duration=12&filament=PLA&rotate_tray=false HTTP/1.1" 200
+2026-07-31 17:59:06,167 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_filament_drying response: {'ams_id': 0, 'close_power_conflict': False, 'command': 'ams_filament_drying', 'cooling_temp': 20, 'duration': 12, 'err_code': 0, 'filament': 'PLA', 'humidity': 0, 'mode': 1, 'result': 'success', 'rotate_tray': False, 'sequence_id': '17', 'temp': 45}
+2026-07-31 17:59:09,563 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 3
+2026-07-31 17:59:09,565 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using RTSP (model: X1C)
+2026-07-31 17:59:10,870 INFO [backend.app.services.camera] [-] Successfully captured camera frame bytes: 128909 bytes
+2026-07-31 17:59:10,870 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 128909 bytes
+2026-07-31 17:59:11,314 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:59:11,314 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:59:14,196 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 117602 bytes
+2026-07-31 17:59:18,106 INFO [backend.app.main] [-] Recorded 3 AMS sensor history entries
+2026-07-31 17:59:56,071 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 17:59:56,072 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 17:59:58,671 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 178369 bytes
+2026-07-31 18:00:40,865 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 18:00:40,865 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 18:00:43,471 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 177716 bytes
+2026-07-31 18:01:23,591 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 18:01:23,591 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 18:01:26,262 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 183448 bytes
+2026-07-31 18:01:51,014 INFO [uvicorn.access] [-] [IP]:53524 - "POST /api/v1/printers/2/refresh-status HTTP/1.1" 200
+2026-07-31 18:01:58,582 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] State is FINISH but completion NOT triggered: prev=None, was_running=False, already_triggered=False, has_callback=True
+2026-07-31 18:01:58,583 INFO [backend.app.main] [-] [Printer 2] Broadcasting AMS change via WebSocket
+2026-07-31 18:01:58,587 INFO [backend.app.main] [-] [Printer 2] Broadcasting AMS change via WebSocket
+2026-07-31 18:01:58,588 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Firmware version: 01.08.01.00
+2026-07-31 18:01:58,659 INFO [uvicorn.access] [-] [IP]:53524 - "POST /api/v1/printers/2/connect HTTP/1.1" 200
+2026-07-31 18:02:08,764 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Probing developer mode via ams_filament_setting (seq=3)
+2026-07-31 18:02:08,775 INFO [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Developer mode probe: ENABLED (result='success')
+2026-07-31 18:02:44,924 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 18:02:44,925 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 18:02:47,553 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 175820 bytes
+2026-07-31 18:03:23,588 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 18:03:23,588 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 18:03:26,176 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 165876 bytes
+2026-07-31 18:03:56,138 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 18:03:56,138 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 18:03:58,784 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 184989 bytes
+2026-07-31 18:04:18,114 INFO [backend.app.main] [-] Sending temperature alarm for [PRINTER] AMS-A: 45.0°C > 35.0°C
+2026-07-31 18:04:18,466 INFO [backend.app.services.notification_service] [-] Sent notification via Bambuddy
+2026-07-31 18:04:18,467 INFO [backend.app.main] [-] Recorded 3 AMS sensor history entries
+2026-07-31 18:04:30,762 INFO [backend.app.main] [-] [SNAPSHOT] Capturing fresh frame for printer 1
+2026-07-31 18:04:30,762 INFO [backend.app.services.camera] [-] Capturing camera frame bytes from [IP] using chamber image protocol (model: A1 Mini)
+2026-07-31 18:04:33,402 INFO [backend.app.main] [-] [SNAPSHOT] Fresh camera frame: 171647 bytes
+2026-07-31 18:04:33,805 INFO [backend.app.api.routes.support] [76f6013f] Log level changed to DEBUG
+2026-07-31 18:04:33,805 INFO [backend.app.api.routes.bug_report] [76f6013f] Bug report: enabled debug logging
+2026-07-31 18:04:33,806 DEBUG [backend.app.services.bambu_mqtt] [76f6013f] [[SERIAL]] Requesting status update (pushall)
+2026-07-31 18:04:33,806 DEBUG [backend.app.services.bambu_mqtt] [76f6013f] [[SERIAL]] Requesting status update (pushall)
+2026-07-31 18:04:33,807 DEBUG [backend.app.services.bambu_mqtt] [76f6013f] [[SERIAL]] Requesting status update (pushall)
+2026-07-31 18:04:33,809 INFO [uvicorn.access] [-] [IP]:62954 - "POST /api/v1/bug-report/start-logging HTTP/1.1" 200
+2026-07-31 18:04:33,849 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'buildplate_marker_detector': True}
+2026-07-31 18:04:33,849 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['buildplate_marker_detector']
+2026-07-31 18:04:33,850 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: RUNNING, gcode_file: 3x1.375x24v3.gcode.gcode.3mf, subtask_name: 3x1.375x24v3.gcode.gcode.3mf
+2026-07-31 18:04:33,850 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'tray_exist_bits': '7', 'tray_is_bbl_bits': '7', 'tray_tar': '0', 'tray_now': '0', 'tray_pre': '0', 'tray_read_done_bits': '7', 'tray_reading_bits': '0', 'version': 23, 'insert_flag': False, 'power_on_flag': False}
+2026-07-31 18:04:33,851 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 0
+2026-07-31 18:04:33,851 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-31 18:04:33,851 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x2003 -> extruder 0
+2026-07-31 18:04:33,852 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-31 18:04:33,852 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 768 (main=3, sub=0)
+2026-07-31 18:04:33,852 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 18:04:33,853 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-31 18:04:33,853 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-31 18:04:33,853 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-31 18:04:33,853 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-31 18:04:33,853 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-31 18:04:33,853 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'disable', 'timelapse': 'disable', 'resolution': '1080p', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-31 18:04:33,853 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -18dBm
+2026-07-31 18:04:33,854 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'on'}]
+2026-07-31 18:04:33,854 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: RUNNING -> RUNNING, file: 3x1.375x24v3.gcode.gcode.3mf, subtask: 3x1.375x24v3.gcode.gcode.3mf
+2026-07-31 18:04:34,135 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'buildplate_marker_detector': True}
+2026-07-31 18:04:34,136 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['buildplate_marker_detector']
+2026-07-31 18:04:34,136 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: , subtask_name: Drywall_Anchor_V1.1_Plate 1
+2026-07-31 18:04:34,136 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'tray_exist_bits': 'f', 'tray_is_bbl_bits': 'f', 'tray_tar': '255', 'tray_now': '255', 'tray_pre': '255', 'tray_read_done_bits': 'f', 'tray_reading_bits': '0', 'version': 271, 'insert_flag': False, 'power_on_flag': False}
+2026-07-31 18:04:34,137 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 255
+2026-07-31 18:04:34,137 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-31 18:04:34,137 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x2003 -> extruder 0
+2026-07-31 18:04:34,138 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-31 18:04:34,138 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 0 (main=0, sub=0)
+2026-07-31 18:04:34,138 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 18:04:34,139 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper raw value: 5.0
+2026-07-31 18:04:34,139 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] chamber_temper direct value: 5.0°C (heater OFF)
+2026-07-31 18:04:34,139 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=5.0, heating=False, respect_local=False
+2026-07-31 18:04:34,140 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 5.0, target: 0.0, heating: False
+2026-07-31 18:04:34,140 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-31 18:04:34,140 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'ipcam_dev': '1', 'ipcam_record': 'enable', 'timelapse': 'disable', 'resolution': '1080p', 'tutk_server': 'disable', 'mode_bits': 3}
+2026-07-31 18:04:34,140 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -34dBm
+2026-07-31 18:04:34,140 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'node': 'chamber_light', 'mode': 'off'}]
+2026-07-31 18:04:34,140 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: , subtask: Drywall_Anchor_V1.1_Plate 1
+2026-07-31 18:04:34,442 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Found xcam inside print data: {'allow_skip_parts': False, 'buildplate_marker_detector': True, 'first_layer_inspector': False, 'halt_print_sensitivity': 'medium', 'print_halt': True, 'printing_monitor': True, 'spaghetti_detector': True}
+2026-07-31 18:04:34,443 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Parsing xcam data - all fields: ['allow_skip_parts', 'buildplate_marker_detector', 'first_layer_inspector', 'halt_print_sensitivity', 'print_halt', 'printing_monitor', 'spaghetti_detector']
+2026-07-31 18:04:34,443 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received gcode_state: FINISH, gcode_file: /data/Metadata/plate_1.gcode, subtask_name: 74mmOilFilterWrenchV3
+2026-07-31 18:04:34,443 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS dict fields: {'ams_exist_bits': '1', 'ams_exist_bits_raw': '1', 'cali_id': 0, 'cali_stat': 0, 'insert_flag': False, 'power_on_flag': False, 'tray_exist_bits': '7', 'tray_is_bbl_bits': '7', 'tray_now': '255', 'tray_pre': '255', 'tray_read_done_bits': '7', 'tray_reading_bits': '0', 'tray_tar': '255', 'unbind_ams_stat': 0, 'version': 696480}
+2026-07-31 18:04:34,444 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] tray_now updated: 255
+2026-07-31 18:04:34,444 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Merged AMS data: 1 new units, 1 total
+2026-07-31 18:04:34,444 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] AMS 0 info=0x2023 -> extruder 0
+2026-07-31 18:04:34,445 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_extruder_map: {'0': 0}
+2026-07-31 18:04:34,445 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ams_status: 0 (main=0, sub=0)
+2026-07-31 18:04:34,445 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Received command response: push_status
+2026-07-31 18:04:34,445 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] device.extruder.state=1 (switch_state bits 12-14: 0)
+2026-07-31 18:04:34,445 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] info.temp direct: 35°C (heater OFF)
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ctc_info keys: ['temp']
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber heating calculated: target=0.0, current=35.0, heating=False, respect_local=False
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] Chamber temp updated to: 35.0, target: 0.0, heating: False
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] HMS data received: []
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] ipcam field: {'agora_service': 'disable', 'brtc_service': 'enable', 'bs_state': 0, 'ipcam_dev': '1', 'ipcam_record': 'enable', 'laser_preview_res': 7, 'mode_bits': 2, 'resolution': '1080p', 'rtsp_url': 'rtsps://[IP]:322/streaming/live/1', 'timelapse': 'disable', 'tl_store_hpd_type': 2, 'tl_store_path_type': 2, 'tutk_server': 'disable'}
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] wifi_signal received: -21dBm
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] lights_report: [{'mode': 'on', 'node': 'chamber_light'}, {'mode': 'flashing', 'node': 'work_light'}]
+2026-07-31 18:04:34,446 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] MQTT mapping field: [1]
+2026-07-31 18:04:34,447 DEBUG [backend.app.services.bambu_mqtt] [-] [[SERIAL]] gcode_state: FINISH -> FINISH, file: /data/Metadata/plate_1.gcode, subtask: 74mmOilFilterWrenchV3
