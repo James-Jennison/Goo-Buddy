@@ -19,6 +19,11 @@ from backend.app.utils.local_time import local_day_start, to_naive_utc
 
 pytestmark = pytest.mark.asyncio
 
+# A fixed midday UTC instant is safely after the local midnight in the Berlin
+# contract timezone. Tests must not depend on the wall-clock minute at which
+# pytest happens to run.
+REFERENCE_NOW_UTC = datetime(2030, 1, 15, 12, tzinfo=timezone.utc)
+
 
 @pytest.fixture(autouse=True)
 def berlin(monkeypatch):
@@ -54,12 +59,12 @@ async def _snapshot(db, plug_id: int, when: datetime, kwh: float) -> None:
 
 async def test_derives_today_and_yesterday_from_the_counter(db_session):
     plug = await _plug(db_session)
-    now = datetime.now(timezone.utc)
+    now = REFERENCE_NOW_UTC
 
     await _snapshot(db_session, plug.id, local_day_start(now, days_ago=1), 100.0)
     await _snapshot(db_session, plug.id, local_day_start(now, days_ago=0), 102.0)
 
-    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5)
+    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5, now_utc=now)
 
     assert today == pytest.approx(1.5)  # counter now, minus this midnight
     assert yesterday == pytest.approx(2.0)  # this midnight, minus the one before
@@ -70,10 +75,10 @@ async def test_yesterday_is_none_until_two_midnights_have_passed(db_session):
     yesterday against. Better an empty field than a fabricated one.
     """
     plug = await _plug(db_session)
-    now = datetime.now(timezone.utc)
+    now = REFERENCE_NOW_UTC
     await _snapshot(db_session, plug.id, local_day_start(now, days_ago=0), 102.0)
 
-    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5)
+    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5, now_utc=now)
 
     assert today == pytest.approx(1.5)
     assert yesterday is None
@@ -81,11 +86,11 @@ async def test_yesterday_is_none_until_two_midnights_have_passed(db_session):
 
 async def test_nothing_derivable_before_the_first_midnight(db_session):
     plug = await _plug(db_session)
-    now = datetime.now(timezone.utc)
+    now = REFERENCE_NOW_UTC
     # Snapshot taken this morning, after midnight — no baseline for the day.
     await _snapshot(db_session, plug.id, now - timedelta(minutes=30), 102.0)
 
-    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5)
+    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5, now_utc=now)
 
     assert today is None
     assert yesterday is None
@@ -96,11 +101,11 @@ async def test_counter_reset_reports_nothing_rather_than_a_negative(db_session):
     and "-101.6 kWh used today" is worse than a blank.
     """
     plug = await _plug(db_session)
-    now = datetime.now(timezone.utc)
+    now = REFERENCE_NOW_UTC
     await _snapshot(db_session, plug.id, local_day_start(now, days_ago=1), 100.0)
     await _snapshot(db_session, plug.id, local_day_start(now, days_ago=0), 102.0)
 
-    today, _ = await derive_today_yesterday(db_session, plug.id, live_total_kwh=0.4)
+    today, _ = await derive_today_yesterday(db_session, plug.id, live_total_kwh=0.4, now_utc=now)
 
     assert today is None
 
@@ -112,12 +117,49 @@ async def test_snapshots_from_other_plugs_are_not_borrowed(db_session):
     await db_session.commit()
     await db_session.refresh(other)
 
-    now = datetime.now(timezone.utc)
+    now = REFERENCE_NOW_UTC
     await _snapshot(db_session, other.id, local_day_start(now, days_ago=0), 50.0)
 
-    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5)
+    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5, now_utc=now)
 
     assert today is None
+    assert yesterday is None
+
+
+async def test_snapshot_after_the_first_local_midnight_is_not_a_baseline(db_session):
+    """A fresh install has no usable Today value until it crosses a local midnight."""
+    plug = await _plug(db_session)
+    # 2030-01-14 23:01 UTC is one minute into 2030-01-15 in Europe/Berlin.
+    now = datetime(2030, 1, 14, 23, 1, tzinfo=timezone.utc)
+    await _snapshot(db_session, plug.id, local_day_start(now) + timedelta(seconds=1), 102.0)
+
+    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5, now_utc=now)
+
+    assert today is None
+    assert yesterday is None
+
+
+async def test_snapshot_at_local_midnight_is_an_eligible_baseline(db_session):
+    plug = await _plug(db_session)
+    # Exactly 2030-01-15 00:00 in Europe/Berlin.
+    now = datetime(2030, 1, 14, 23, tzinfo=timezone.utc)
+    await _snapshot(db_session, plug.id, local_day_start(now), 102.0)
+
+    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5, now_utc=now)
+
+    assert today == pytest.approx(1.5)
+    assert yesterday is None
+
+
+async def test_utc_timezone_uses_its_own_midnight(db_session, monkeypatch):
+    monkeypatch.setenv("TZ", "UTC")
+    plug = await _plug(db_session)
+    now = datetime(2030, 1, 15, 0, 1, tzinfo=timezone.utc)
+    await _snapshot(db_session, plug.id, datetime(2030, 1, 14, 23, 59, tzinfo=timezone.utc), 100.0)
+
+    today, yesterday = await derive_today_yesterday(db_session, plug.id, live_total_kwh=103.5, now_utc=now)
+
+    assert today == pytest.approx(3.5)
     assert yesterday is None
 
 
