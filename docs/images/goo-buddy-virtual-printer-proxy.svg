@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="620" viewBox="0 0 1400 620" role="img" aria-labelledby="title desc">
+  <title id="title">Goo Buddy virtual printer proxy</title>
+  <desc id="desc">Bambu Studio or OrcaSlicer connects to a Goo Buddy server, which provides secure remote Bambu printing through Goo Buddy to a configured Bambu Lab printer.</desc>
+  <style>
+    .panel { fill: #ffffff; stroke: #52606d; stroke-width: 2; }
+    .primary { fill: #f2fff7; stroke: #00b85a; stroke-width: 3; }
+    .title { font: 700 36px Arial, sans-serif; fill: #16212b; }
+    .heading { font: 700 24px Arial, sans-serif; fill: #16212b; }
+    .text { font: 19px Arial, sans-serif; fill: #354552; }
+    .label { font: 700 18px Arial, sans-serif; fill: #087a40; }
+    .muted { font: 16px Arial, sans-serif; fill: #52606d; }
+  </style>
+  <rect width="1400" height="620" rx="20" fill="#f7faf9"/>
+  <text x="700" y="65" text-anchor="middle" class="title">Virtual printer proxy — Bambu workflows</text>
+  <text x="700" y="98" text-anchor="middle" class="muted">Owner-configured, self-hosted connection path</text>
+  <rect x="70" y="175" width="340" height="280" rx="18" class="panel"/>
+  <text x="240" y="245" text-anchor="middle" class="heading">Bambu Studio</text>
+  <text x="240" y="276" text-anchor="middle" class="text">or OrcaSlicer</text>
+  <path d="M185 320h110M200 300v40M280 300v40" stroke="#00b85a" stroke-width="5" stroke-linecap="round"/>
+  <text x="240" y="395" text-anchor="middle" class="label">Connects to Goo Buddy</text>
+  <rect x="530" y="135" width="340" height="360" rx="18" class="primary"/>
+  <text x="700" y="205" text-anchor="middle" class="heading">Goo Buddy server</text>
+  <rect x="640" y="245" width="120" height="74" rx="10" fill="#00b85a"/>
+  <rect x="661" y="265" width="78" height="8" rx="4" fill="#ffffff"/>
+  <rect x="661" y="289" width="52" height="8" rx="4" fill="#ffffff"/>
+  <circle cx="730" cy="293" r="5" fill="#d6ffe7"/>
+  <text x="700" y="365" text-anchor="middle" class="label">Secure remote Bambu printing</text>
+  <text x="700" y="393" text-anchor="middle" class="label">through Goo Buddy</text>
+  <text x="700" y="438" text-anchor="middle" class="muted">Virtual printer proxy (Bambu only)</text>
+  <rect x="990" y="175" width="340" height="280" rx="18" class="panel"/>
+  <text x="1160" y="245" text-anchor="middle" class="heading">Bambu Lab printer</text>
+  <path d="M1105 300h110v86h-110zM1124 326h72M1124 350h72M1124 374h45" fill="none" stroke="#00b85a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1160" y="425" text-anchor="middle" class="text">Configured target printer</text>
+  <path d="M425 315h80" stroke="#00b85a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M505 315l-18-12v24z" fill="#00b85a"/>
+  <path d="M885 315h80" stroke="#00b85a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M965 315l-18-12v24z" fill="#00b85a"/>
+  <text x="465" y="285" text-anchor="middle" class="muted">configured path</text>
+  <text x="925" y="285" text-anchor="middle" class="muted">configured path</text>
+  <path d="M700 535c-30 0-52 22-52 49h104c0-27-22-49-52-49z" fill="#00b85a"/>
+  <rect x="678" y="557" width="44" height="35" rx="5" fill="#f7faf9"/>
+  <path d="M688 557v-10c0-16 24-16 24 0v10" fill="none" stroke="#f7faf9" stroke-width="7" stroke-linecap="round"/>
+  <text x="760" y="573" class="muted">Owner-controlled configuration</text>
+</svg>
