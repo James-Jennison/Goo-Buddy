@@ -73,6 +73,8 @@ class JobProgress:
     progress_percent: float | None = None
     current_layer: int | None = None
     total_layers: int | None = None
+    elapsed_seconds: float | None = None
+    estimated_remaining_seconds: float | None = None
 
 
 @dataclass(frozen=True)

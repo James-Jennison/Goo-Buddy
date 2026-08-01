@@ -148,6 +148,137 @@ class ElegooSDCPSourceResponse(BaseModel):
     updated_at: datetime
 
 
+def _moonraker_port(value: int) -> int:
+    if type(value) is not int or isinstance(value, bool) or not 1 <= value <= 65535:
+        raise ValueError("A valid Moonraker port is required")
+    return value
+
+
+class MoonrakerSourceCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    private_ipv4: str = Field(..., min_length=7, max_length=15)
+    port: int = Field(default=7125, strict=True)
+    scheme: str = "http"
+    api_key: str | None = Field(default=None, max_length=512)
+    read_only_acknowledged: bool
+    is_enabled: bool = False
+
+    @field_validator("private_ipv4")
+    @classmethod
+    def validate_private_ipv4(cls, value: str) -> str:
+        return canonical_rfc1918_ipv4(value)
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("A display name is required")
+        return value
+
+    @field_validator("port")
+    @classmethod
+    def validate_port(cls, value: int) -> int:
+        return _moonraker_port(value)
+
+    @field_validator("scheme")
+    @classmethod
+    def validate_scheme(cls, value: str) -> str:
+        if value not in {"http", "https"}:
+            raise ValueError("Moonraker transport must be HTTP or HTTPS")
+        return value
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key(cls, value: str | None) -> str | None:
+        if value is not None and (not value or value != value.strip()):
+            raise ValueError("Invalid Moonraker API key")
+        return value
+
+    @model_validator(mode="after")
+    def require_read_only_acknowledgement(self):
+        if not self.read_only_acknowledged:
+            raise ValueError("Read-only acknowledgement is required")
+        return self
+
+
+class MoonrakerSourceUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    private_ipv4: str | None = Field(default=None, min_length=7, max_length=15)
+    port: int | None = Field(default=None, strict=True)
+    scheme: str | None = None
+    # Omitted preserves a protected secret; empty string explicitly clears it.
+    api_key: str | None = Field(default=None, max_length=512)
+    read_only_acknowledged: bool | None = None
+    is_enabled: bool | None = None
+
+    @field_validator("private_ipv4")
+    @classmethod
+    def validate_private_ipv4(cls, value: str | None) -> str | None:
+        return canonical_rfc1918_ipv4(value) if value is not None else None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("A display name is required")
+        return value
+
+    @field_validator("port")
+    @classmethod
+    def validate_port(cls, value: int | None) -> int | None:
+        return _moonraker_port(value) if value is not None else None
+
+    @field_validator("scheme")
+    @classmethod
+    def validate_scheme(cls, value: str | None) -> str | None:
+        if value is not None and value not in {"http", "https"}:
+            raise ValueError("Moonraker transport must be HTTP or HTTPS")
+        return value
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key(cls, value: str | None) -> str | None:
+        if value is not None and value != "" and (not value or value != value.strip()):
+            raise ValueError("Invalid Moonraker API key")
+        return value
+
+
+class MoonrakerSourceResponse(BaseModel):
+    id: int
+    name: str
+    platform: str = "moonraker"
+    driver: str = "moonraker"
+    is_active: bool
+    read_only: bool = True
+    endpoint_configured: bool = True
+    endpoint_hint: str = "Private Moonraker endpoint configured"
+    port: int
+    scheme: str
+    api_key_configured: bool = False
+    model: str | None = None
+    firmware: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class MoonrakerDashboardStatus(BaseModel):
+    phase: str
+    freshness: str
+    retained: bool = False
+    last_observation_at: datetime | None = None
+    error: str | None = None
+    state: str | None = None
+    model: str | None = None
+    firmware: str | None = None
+    temperatures: dict[str, dict[str, float | None]] | None = None
+    job: dict[str, str | float | int | None] | None = None
+    capabilities: list[str] = []
+
+
 class PlateDetectionROI(BaseModel):
     """Region of interest for plate detection (percentages 0.0-1.0)."""
 

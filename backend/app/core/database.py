@@ -261,6 +261,7 @@ async def init_db():
         location,
         long_lived_token,
         maintenance,
+        moonraker_source,
         notification,
         notification_template,
         oidc_provider,
@@ -505,6 +506,26 @@ async def _migrate_elegoo_sdcp_sources(conn) -> None:
         "configuration_revision INTEGER DEFAULT 1 NOT NULL, "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
         ")",
+    )
+
+
+async def _migrate_moonraker_sources(conn) -> None:
+    """Add isolated Moonraker monitoring configuration without touching Bambu rows.
+
+    Rollback is non-destructive: applications predating this release simply
+    leave the additive table unused.  The migration is idempotent on SQLite
+    and PostgreSQL and has no data backfill.
+    """
+    source_id_column = "INTEGER PRIMARY KEY" if is_sqlite() else "SERIAL PRIMARY KEY"
+    await _safe_execute(
+        conn,
+        "CREATE TABLE moonraker_sources ("
+        f"id {source_id_column}, "
+        "display_name VARCHAR(100) NOT NULL, private_ipv4 VARCHAR(15) NOT NULL UNIQUE, "
+        "port INTEGER NOT NULL DEFAULT 7125, scheme VARCHAR(5) NOT NULL DEFAULT 'http', "
+        "api_key VARCHAR(2048), is_enabled BOOLEAN NOT NULL DEFAULT FALSE, "
+        "read_only_acknowledged BOOLEAN NOT NULL DEFAULT FALSE, configuration_revision INTEGER NOT NULL DEFAULT 1, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
     )
 
 
@@ -953,6 +974,7 @@ async def run_migrations(conn):
     # Goo Buddy: isolated SDCP source table. It is additive: rollback simply
     # leaves an unused table and never changes Bambu configuration rows.
     await _migrate_elegoo_sdcp_sources(conn)
+    await _migrate_moonraker_sources(conn)
 
     # Migration: Add parent_run_id column to pipeline_runs (#1425 PR C).
     # Links a retry-failed run back to its parent so the dashboard can show

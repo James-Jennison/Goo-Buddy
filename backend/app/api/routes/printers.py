@@ -22,6 +22,7 @@ from backend.app.core.permissions import Permission
 from backend.app.core.tasks import spawn_background_task
 from backend.app.models.ams_label import AmsLabel
 from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
+from backend.app.models.moonraker_source import MoonrakerSource
 from backend.app.models.printer import Printer
 from backend.app.models.slot_preset import SlotPresetMapping
 from backend.app.models.user import User
@@ -37,6 +38,10 @@ from backend.app.schemas.printer import (
     FilaSwitchResponse,
     HmsActionBody,
     HMSErrorResponse,
+    MoonrakerDashboardStatus,
+    MoonrakerSourceCreate,
+    MoonrakerSourceResponse,
+    MoonrakerSourceUpdate,
     NozzleInfoResponse,
     NozzleRackSlot,
     PrinterCreate,
@@ -57,6 +62,7 @@ from backend.app.services.bambu_ftp import (
     list_files_async,
 )
 from backend.app.services.elegoo_sdcp_manager import elegoo_sdcp_manager
+from backend.app.services.moonraker_manager import moonraker_manager
 from backend.app.services.printer_diagnostic import run_connection_diagnostic
 from backend.app.services.printer_manager import (
     drying_screen_only,
@@ -114,6 +120,14 @@ def _elegoo_public_id(source: ElegooSDCPSource) -> int:
     return -source.id
 
 
+_MOONRAKER_PUBLIC_ID_OFFSET = 1_000_000
+
+
+def _moonraker_public_id(source: MoonrakerSource) -> int:
+    """Keep Moonraker projections out of the Bambu and Elegoo ID spaces."""
+    return -_MOONRAKER_PUBLIC_ID_OFFSET - source.id
+
+
 async def _parse_elegoo_source_body(request: Request, schema: type[BaseModel]) -> BaseModel:
     """Validate configuration without reflecting an endpoint in a 422 body."""
 
@@ -122,6 +136,15 @@ async def _parse_elegoo_source_body(request: Request, schema: type[BaseModel]) -
         return schema.model_validate(body)
     except (TypeError, ValueError, ValidationError):
         raise HTTPException(422, "Invalid read-only Elegoo source configuration") from None
+
+
+async def _parse_moonraker_source_body(request: Request, schema: type[BaseModel]) -> BaseModel:
+    """Never reflect a private endpoint or API key in a validation response."""
+    try:
+        body = await request.json()
+        return schema.model_validate(body)
+    except (TypeError, ValueError, ValidationError):
+        raise HTTPException(422, "Invalid read-only Moonraker source configuration") from None
 
 
 def _serialize_elegoo_source(source: ElegooSDCPSource) -> dict:
@@ -181,6 +204,8 @@ def _elegoo_dashboard_status(source: ElegooSDCPSource) -> dict:
                 "progress_percent": snapshot.job.progress_percent,
                 "current_layer": snapshot.job.current_layer,
                 "total_layers": snapshot.job.total_layers,
+                "elapsed_seconds": snapshot.job.elapsed_seconds,
+                "estimated_remaining_seconds": snapshot.job.estimated_remaining_seconds,
             }
     return ElegooDashboardStatus(
         phase=observation.phase.value,
@@ -194,6 +219,75 @@ def _elegoo_dashboard_status(source: ElegooSDCPSource) -> dict:
         temperatures=temperatures,
         job=job,
         capabilities=sorted(capability.value for capability in observation.capabilities),
+    ).model_dump(mode="json")
+
+
+def _serialize_moonraker_source(source: MoonrakerSource) -> dict:
+    observation = moonraker_manager.observation(source.id)
+    snapshot = observation.current or (observation.retained.snapshot if observation.retained else None)
+    result = MoonrakerSourceResponse(
+        id=_moonraker_public_id(source),
+        name=source.display_name,
+        is_active=source.is_enabled,
+        port=source.port,
+        scheme=source.scheme,
+        api_key_configured=bool(source._api_key_enc),
+        model=snapshot.identity.model if snapshot else None,
+        firmware=snapshot.identity.firmware if snapshot else None,
+        created_at=source.created_at,
+        updated_at=source.updated_at,
+    ).model_dump(mode="json")
+    result.update(
+        {
+            "serial_number": "READ-ONLY-MOONRAKER",
+            "ip_address": "Private endpoint configured",
+            "location": None,
+            "nozzle_count": 1,
+            "auto_archive": False,
+            "external_camera_url": None,
+            "external_camera_type": None,
+            "external_camera_enabled": False,
+            "external_camera_snapshot_url": None,
+            "camera_rotation": 0,
+            "plate_detection_enabled": False,
+        }
+    )
+    return result
+
+
+def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
+    if not source.is_enabled:
+        return MoonrakerDashboardStatus(phase="disabled", freshness="unavailable").model_dump(mode="json")
+    observation = moonraker_manager.observation(source.id)
+    snapshot = observation.current or (observation.retained.snapshot if observation.retained else None)
+    temperatures = None
+    job = None
+    if snapshot:
+        temperatures = {
+            name: {"current_c": value.current_c, "target_c": value.target_c}
+            for name, value in snapshot.temperatures.items()
+        }
+        if snapshot.job:
+            job = {
+                "name": snapshot.job.name,
+                "state": snapshot.job.state,
+                "progress_percent": snapshot.job.progress_percent,
+                "current_layer": snapshot.job.current_layer,
+                "total_layers": snapshot.job.total_layers,
+            }
+    phase = observation.phase.value
+    return MoonrakerDashboardStatus(
+        phase=phase,
+        freshness="current" if observation.current else "retained" if observation.retained else "unavailable",
+        retained=observation.retained is not None,
+        last_observation_at=snapshot.observed_at if snapshot else None,
+        error=observation.error,
+        state=snapshot.state if snapshot else None,
+        model=snapshot.identity.model if snapshot else None,
+        firmware=snapshot.identity.firmware if snapshot else None,
+        temperatures=temperatures,
+        job=job,
+        capabilities=sorted(cap.value for cap in observation.capabilities),
     ).model_dump(mode="json")
 
 
@@ -213,10 +307,15 @@ async def list_printers(
     elegoo_sources = list(
         (await db.execute(select(ElegooSDCPSource).order_by(ElegooSDCPSource.display_name))).scalars().all()
     )
+    moonraker_sources = list(
+        (await db.execute(select(MoonrakerSource).order_by(MoonrakerSource.display_name))).scalars().all()
+    )
     include_secret = await _caller_can_view_printer_secrets(user, db)
-    return [_serialize_printer(p, include_secret=include_secret) for p in printers] + [
-        _serialize_elegoo_source(source) for source in elegoo_sources
-    ]
+    return (
+        [_serialize_printer(p, include_secret=include_secret) for p in printers]
+        + [_serialize_elegoo_source(source) for source in elegoo_sources]
+        + [_serialize_moonraker_source(source) for source in moonraker_sources]
+    )
 
 
 @router.post("/", response_model=PrinterResponse)
@@ -530,6 +629,121 @@ async def delete_elegoo_source(
     return {"status": "deleted"}
 
 
+@router.post("/moonraker", response_model=MoonrakerSourceResponse)
+async def create_moonraker_source(
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_CREATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Save a manual Moonraker monitor without contacting it until enabled."""
+    source_data = await _parse_moonraker_source_body(request, MoonrakerSourceCreate)
+    assert isinstance(source_data, MoonrakerSourceCreate)
+    source = MoonrakerSource(
+        display_name=source_data.name,
+        private_ipv4=source_data.private_ipv4,
+        port=source_data.port,
+        scheme=source_data.scheme,
+        api_key=source_data.api_key,
+        read_only_acknowledged=True,
+        is_enabled=source_data.is_enabled,
+    )
+    db.add(source)
+    try:
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise HTTPException(409, "A Moonraker source already uses that private address") from None
+    await db.refresh(source)
+    if source.is_enabled:
+        await moonraker_manager.enable(
+            source.id, source.display_name, source.private_ipv4, source.port, source.scheme, source.api_key
+        )
+    return _serialize_moonraker_source(source)
+
+
+@router.get("/moonraker/{source_id}", response_model=MoonrakerSourceResponse)
+async def get_moonraker_source(
+    source_id: int, _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_READ), db: AsyncSession = Depends(get_db)
+):
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return _serialize_moonraker_source(source)
+
+
+@router.patch("/moonraker/{source_id}", response_model=MoonrakerSourceResponse)
+async def update_moonraker_source(
+    source_id: int,
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    source_data = await _parse_moonraker_source_body(request, MoonrakerSourceUpdate)
+    assert isinstance(source_data, MoonrakerSourceUpdate)
+    changes = source_data.model_dump(exclude_unset=True)
+    transport_fields = {"private_ipv4", "port", "scheme", "api_key"}
+    transport_changed = any(
+        field in changes and getattr(source, field) != changes[field]
+        for field in transport_fields
+        if field != "api_key"
+    )
+    if "api_key" in changes:
+        # A supplied empty string means clear; the decrypted value is only used
+        # for equality inside this privileged handler and never reflected.
+        transport_changed = transport_changed or source.api_key != (changes["api_key"] or None)
+    transport_cancelled = False
+    if transport_changed:
+        await moonraker_manager.disable(source.id)
+        transport_cancelled = True
+        for field in transport_fields.intersection(changes):
+            value = changes.pop(field)
+            setattr(source, field, value or None if field == "api_key" else value)
+        changes.pop("is_enabled", None)
+        source.is_enabled = False
+        source.configuration_revision += 1
+    if "name" in changes:
+        source.display_name = changes.pop("name")
+    if changes.get("read_only_acknowledged") is False:
+        raise HTTPException(422, "Read-only acknowledgement is required")
+    if "is_enabled" in changes:
+        source.is_enabled = changes["is_enabled"]
+    await db.commit()
+    await db.refresh(source)
+    if source.is_enabled:
+        await moonraker_manager.enable(
+            source.id, source.display_name, source.private_ipv4, source.port, source.scheme, source.api_key
+        )
+    elif not transport_cancelled:
+        await moonraker_manager.disable(source.id)
+    return _serialize_moonraker_source(source)
+
+
+@router.get("/moonraker/{source_id}/status", response_model=MoonrakerDashboardStatus)
+async def get_moonraker_status(
+    source_id: int, _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_READ), db: AsyncSession = Depends(get_db)
+):
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return _moonraker_dashboard_status(source)
+
+
+@router.delete("/moonraker/{source_id}")
+async def delete_moonraker_source(
+    source_id: int, _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_DELETE), db: AsyncSession = Depends(get_db)
+):
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    await moonraker_manager.disable(source.id)
+    await db.delete(source)
+    await db.commit()
+    return {"status": "deleted"}
+
+
 @router.get("/{printer_id}")
 async def get_printer(
     printer_id: int,
@@ -543,6 +757,11 @@ async def get_printer(
     never receive it.
     """
     if printer_id < 0:
+        if printer_id <= -_MOONRAKER_PUBLIC_ID_OFFSET:
+            source = await db.get(MoonrakerSource, -_MOONRAKER_PUBLIC_ID_OFFSET - printer_id)
+            if source is None:
+                raise HTTPException(404, "Printer not found")
+            return _serialize_moonraker_source(source)
         source = await db.get(ElegooSDCPSource, -printer_id)
         if source is None:
             raise HTTPException(404, "Printer not found")
@@ -666,6 +885,33 @@ async def get_printer_status(
 ):
     """Get real-time status of a printer."""
     if printer_id < 0:
+        if printer_id <= -_MOONRAKER_PUBLIC_ID_OFFSET:
+            source = await db.get(MoonrakerSource, -_MOONRAKER_PUBLIC_ID_OFFSET - printer_id)
+            if source is None:
+                raise HTTPException(404, "Printer not found")
+            projection = _moonraker_dashboard_status(source)
+            current = projection.get("temperatures") or {}
+            nozzle, bed = current.get("nozzle") or {}, current.get("bed") or {}
+            job = projection.get("job") or {}
+            return PrinterStatus(
+                id=printer_id,
+                name=source.display_name,
+                connected=projection["phase"] in {"waiting", "ready"},
+                state=projection.get("state") or projection["phase"],
+                current_print=job.get("name"),
+                progress=job.get("progress_percent"),
+                layer_num=job.get("current_layer"),
+                total_layers=job.get("total_layers"),
+                temperatures={
+                    "nozzle": nozzle.get("current_c"),
+                    "nozzle_target": nozzle.get("target_c"),
+                    "bed": bed.get("current_c"),
+                    "bed_target": bed.get("target_c"),
+                }
+                if current
+                else None,
+                firmware_version=projection.get("firmware"),
+            )
         source = await db.get(ElegooSDCPSource, -printer_id)
         if source is None:
             raise HTTPException(404, "Printer not found")

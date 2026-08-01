@@ -81,6 +81,7 @@ from backend.app.core.database import async_session, engine, init_db
 from backend.app.core.tasks import spawn_background_task
 from backend.app.core.websocket import ws_manager
 from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
+from backend.app.models.moonraker_source import MoonrakerSource
 from backend.app.models.smart_plug import SmartPlug
 from backend.app.services.archive import ArchiveService, peek_plate_index_in_3mf, swap_plate_suffix
 from backend.app.services.archive_purge import archive_purge_service
@@ -99,6 +100,7 @@ from backend.app.services.github_backup import github_backup_service
 from backend.app.services.homeassistant import homeassistant_service
 from backend.app.services.library_trash import library_trash_service
 from backend.app.services.local_backup import local_backup_service
+from backend.app.services.moonraker_manager import moonraker_manager
 from backend.app.services.mqtt_relay import mqtt_relay
 from backend.app.services.mqtt_smart_plug import mqtt_smart_plug_service
 from backend.app.services.notification_service import notification_service
@@ -6456,8 +6458,19 @@ async def lifespan(app: FastAPI):
         enabled_sdcp_sources = (
             (await db.execute(select(ElegooSDCPSource).where(ElegooSDCPSource.is_enabled.is_(True)))).scalars().all()
         )
-        for source in enabled_sdcp_sources:
-            await elegoo_sdcp_manager.enable(source.id, source.private_ipv4)
+    for source in enabled_sdcp_sources:
+        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4)
+
+    # Moonraker is equally manual and opt-in. Restoring a saved enabled source
+    # is the only startup path that can create its fixed monitoring session.
+    async with async_session() as db:
+        enabled_moonraker_sources = (
+            (await db.execute(select(MoonrakerSource).where(MoonrakerSource.is_enabled.is_(True)))).scalars().all()
+        )
+        for source in enabled_moonraker_sources:
+            await moonraker_manager.enable(
+                source.id, source.display_name, source.private_ipv4, source.port, source.scheme, source.api_key
+            )
 
     # Auto-connect to Spoolman if enabled
     async with async_session() as db:
@@ -6586,6 +6599,7 @@ async def lifespan(app: FastAPI):
     stop_auth_cleanup()
     printer_manager.disconnect_all()
     await elegoo_sdcp_manager.shutdown()
+    await moonraker_manager.shutdown()
     await close_spoolman_client()
 
     # Stop all virtual printer services
