@@ -80,6 +80,7 @@ from backend.app.core.config import APP_VERSION, settings as app_settings
 from backend.app.core.database import async_session, engine, init_db
 from backend.app.core.tasks import spawn_background_task
 from backend.app.core.websocket import ws_manager
+from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
 from backend.app.models.smart_plug import SmartPlug
 from backend.app.services.archive import ArchiveService, peek_plate_index_in_3mf, swap_plate_suffix
 from backend.app.services.archive_purge import archive_purge_service
@@ -93,6 +94,7 @@ from backend.app.services.bambu_ftp import (
     with_ftp_retry,
 )
 from backend.app.services.bambu_mqtt import PrinterState
+from backend.app.services.elegoo_sdcp_manager import elegoo_sdcp_manager
 from backend.app.services.github_backup import github_backup_service
 from backend.app.services.homeassistant import homeassistant_service
 from backend.app.services.library_trash import library_trash_service
@@ -6448,6 +6450,15 @@ async def lifespan(app: FastAPI):
     async with async_session() as db:
         await init_printer_connections(db)
 
+    # SDCP has no discovery or implicit activation. Only sources whose owner
+    # explicitly enabled the read-only connection are started at boot.
+    async with async_session() as db:
+        enabled_sdcp_sources = (
+            (await db.execute(select(ElegooSDCPSource).where(ElegooSDCPSource.is_enabled.is_(True)))).scalars().all()
+        )
+        for source in enabled_sdcp_sources:
+            await elegoo_sdcp_manager.enable(source.id, source.private_ipv4)
+
     # Auto-connect to Spoolman if enabled
     async with async_session() as db:
         from backend.app.api.routes.settings import get_setting
@@ -6574,6 +6585,7 @@ async def lifespan(app: FastAPI):
     stop_expected_prints_cleanup()
     stop_auth_cleanup()
     printer_manager.disconnect_all()
+    await elegoo_sdcp_manager.shutdown()
     await close_spoolman_client()
 
     # Stop all virtual printer services

@@ -38,6 +38,7 @@ class ConnectionPhase(str, Enum):
     DISCONNECTED = "disconnected"
     CONNECTING = "connecting"
     WAITING = "waiting"
+    RECONNECTING = "reconnecting"
     READY = "ready"
     STALE = "stale"
     INVALID = "invalid"

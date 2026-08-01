@@ -138,11 +138,19 @@ def normalize_synthetic_sdcp_v3(
     capabilities: set[Capability] = set()
     temperatures: dict[str, TemperatureReading] = {}
     for key, current, target in (
-        ("nozzle", "TempOfNozzle", "TargetTempOfNozzle"),
-        ("bed", "TempOfHotbed", "TargetTempOfHotbed"),
-        ("chamber", "TempOfBox", "TargetTempOfBox"),
+        # OpenCentauri's SDCP v3 reference names targets ``TempTarget*``.
+        # Keep the older fixture aliases as a compatibility-only fallback so
+        # the transport accepts the documented spelling without inventing
+        # another temperature source.
+        ("nozzle", "TempOfNozzle", "TempTargetNozzle"),
+        ("bed", "TempOfHotbed", "TempTargetHotbed"),
+        ("chamber", "TempOfBox", "TempTargetBox"),
     ):
-        value = _temperature(status, current, target)
+        value = _temperature(
+            status,
+            current,
+            target if target in status else f"Target{current}",
+        )
         if value is not None:
             temperatures[key] = value
     if temperatures:
@@ -151,7 +159,6 @@ def normalize_synthetic_sdcp_v3(
     print_info = _record(status.get("PrintInfo"))
     job = None
     if print_info is not None:
-        name_value = _text(print_info, "Filename")
         current_ticks = _number(print_info.get("CurrentTicks"))
         total_ticks = _number(print_info.get("TotalTicks"))
         current_layer = _non_negative_int(print_info.get("CurrentLayer"))
@@ -171,9 +178,11 @@ def normalize_synthetic_sdcp_v3(
             and current_layer <= total_layers
         ):
             progress = current_layer / total_layers * 100
-        if name_value is not None or progress is not None:
+        if progress is not None or current_layer is not None or total_layers is not None:
             job = JobProgress(
-                name=name_value,
+                # G-code filenames are intentionally never retained or
+                # projected through the ordinary dashboard API.
+                name=None,
                 state=_state(status),
                 progress_percent=progress,
                 current_layer=current_layer,
@@ -242,7 +251,7 @@ class SyntheticElegooSdcpV3Driver:
         self._invalid_error = None
 
     def observe_status(self, session_id: str, payload: object, observed_at: datetime) -> None:
-        if not self._accepts(session_id, observed_at):
+        if not self._accepts(session_id, observed_at, self._active.status_at if self._active else None):
             return
         assert self._active is not None
         try:
@@ -253,7 +262,7 @@ class SyntheticElegooSdcpV3Driver:
         self._active.status_at = observed_at
 
     def observe_attributes(self, session_id: str, payload: object, observed_at: datetime) -> None:
-        if not self._accepts(session_id, observed_at):
+        if not self._accepts(session_id, observed_at, self._active.attributes_at if self._active else None):
             return
         assert self._active is not None
         try:
@@ -266,6 +275,24 @@ class SyntheticElegooSdcpV3Driver:
     def disconnect(self, session_id: str) -> None:
         if self._active is None or self._active.session_id != session_id:
             return
+        # Preserve a complete observation even when the socket closes before a
+        # dashboard poll. Retention must reflect what was received, not the
+        # timing of an unrelated HTTP status request.
+        if (
+            self._active.status_payload is not None
+            and self._active.attributes_payload is not None
+            and self._active.status_at is not None
+            and self._active.attributes_at is not None
+        ):
+            try:
+                self._retained = normalize_synthetic_sdcp_v3(
+                    local_id=self._local_id,
+                    observed_at=max(self._active.status_at, self._active.attributes_at),
+                    status_payload=self._active.status_payload,
+                    attributes_payload=self._active.attributes_payload,
+                )
+            except SdcpNormalizationError:
+                self._invalid_error = "invalid SDCP observation"
         self._closed_sessions.add(session_id)
         self._active = None
 
@@ -277,7 +304,7 @@ class SyntheticElegooSdcpV3Driver:
         if self._active is None:
             return DriverObservation(
                 phase=ConnectionPhase.DISCONNECTED,
-                capabilities=frozenset(),
+                capabilities=self._retained.capabilities if self._retained is not None else frozenset(),
                 retained=self._retained_view(RetentionReason.DISCONNECTED),
             )
         active = self._active
@@ -327,14 +354,14 @@ class SyntheticElegooSdcpV3Driver:
             session_id=active.session_id,
         )
 
-    def _accepts(self, session_id: str, observed_at: datetime) -> bool:
+    def _accepts(self, session_id: str, observed_at: datetime, last_for_topic: datetime | None) -> bool:
         if observed_at.tzinfo is None or self._active is None or self._active.session_id != session_id:
             self._invalid_error = "invalid or superseded session observation"
             return False
-        latest = max(
-            (value for value in (self._active.status_at, self._active.attributes_at) if value is not None), default=None
-        )
-        if latest is not None and observed_at < latest:
+        # Attributes and status are independently pushed and either documented
+        # order is valid. Only reject an older observation for the *same*
+        # topic; a transport can therefore receive attributes before status.
+        if last_for_topic is not None and observed_at < last_for_topic:
             self._invalid_error = "out-of-order observation"
             return False
         return True

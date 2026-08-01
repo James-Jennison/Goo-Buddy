@@ -1,6 +1,7 @@
+import ipaddress
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class PrinterBase(BaseModel):
@@ -44,6 +45,107 @@ class PrinterCreate(PrinterBase):
     # PrinterResponse. Direct exposure on PRINTERS_READ would let a Viewer
     # connect to the printer's MQTT and bypass Bambuddy's RBAC.
     access_code: str = Field(..., min_length=1, max_length=20)
+
+
+def canonical_rfc1918_ipv4(value: str) -> str:
+    """Accept only canonical RFC1918 IPv4 literals, never URLs or hostnames."""
+
+    if value != value.strip() or any(marker in value for marker in (":", "/", "?", "#", "@")):
+        raise ValueError("A private IPv4 address is required")
+    try:
+        address = ipaddress.IPv4Address(value)
+    except ipaddress.AddressValueError as exc:
+        raise ValueError("A private IPv4 address is required") from exc
+    private_networks = (
+        ipaddress.IPv4Network("10.0.0.0/8"),
+        ipaddress.IPv4Network("172.16.0.0/12"),
+        ipaddress.IPv4Network("192.168.0.0/16"),
+    )
+    if not any(address in network for network in private_networks):
+        raise ValueError("A private RFC1918 IPv4 address is required")
+    # Canonical dotted decimal avoids alternate textual forms in config/logs.
+    if str(address) != value:
+        raise ValueError("Use canonical dotted-decimal IPv4 notation")
+    return str(address)
+
+
+class ElegooSDCPSourceCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    private_ipv4: str = Field(..., min_length=7, max_length=15)
+    read_only_acknowledged: bool
+    is_enabled: bool = False
+
+    @field_validator("private_ipv4")
+    @classmethod
+    def validate_private_ipv4(cls, value: str) -> str:
+        return canonical_rfc1918_ipv4(value)
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("A display name is required")
+        return value
+
+    @model_validator(mode="after")
+    def require_read_only_acknowledgement(self):
+        if not self.read_only_acknowledged:
+            raise ValueError("Read-only acknowledgement is required")
+        return self
+
+
+class ElegooSDCPSourceUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    private_ipv4: str | None = Field(default=None, min_length=7, max_length=15)
+    read_only_acknowledged: bool | None = None
+    is_enabled: bool | None = None
+
+    @field_validator("private_ipv4")
+    @classmethod
+    def validate_private_ipv4(cls, value: str | None) -> str | None:
+        return canonical_rfc1918_ipv4(value) if value is not None else None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("A display name is required")
+        return value
+
+
+class ElegooDashboardStatus(BaseModel):
+    phase: str
+    freshness: str
+    retained: bool = False
+    last_observation_at: datetime | None = None
+    error: str | None = None
+    state: str | None = None
+    model: str | None = None
+    firmware: str | None = None
+    temperatures: dict[str, dict[str, float | None]] | None = None
+    job: dict[str, str | float | int | None] | None = None
+    capabilities: list[str] = []
+
+
+class ElegooSDCPSourceResponse(BaseModel):
+    # Negative public IDs occupy no Bambu primary-key space. The raw address
+    # is intentionally never returned by list/detail dashboard endpoints.
+    id: int
+    name: str
+    platform: str = "elegoo"
+    driver: str = "elegoo.sdcp-v3"
+    is_active: bool
+    read_only: bool = True
+    endpoint_configured: bool = True
+    endpoint_hint: str
+    model: str | None = None
+    firmware: str | None = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class PlateDetectionROI(BaseModel):

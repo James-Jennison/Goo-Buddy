@@ -3,8 +3,9 @@ import logging
 import re
 import zipfile
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +21,7 @@ from backend.app.core.database import get_db
 from backend.app.core.permissions import Permission
 from backend.app.core.tasks import spawn_background_task
 from backend.app.models.ams_label import AmsLabel
+from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
 from backend.app.models.printer import Printer
 from backend.app.models.slot_preset import SlotPresetMapping
 from backend.app.models.user import User
@@ -28,6 +30,10 @@ from backend.app.schemas.printer import (
     AMSTray,
     AMSUnit,
     DiagnosticRequest,
+    ElegooDashboardStatus,
+    ElegooSDCPSourceCreate,
+    ElegooSDCPSourceResponse,
+    ElegooSDCPSourceUpdate,
     FilaSwitchResponse,
     HmsActionBody,
     HMSErrorResponse,
@@ -50,6 +56,7 @@ from backend.app.services.bambu_ftp import (
     get_storage_info_async,
     list_files_async,
 )
+from backend.app.services.elegoo_sdcp_manager import elegoo_sdcp_manager
 from backend.app.services.printer_diagnostic import run_connection_diagnostic
 from backend.app.services.printer_manager import (
     drying_screen_only,
@@ -103,6 +110,93 @@ def _serialize_printer(printer: Printer, *, include_secret: bool):
     return PrinterResponse.model_validate(printer)
 
 
+def _elegoo_public_id(source: ElegooSDCPSource) -> int:
+    return -source.id
+
+
+async def _parse_elegoo_source_body(request: Request, schema: type[BaseModel]) -> BaseModel:
+    """Validate configuration without reflecting an endpoint in a 422 body."""
+
+    try:
+        body = await request.json()
+        return schema.model_validate(body)
+    except (TypeError, ValueError, ValidationError):
+        raise HTTPException(422, "Invalid read-only Elegoo source configuration") from None
+
+
+def _serialize_elegoo_source(source: ElegooSDCPSource) -> dict:
+    """Public projection deliberately omits the source IPv4 address."""
+
+    observation = elegoo_sdcp_manager.observation(source.id)
+    snapshot = observation.current or (observation.retained.snapshot if observation.retained else None)
+    result = ElegooSDCPSourceResponse(
+        id=_elegoo_public_id(source),
+        name=source.display_name,
+        is_active=source.is_enabled,
+        endpoint_hint="Private IPv4 configured",
+        model=snapshot.identity.model if snapshot else None,
+        firmware=snapshot.identity.firmware if snapshot else None,
+        created_at=source.created_at,
+        updated_at=source.updated_at,
+    ).model_dump(mode="json")
+    # Compatibility-shaped placeholders keep the established list contract
+    # stable without presenting a real address, serial, camera, or control.
+    result.update(
+        {
+            "serial_number": "READ-ONLY-SDCP",
+            "ip_address": "Private IPv4 configured",
+            "location": None,
+            "nozzle_count": 1,
+            "auto_archive": False,
+            "external_camera_url": None,
+            "external_camera_type": None,
+            "external_camera_enabled": False,
+            "external_camera_snapshot_url": None,
+            "camera_rotation": 0,
+            "plate_detection_enabled": False,
+        }
+    )
+    return result
+
+
+def _elegoo_dashboard_status(source: ElegooSDCPSource) -> dict:
+    if not source.is_enabled:
+        return ElegooDashboardStatus(
+            phase="disabled",
+            freshness="unavailable",
+            error=None,
+        ).model_dump(mode="json")
+    observation = elegoo_sdcp_manager.observation(source.id)
+    snapshot = observation.current or (observation.retained.snapshot if observation.retained else None)
+    temperatures = None
+    job = None
+    if snapshot is not None:
+        temperatures = {
+            name: {"current_c": reading.current_c, "target_c": reading.target_c}
+            for name, reading in snapshot.temperatures.items()
+        }
+        if snapshot.job is not None:
+            job = {
+                "state": snapshot.job.state,
+                "progress_percent": snapshot.job.progress_percent,
+                "current_layer": snapshot.job.current_layer,
+                "total_layers": snapshot.job.total_layers,
+            }
+    return ElegooDashboardStatus(
+        phase=observation.phase.value,
+        freshness="current" if observation.current else ("retained" if snapshot else "unavailable"),
+        retained=observation.retained is not None,
+        last_observation_at=snapshot.observed_at if snapshot else None,
+        error=observation.error,
+        state=snapshot.state if snapshot else None,
+        model=snapshot.identity.model if snapshot else None,
+        firmware=snapshot.identity.firmware if snapshot else None,
+        temperatures=temperatures,
+        job=job,
+        capabilities=sorted(capability.value for capability in observation.capabilities),
+    ).model_dump(mode="json")
+
+
 @router.get("/")
 async def list_printers(
     user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_READ),
@@ -116,8 +210,13 @@ async def list_printers(
     """
     result = await db.execute(select(Printer).order_by(Printer.name))
     printers = list(result.scalars().all())
+    elegoo_sources = list(
+        (await db.execute(select(ElegooSDCPSource).order_by(ElegooSDCPSource.display_name))).scalars().all()
+    )
     include_secret = await _caller_can_view_printer_secrets(user, db)
-    return [_serialize_printer(p, include_secret=include_secret) for p in printers]
+    return [_serialize_printer(p, include_secret=include_secret) for p in printers] + [
+        _serialize_elegoo_source(source) for source in elegoo_sources
+    ]
 
 
 @router.post("/", response_model=PrinterResponse)
@@ -317,6 +416,120 @@ async def get_developer_mode_warnings(
     return warnings
 
 
+@router.post("/elegoo", response_model=ElegooSDCPSourceResponse)
+async def create_elegoo_source(
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_CREATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Persist one deliberately enabled, read-only Centauri/OpenCentauri source.
+
+    This never probes the endpoint before saving. If enabled, the background
+    lifecycle passively waits for printer-pushed observations; it sends no
+    SDCP request or command.
+    """
+
+    source_data = await _parse_elegoo_source_body(request, ElegooSDCPSourceCreate)
+    assert isinstance(source_data, ElegooSDCPSourceCreate)
+    existing = list((await db.execute(select(ElegooSDCPSource))).scalars().all())
+    if existing:
+        raise HTTPException(409, "Only one read-only Elegoo SDCP source is supported in this release")
+    source = ElegooSDCPSource(
+        display_name=source_data.name.strip(),
+        private_ipv4=source_data.private_ipv4,
+        read_only_acknowledged=True,
+        is_enabled=source_data.is_enabled,
+    )
+    db.add(source)
+    await db.commit()
+    await db.refresh(source)
+    if source.is_enabled:
+        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4)
+    return _serialize_elegoo_source(source)
+
+
+@router.get("/elegoo/{source_id}", response_model=ElegooSDCPSourceResponse)
+async def get_elegoo_source(
+    source_id: int,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_READ),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return _serialize_elegoo_source(source)
+
+
+@router.patch("/elegoo/{source_id}", response_model=ElegooSDCPSourceResponse)
+async def update_elegoo_source(
+    source_id: int,
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    source_data = await _parse_elegoo_source_body(request, ElegooSDCPSourceUpdate)
+    assert isinstance(source_data, ElegooSDCPSourceUpdate)
+    changes = source_data.model_dump(exclude_unset=True)
+    endpoint_changed = "private_ipv4" in changes and changes["private_ipv4"] != source.private_ipv4
+    if endpoint_changed:
+        # A changed endpoint is not silently trusted. Cancel the old session,
+        # bump revision, and require an explicit later enable action.
+        await elegoo_sdcp_manager.disable(source.id)
+        source.private_ipv4 = changes.pop("private_ipv4")
+        # Replacing an endpoint may not restart traffic in the same request.
+        # A later, separate enable action is required from the owner.
+        changes.pop("is_enabled", None)
+        source.is_enabled = False
+        source.configuration_revision += 1
+    if "name" in changes:
+        source.display_name = changes["name"].strip()
+    if "read_only_acknowledged" in changes:
+        if not changes["read_only_acknowledged"]:
+            raise HTTPException(422, "Read-only acknowledgement is required")
+        source.read_only_acknowledged = True
+    if "is_enabled" in changes:
+        if changes["is_enabled"] and not source.read_only_acknowledged:
+            raise HTTPException(422, "Read-only acknowledgement is required")
+        source.is_enabled = changes["is_enabled"]
+    await db.commit()
+    await db.refresh(source)
+    if source.is_enabled:
+        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4)
+    else:
+        await elegoo_sdcp_manager.disable(source.id)
+    return _serialize_elegoo_source(source)
+
+
+@router.get("/elegoo/{source_id}/status", response_model=ElegooDashboardStatus)
+async def get_elegoo_status(
+    source_id: int,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_READ),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return _elegoo_dashboard_status(source)
+
+
+@router.delete("/elegoo/{source_id}")
+async def delete_elegoo_source(
+    source_id: int,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_DELETE),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    await elegoo_sdcp_manager.disable(source.id)
+    await db.delete(source)
+    await db.commit()
+    return {"status": "deleted"}
+
+
 @router.get("/{printer_id}")
 async def get_printer(
     printer_id: int,
@@ -329,6 +542,11 @@ async def get_printer(
     (Admin / Operator JWT, or auth-disabled mode). Viewers and API keys
     never receive it.
     """
+    if printer_id < 0:
+        source = await db.get(ElegooSDCPSource, -printer_id)
+        if source is None:
+            raise HTTPException(404, "Printer not found")
+        return _serialize_elegoo_source(source)
     result = await db.execute(select(Printer).where(Printer.id == printer_id))
     printer = result.scalar_one_or_none()
     if not printer:
@@ -447,6 +665,34 @@ async def get_printer_status(
     db: AsyncSession = Depends(get_db),
 ):
     """Get real-time status of a printer."""
+    if printer_id < 0:
+        source = await db.get(ElegooSDCPSource, -printer_id)
+        if source is None:
+            raise HTTPException(404, "Printer not found")
+        projection = _elegoo_dashboard_status(source)
+        current = projection.get("temperatures") or {}
+        nozzle = current.get("nozzle") or {}
+        bed = current.get("bed") or {}
+        job = projection.get("job") or {}
+        return PrinterStatus(
+            id=printer_id,
+            name=source.display_name,
+            connected=projection["phase"] in {"waiting", "ready"},
+            state=projection.get("state") or projection["phase"],
+            current_print=None,
+            progress=job.get("progress_percent"),
+            layer_num=job.get("current_layer"),
+            total_layers=job.get("total_layers"),
+            temperatures={
+                "nozzle": nozzle.get("current_c"),
+                "nozzle_target": nozzle.get("target_c"),
+                "bed": bed.get("current_c"),
+                "bed_target": bed.get("target_c"),
+            }
+            if current
+            else None,
+            firmware_version=projection.get("firmware"),
+        )
     result = await db.execute(select(Printer).where(Printer.id == printer_id))
     printer = result.scalar_one_or_none()
     if not printer:

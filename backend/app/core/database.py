@@ -249,6 +249,7 @@ async def init_db():
         auth_ephemeral,
         bug_report,
         color_catalog,
+        elegoo_sdcp_source,
         external_link,
         filament,
         filament_sku_settings,
@@ -483,6 +484,28 @@ async def _safe_execute(conn, sql):
         ):
             logger.error("Migration statement failed: %s | SQL: %.200s", exc, sql)
             raise
+
+
+async def _migrate_elegoo_sdcp_sources(conn) -> None:
+    """Create the isolated, additive SDCP configuration table.
+
+    Kept separate so its DDL can be verified against an existing database
+    without invoking the long historical migration chain. The PostgreSQL form
+    must use ``SERIAL``: ``INTEGER PRIMARY KEY`` alone has no generated value
+    there, unlike SQLite's rowid form.
+    """
+
+    source_id_column = "INTEGER PRIMARY KEY" if is_sqlite() else "SERIAL PRIMARY KEY"
+    await _safe_execute(
+        conn,
+        "CREATE TABLE elegoo_sdcp_sources ("
+        f"id {source_id_column}, display_name VARCHAR(100) NOT NULL, "
+        "private_ipv4 VARCHAR(15) NOT NULL UNIQUE, is_enabled BOOLEAN DEFAULT 0 NOT NULL, "
+        "read_only_acknowledged BOOLEAN DEFAULT 0 NOT NULL, "
+        "configuration_revision INTEGER DEFAULT 1 NOT NULL, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+        ")",
+    )
 
 
 async def _api_keys_column_exists(conn, column_name: str) -> bool:
@@ -926,6 +949,10 @@ async def run_migrations(conn):
     swallowed.
     """
     from sqlalchemy import text
+
+    # Goo Buddy: isolated SDCP source table. It is additive: rollback simply
+    # leaves an unused table and never changes Bambu configuration rows.
+    await _migrate_elegoo_sdcp_sources(conn)
 
     # Migration: Add parent_run_id column to pipeline_runs (#1425 PR C).
     # Links a retry-failed run back to its parent so the dashboard can show
