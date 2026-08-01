@@ -69,7 +69,7 @@ export function setDefaultView(path: string) {
 export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { mode, resolvedMode, toggleMode } = useTheme();
+  const { mode, toggleMode } = useTheme();
   const { t } = useTranslation();
   const isSidebarCompact = useIsSidebarCompact();
 
@@ -490,7 +490,7 @@ export function Layout() {
             <Menu className="w-6 h-6 text-white" />
           </button>
           <img
-            src={resolvedMode === 'dark' ? '/img/bambuddy_logo_dark_transparent.png' : '/img/bambuddy_logo_light.png'}
+            src="/img/goo_buddy_logo.png"
             alt="Goo Buddy, built on Bambuddy"
             className="h-8 ml-3"
           />
@@ -516,7 +516,7 @@ export function Layout() {
         {/* Logo */}
         <div className={`border-b border-bambu-dark-tertiary flex items-center justify-center ${isSidebarCompact || sidebarExpanded ? 'p-4' : 'p-2'}`}>
           <img
-            src={resolvedMode === 'dark' ? '/img/bambuddy_logo_dark_transparent.png' : '/img/bambuddy_logo_light.png'}
+            src="/img/goo_buddy_logo.png"
             alt="Goo Buddy, built on Bambuddy"
             className={isSidebarCompact || sidebarExpanded ? 'h-16 w-auto' : 'h-8 w-8 object-cover object-left'}
           />

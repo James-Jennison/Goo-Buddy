@@ -12,7 +12,7 @@ const STATIC_ASSETS = [
   '/img/android-chrome-192x192.png',
   '/img/android-chrome-512x512.png',
   '/img/apple-touch-icon.png',
-  '/img/bambuddy_logo_dark.png',
+  '/img/goo_buddy_logo.png',
   // Self-hosted Inter font (#1460) - cached so the UI renders offline.
   '/fonts/inter-latin.woff2',
   '/fonts/inter-latin-ext.woff2',
