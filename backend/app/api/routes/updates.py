@@ -274,7 +274,7 @@ def parse_version(version: str) -> tuple:
     Examples:
         "0.1.5"    -> (0, 1, 5, 0, 0, 0)   # release
         "0.1.5b7"  -> (0, 1, 5, 0, 1, 7)   # beta 7
-        "0.3.0-alpha.1" -> (0, 3, 0, 0, 1, 1)  # alpha 1
+        "0.3.0-alpha.2" -> (0, 3, 0, 0, 1, 2)  # alpha 2
         "0.1.5b10" -> (0, 1, 5, 0, 1, 10)  # beta 10
         "0.1.8.1"  -> (0, 1, 8, 1, 0, 0)   # patch release
     """
@@ -286,7 +286,7 @@ def parse_version(version: str) -> tuple:
 
     # Match version pattern: major.minor.patch[.micro][b|beta|alpha|rc][.-]N.
     # The separator keeps externally conventional tags such as
-    # ``0.3.0-alpha.1`` comparable with the inherited compact forms.
+    # conventional ``0.3.0-alpha.N`` tags comparable with inherited compact forms.
     match = re.match(r"(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?(?:[-.]?(?:b|beta|alpha|rc)[.-]?(\d+))?", version)
 
     if match:

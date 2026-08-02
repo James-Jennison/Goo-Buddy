@@ -8,7 +8,7 @@ services:
     container_name: bambuddy
     # File ownership inside the data and logs volumes is normalised by the
     # entrypoint at startup (chowns to PUID:PGID and drops privileges via
-    # gosu before running the app). Override PUID / PGID below to match
+    # su-exec before running the app). Override PUID / PGID below to match
     # your host user if needed — defaults to 1000:1000 to match the
     # historical compose `user:` directive.
     #

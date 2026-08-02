@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG VERSION=0.3.0-alpha.1
+ARG VERSION=0.3.0-alpha.2
 ARG REVISION=unknown
 ARG CREATED=unknown
 
@@ -22,9 +22,9 @@ COPY frontend/ ./
 RUN npm run build
 
 # Production image
-# Pinned multi-platform index for python:3.13-slim-trixie, refreshed only
-# through a reviewed dependency/security update.
-FROM python:3.13-slim-trixie@sha256:6771159cd4fa5d9bba1258caf0b82e6b73458c694d178ad97c5e925c2d0e1a91
+# Pinned multi-platform index for python:3.13-alpine, selected because its
+# current package set keeps the strict release vulnerability gate actionable.
+FROM python:3.13-alpine@sha256:399babc8b49529dabfd9c922f2b5eea81d611e4512e3ed250d75bd2e7683f4b0
 
 ARG VERSION
 ARG REVISION
@@ -40,38 +40,30 @@ LABEL org.opencontainers.image.title="Goo Buddy" \
 
 WORKDIR /app
 
-# Install system dependencies
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ffmpeg \
-    gnupg \
-    gosu \
-    iproute2 \
-    openssh-client \
+# Install only runtime system dependencies. `su-exec` is Alpine's small,
+# capability-compatible equivalent of gosu for the entrypoint's UID switch.
+RUN apk add --no-cache \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install the Tailscale CLI only (no tailscaled — the daemon runs on the host).
-# Goo Buddy calls `tailscale status` / `tailscale cert` via the host's socket,
-# which the user mounts in via docker-compose when they want to enable the
-# Tailscale integration for virtual printers. Without the socket mount, the
-# binary is harmless — the code logs a hint and falls back to self-signed.
-RUN curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg \
-        -o /usr/share/keyrings/tailscale-archive-keyring.gpg \
-    && curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list \
-        -o /etc/apt/sources.list.d/tailscale.list \
-    && apt-get update && apt-get install -y --no-install-recommends tailscale \
-    && rm -rf /var/lib/apt/lists/*
+    ffmpeg \
+    iproute2 \
+    libstdc++ \
+    su-exec
 
 # Install Python dependencies with cache mount.
-# pip is upgraded to >=26.1 first to close CVE-2026-6357 — the python:3.13-slim
+# pip is upgraded to >=26.1 first to close CVE-2026-6357 — the python:3.13
 # base image ships pip 26.0.1, which runs its self-update check after installing
 # wheels (so a hostile wheel could hijack stdlib imports during install).
 COPY requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --root-user-action=ignore --upgrade 'pip>=26.1.2' \
- && pip install --root-user-action=ignore -r requirements.txt
+    apk add --no-cache --virtual .build-deps \
+      build-base \
+      cmake \
+      linux-headers \
+      ninja \
+ && \
+    pip install --root-user-action=ignore --upgrade 'pip>=26.1.2' 'setuptools>=78.1.1' \
+ && pip install --root-user-action=ignore -r requirements.txt \
+ && apk del .build-deps
 
 # Copy only production backend code. Tests and source-control metadata are
 # deliberately excluded from the production image by .dockerignore.
@@ -120,7 +112,7 @@ ENV PORT=8000
 ENV GIT_BRANCH=main
 # Provide a local username + home for tools that call getpass.getuser() /
 # os.path.expanduser() under arbitrary PUIDs. With `user: "1001:1001"` the
-# stock python:3.13-slim image has no /etc/passwd entry for that UID, so
+# stock Python image has no /etc/passwd entry for that UID, so
 # pwd.getpwuid() raises and breaks libraries that do host-level user lookups
 # (notably asyncssh, which uses the local username for ~/.ssh/config host
 # matching during the SpoolBuddy remote-update flow). Setting LOGNAME/USER

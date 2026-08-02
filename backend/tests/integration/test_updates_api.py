@@ -265,7 +265,7 @@ class TestUpdatesAPI:
         from backend.app.api.routes.updates import parse_version
 
         assert parse_version("0.1.5")[:3] == (0, 1, 5)
-        assert parse_version("0.3.0-alpha.1") == (0, 3, 0, 0, 1, 1)
+        assert parse_version("0.3.0-alpha.2") == (0, 3, 0, 0, 1, 2)
 
     def test_is_newer_version(self):
         from backend.app.api.routes.updates import is_newer_version
