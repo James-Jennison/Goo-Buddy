@@ -34,22 +34,22 @@ The machine-readable companion inventory is
 
 | Primary category | Items | Disposition | Priority |
 | --- | ---: | --- | --- |
-| Inherited bug fix | 1 | ADOPT IN A SEPARATE BOUNDED GOAL | P3 |
+| Inherited bug fix | 1 | ADOPTED — CONTRIBUTOR GUIDANCE ALIGNED | P3 complete |
 | Inapplicable branding or project administration | 1 | REJECT — INAPPLICABLE BRANDING/ADMINISTRATION | N/A |
 | Security fix, dependency correction, Bambu protocol/model support, conflicting architecture, already superseded, needs deeper investigation | 0 | — | — |
 
-There are no P0, P1, or P2 findings. The single P3 item is contributor
-documentation accuracy only; it does not change runtime, dependency, printer,
-or security behaviour. No public upstream security advisory was published in
-this two-commit range. A public upstream advisory visible during the review
-predates the common fork point and is outside this range; it is not evidence
-of a new post-fork finding.
+There are no open P0, P1, P2, or P3 findings. The single P3 item was
+contributor-documentation accuracy only; its adoption does not change runtime,
+dependencies, printer behaviour, or security behaviour. No public upstream
+security advisory was published in this two-commit range. A public upstream
+advisory visible during the review predates the common fork point and is
+outside this range; it is not evidence of a new post-fork finding.
 
 ## Per-commit evidence and disposition
 
 | Upstream commit | Subject / upstream reference | Changed paths | Classification and evidence | Goo Buddy counterpart and exposure | Disposition / priority |
 | --- | --- | --- | --- | --- | --- |
-| [`aa074152`](https://github.com/maziggy/bambuddy/commit/aa07415270f811c653aadfca31a9b53268ee8347) | `Updated CONTRIBUTING.md`; no associated PR or issue exposed by GitHub | `CONTRIBUTING.md` (12 additions, 15 deletions) | **Inherited bug fix.** Replaces a stale fixed locale list and “all three” wording with runtime-discovered locale parity guidance. It changes contributor documentation only: no authentication, secret, dependency, network, Bambu protocol, printer-control, or multi-platform behaviour. | Goo Buddy still has the stale fixed list while its `frontend/src/i18n/locales/` has eleven locale files and `frontend/package.json` exposes `check:i18n` and `test:run`. Current behaviour is already directory-discovered; the documentation is inaccurate, not the implementation. Patch-id comparison found no equivalent commit. | **ADOPT IN A SEPARATE BOUNDED GOAL — P3.** A future contributor-documentation accuracy cleanup may adopt the explanation in Goo Buddy language; it must not copy upstream branding or alter runtime. |
+| [`aa074152`](https://github.com/maziggy/bambuddy/commit/aa07415270f811c653aadfca31a9b53268ee8347) | `Updated CONTRIBUTING.md`; no associated PR or issue exposed by GitHub | `CONTRIBUTING.md` (12 additions, 15 deletions) | **Inherited bug fix.** Replaces a stale fixed locale list and “all three” wording with runtime-discovered locale parity guidance. It changes contributor documentation only: no authentication, secret, dependency, network, Bambu protocol, printer-control, or multi-platform behaviour. | Goo Buddy's `CONTRIBUTING.md` now directs contributors to the locale directory as the source of truth and to `npm run check:i18n`; the existing implementation discovers every locale and validates the stronger contract. | **ADOPTED — CONTRIBUTOR GUIDANCE ALIGNED — P3 complete.** The wording was adapted in Goo Buddy language without changing runtime or importing upstream code. |
 | [`d36632d`](https://github.com/maziggy/bambuddy/commit/d36632db0f0ad45d91b86a3b772c796fdb478586) | `Updated README`; no associated PR or issue exposed by GitHub | `README.md` (1 addition, 1 deletion) | **Inapplicable branding or project administration.** Changes Bambuddy’s marketing phrase from a model-count claim to “an entire print farm.” It has no security, dependency, Bambu protocol, persistence, lifecycle, or compatibility effect. | Goo Buddy has its own multi-platform README and attribution boundary. This wording targets Bambuddy-only identity and is not a functional correction. Patch-id comparison found no equivalent commit, as expected for intentionally different branding. | **REJECT — INAPPLICABLE BRANDING/ADMINISTRATION — N/A.** Do not port. |
 
 ## Security, dependency, and product-boundary assessment
@@ -80,9 +80,10 @@ of a new post-fork finding.
 
 ## Follow-up and next baseline
 
-Recommended separate goal: **Correct Goo Buddy contributor i18n documentation
-to match runtime-discovered locale parity checks.** It is P3 documentation
-maintenance, not a security or product remediation.
+Completed follow-up: **Goo Buddy contributor i18n guidance now matches the
+runtime-discovered locale parity contract.** This was P3 documentation
+maintenance, not a security or product remediation; it introduced no runtime
+or upstream synchronization change.
 
 The next recurring review starts strictly after the frozen target:
 

@@ -211,21 +211,16 @@ The frontend uses [react-i18next](https://react.i18next.com/) for all user-facin
 
 ### Locale Files
 
-Translations live in `frontend/src/i18n/locales/`:
-
-| File | Language |
-|------|----------|
-| `en.ts` | English (primary) |
-| `de.ts` | German |
-| `fr.ts` | French |
-| `ja.ts` | Japanese |
-| `pt-BR.ts` | Brazilian Portuguese |
-[...]
-check for possibly more files!!!
+Translations live in `frontend/src/i18n/locales/`. The directory is the source
+of truth: `npm run check:i18n` discovers every `*.ts` locale file at runtime.
+`en.ts` is the required reference locale; every other discovered locale is
+checked against it. Do not maintain a separate fixed locale list in
+documentation or code.
 
 ### Adding New Strings
 
-1. Add the key to the appropriate section in **all three** locale files
+1. Add the key to the appropriate section in `en.ts` and every locale file
+   currently discovered in `frontend/src/i18n/locales/`.
 2. Use the `useTranslation` hook in your component:
 
 ```tsx
@@ -238,13 +233,19 @@ function MyComponent() {
 ```
 
 3. Keys are organized by feature (e.g., `spoolman.`, `nav.`, `common.`)
+4. Run `npm run check:i18n` before committing.
 
 ### Important Notes
 
-- All three locale files must use the **same key structure** — same nesting, same key paths
-- Always add keys to all three locales to maintain parity
-- Run frontend tests after changes — locale parity is validated
-- If you find structural inconsistencies between locales, fix them — different key paths cause silent fallback to English
+- Every discovered locale must have the same nested leaf-key structure as
+  `en.ts`: no missing or extra keys, matching interpolation placeholders, and
+  matching plural suffixes.
+- The parity check also flags accidental untranslated English leaves outside
+  its curated terminology allow-lists. Fix the locale or add a narrowly
+  justified allow-list entry in the checker; do not bypass the check.
+- Run the frontend tests after changes. CI runs the same locale-parity check.
+- If you find structural inconsistencies between locales, fix them — different
+  key paths cause silent fallback to English.
 
 ## Authentication & Permissions
 
