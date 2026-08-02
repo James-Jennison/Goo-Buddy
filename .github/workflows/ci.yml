@@ -374,7 +374,8 @@ jobs:
     name: Docker Build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
-    timeout-minutes: 20
+    # The production image compiles OpenCV natively on Alpine.
+    timeout-minutes: 45
     needs: [backend-tests, frontend-build]
     steps:
       - uses: actions/checkout@v6
