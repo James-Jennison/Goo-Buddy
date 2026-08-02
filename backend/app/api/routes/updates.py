@@ -274,6 +274,7 @@ def parse_version(version: str) -> tuple:
     Examples:
         "0.1.5"    -> (0, 1, 5, 0, 0, 0)   # release
         "0.1.5b7"  -> (0, 1, 5, 0, 1, 7)   # beta 7
+        "0.3.0-alpha.1" -> (0, 3, 0, 0, 1, 1)  # alpha 1
         "0.1.5b10" -> (0, 1, 5, 0, 1, 10)  # beta 10
         "0.1.8.1"  -> (0, 1, 8, 1, 0, 0)   # patch release
     """
@@ -283,8 +284,10 @@ def parse_version(version: str) -> tuple:
     # Strip daily build suffix (e.g., "0.2.2b4-daily.20260313" -> "0.2.2b4")
     version = re.sub(r"-daily\.\d+$", "", version)
 
-    # Match version pattern: major.minor.patch[.micro][b|beta|alpha|rc]N
-    match = re.match(r"(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?(?:b|beta|alpha|rc)?(\d+)?", version)
+    # Match version pattern: major.minor.patch[.micro][b|beta|alpha|rc][.-]N.
+    # The separator keeps externally conventional tags such as
+    # ``0.3.0-alpha.1`` comparable with the inherited compact forms.
+    match = re.match(r"(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?(?:[-.]?(?:b|beta|alpha|rc)[.-]?(\d+))?", version)
 
     if match:
         major = int(match.group(1))

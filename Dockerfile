@@ -1,7 +1,13 @@
 # syntax=docker/dockerfile:1.7
 
+ARG VERSION=0.3.0-alpha.1
+ARG REVISION=unknown
+ARG CREATED=unknown
+
 # Build frontend
-FROM node:22-bookworm-slim AS frontend-builder
+# Pinned multi-platform index for node:22-bookworm-slim, refreshed only through
+# a reviewed dependency/security update. It resolves natively for amd64/arm64.
+FROM node:22-bookworm-slim@sha256:f32b81066cde10a75dbac96646099533316d94bac4150c55da1636e1f0ffdc46 AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -16,7 +22,21 @@ COPY frontend/ ./
 RUN npm run build
 
 # Production image
-FROM python:3.13-slim-trixie
+# Pinned multi-platform index for python:3.13-slim-trixie, refreshed only
+# through a reviewed dependency/security update.
+FROM python:3.13-slim-trixie@sha256:6771159cd4fa5d9bba1258caf0b82e6b73458c694d178ad97c5e925c2d0e1a91
+
+ARG VERSION
+ARG REVISION
+ARG CREATED
+LABEL org.opencontainers.image.title="Goo Buddy" \
+      org.opencontainers.image.description="Self-hosted multi-platform 3D-printer management" \
+      org.opencontainers.image.source="https://github.com/James-Jennison/Goo-Buddy" \
+      org.opencontainers.image.url="https://github.com/James-Jennison/Goo-Buddy" \
+      org.opencontainers.image.revision="${REVISION}" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.created="${CREATED}" \
+      org.opencontainers.image.licenses="AGPL-3.0-only"
 
 WORKDIR /app
 
@@ -59,17 +79,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --root-user-action=ignore --upgrade 'pip>=26.1.2' \
  && pip install --root-user-action=ignore -r requirements.txt
 
-# Copy backend
-COPY backend/ ./backend/
-
-# Capture the current git branch at build time. `.git/HEAD` is the only
-# .git metadata the build context lets through (see .dockerignore); it
-# contains `ref: refs/heads/<branch>`, which the SpoolBuddy remote-update
-# flow reads at runtime via detect_current_branch() in spoolbuddy_ssh.py.
-# Without this, the production image has no git metadata at all and would
-# always pull `main` on the remote device regardless of which branch
-# Goo Buddy itself was built from.
-COPY .git/HEAD ./.git/HEAD
+# Copy only production backend code. Tests and source-control metadata are
+# deliberately excluded from the production image by .dockerignore.
+COPY backend/app/ ./backend/app/
 
 # Copy built frontend from builder stage
 COPY --from=frontend-builder /app/static ./static
@@ -112,6 +124,7 @@ ENV PYTHONUNBUFFERED=1
 ENV DATA_DIR=/app/data
 ENV LOG_DIR=/app/logs
 ENV PORT=8000
+ENV GIT_BRANCH=main
 # Provide a local username + home for tools that call getpass.getuser() /
 # os.path.expanduser() under arbitrary PUIDs. With `user: "1001:1001"` the
 # stock python:3.13-slim image has no /etc/passwd entry for that UID, so

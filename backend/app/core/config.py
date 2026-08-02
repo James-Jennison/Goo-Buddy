@@ -7,7 +7,10 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 # Application version - single source of truth
-APP_VERSION = "1.2.5.1"
+# First independently published Goo Buddy prerelease. ``0.3.0-alpha.1`` is
+# intentionally also the Git/GHCR release tag; Python's PEP 440 tooling
+# normalizes it to 0.3.0a1 when a package-form value is needed.
+APP_VERSION = "0.3.0-alpha.1"
 GITHUB_REPO = "James-Jennison/Goo-Buddy"
 # A relay is opt-in. Goo Buddy does not inherit an upstream external service.
 BUG_REPORT_RELAY_URL = os.environ.get("BUG_REPORT_RELAY_URL", "")

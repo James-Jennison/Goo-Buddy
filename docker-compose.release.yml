@@ -1,0 +1,33 @@
+name: goo-buddy
+
+# Published-image installation for Raspberry Pi OS 64-bit and AMD64 Docker
+# hosts. This intentionally coexists with docker-compose.yml: the latter keeps
+# Bambuddy-derived service and volume identifiers for upgrade compatibility.
+services:
+  goo-buddy:
+    image: ${GOO_BUDDY_IMAGE:-ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.1}
+    platform: ${GOO_BUDDY_PLATFORM:-linux/arm64}
+    pull_policy: ${GOO_BUDDY_PULL_POLICY:-always}
+    ports:
+      - "${GOO_BUDDY_BIND_ADDRESS:-127.0.0.1}:${GOO_BUDDY_PORT:-8000}:8000"
+    volumes:
+      - goo_buddy_data:/app/data
+      - goo_buddy_logs:/app/logs
+    environment:
+      TZ: ${TZ:-UTC}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      PORT: "8000"
+      GIT_BRANCH: main
+    restart: unless-stopped
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  goo_buddy_data:
+    name: ${GOO_BUDDY_DATA_VOLUME:-goo_buddy_data}
+  goo_buddy_logs:
+    name: ${GOO_BUDDY_LOGS_VOLUME:-goo_buddy_logs}
