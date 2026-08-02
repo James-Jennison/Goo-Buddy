@@ -17,7 +17,7 @@ jobs:
     name: Validate release image (${{ matrix.platform }})
     runs-on: ubuntu-latest
     # The ARM64 candidate compiles OpenCV under QEMU before vulnerability scanning.
-    timeout-minutes: 75
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:

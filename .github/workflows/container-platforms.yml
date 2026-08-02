@@ -15,7 +15,7 @@ jobs:
     name: Production image (${{ matrix.platform }})
     runs-on: ubuntu-latest
     # Alpine builds OpenCV from source; ARM64 executes that build under QEMU.
-    timeout-minutes: 75
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
