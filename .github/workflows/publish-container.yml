@@ -599,7 +599,7 @@ jobs:
           SHA_TAG: ${{ steps.release.outputs.sha_tag }}
           COMMIT: ${{ steps.release.outputs.commit }}
         run: |
-          set -eu
+          set -euo pipefail
           token="$(curl --fail --silent --show-error \
             'https://ghcr.io/token?scope=repository:james-jennison/goo-buddy:pull' | \
             python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')"
