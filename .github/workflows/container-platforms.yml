@@ -154,4 +154,7 @@ jobs:
           done
           GOO_BUDDY_DATA_VOLUME=goo-buddy-restored-ci GOO_BUDDY_LOGS_VOLUME=bambuddy_logs \
             docker compose -f docker-compose.release.yml down -v
-          docker volume rm bambuddy_data bambuddy_logs
+          # Compose owns the selected log volume and removes it with `down -v`.
+          # The data volume remains outside that cleanup because the restored
+          # stack selected it explicitly for the final persistence check.
+          docker volume rm bambuddy_data
