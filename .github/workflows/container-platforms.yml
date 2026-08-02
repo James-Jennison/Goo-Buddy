@@ -114,8 +114,6 @@ jobs:
           GOO_BUDDY_PLATFORM: linux/amd64
           GOO_BUDDY_PULL_POLICY: never
           GOO_BUDDY_PORT: "18001"
-          GOO_BUDDY_DATA_VOLUME: bambuddy_data
-          GOO_BUDDY_LOGS_VOLUME: bambuddy_logs
           COMPOSE_PROJECT_NAME: goo-buddy-legacy-ci
         run: |
           set -eu
@@ -124,6 +122,8 @@ jobs:
           docker run --rm --network none --entrypoint sh -v bambuddy_data:/data \
             goo-buddy:validate-amd64 -ec 'printf legacy > /data/.legacy-marker'
           ./scripts/container/legacy_volume_plan.sh | grep -F 'GOO_BUDDY_DATA_VOLUME=bambuddy_data'
+          export GOO_BUDDY_DATA_VOLUME=bambuddy_data
+          export GOO_BUDDY_LOGS_VOLUME=bambuddy_logs
           docker compose -f docker-compose.release.yml up -d
           for attempt in $(seq 1 30); do
             if curl --fail --silent --show-error http://127.0.0.1:18001/health; then
