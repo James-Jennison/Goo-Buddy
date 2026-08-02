@@ -1,5 +1,7 @@
 """Integration tests for Print Queue API endpoints."""
 
+from pathlib import Path
+
 import pytest
 from httpx import AsyncClient
 
@@ -49,7 +51,7 @@ class TestPrintQueueAPI:
             defaults = {
                 "filename": f"test_print_{counter}.3mf",
                 "print_name": f"Test Print {counter}",
-                "file_path": f"/tmp/test_print_{counter}.3mf",
+                "file_path": str(Path("test-artifacts") / f"test_print_{counter}.3mf"),
                 "file_size": 1024,
                 "content_hash": f"testhash{counter:08d}",
                 "status": "completed",
@@ -482,7 +484,7 @@ class TestQueueStartEndpoint:
             defaults = {
                 "filename": f"test_print_{counter}.3mf",
                 "print_name": f"Test Print {counter}",
-                "file_path": f"/tmp/test_print_{counter}.3mf",
+                "file_path": str(Path("test-artifacts") / f"test_print_{counter}.3mf"),
                 "file_size": 1024,
                 "content_hash": f"testhash{counter:08d}",
                 "status": "completed",
@@ -753,7 +755,7 @@ class TestQueueCancelEndpoint:
             defaults = {
                 "filename": "cancel_test.3mf",
                 "print_name": "Cancel Test Print",
-                "file_path": "/tmp/cancel_test.3mf",
+                "file_path": str(Path("test-artifacts") / "cancel_test.3mf"),
                 "file_size": 1024,
                 "content_hash": "cancelhash001",
                 "status": "completed",
@@ -1072,7 +1074,7 @@ class TestBulkUpdateEndpoint:
             defaults = {
                 "filename": f"bulk_test_{counter}.3mf",
                 "print_name": f"Bulk Test Print {counter}",
-                "file_path": f"/tmp/bulk_test_{counter}.3mf",
+                "file_path": str(Path("test-artifacts") / f"bulk_test_{counter}.3mf"),
                 "file_size": 1024,
                 "content_hash": f"bulkhash{counter:04d}",
                 "status": "completed",
@@ -1301,7 +1303,7 @@ class TestTargetLocationFeature:
             defaults = {
                 "filename": f"location_test_{counter}.3mf",
                 "print_name": f"Location Test Print {counter}",
-                "file_path": f"/tmp/location_test_{counter}.3mf",
+                "file_path": str(Path("test-artifacts") / f"location_test_{counter}.3mf"),
                 "file_size": 1024,
                 "content_hash": f"lochash{counter:08d}",
                 "status": "completed",
@@ -1598,7 +1600,7 @@ class TestAbortedStatusNormalisation:
             defaults = {
                 "filename": f"abort_test_{counter}.3mf",
                 "print_name": f"Abort Test Print {counter}",
-                "file_path": f"/tmp/abort_test_{counter}.3mf",
+                "file_path": str(Path("test-artifacts") / f"abort_test_{counter}.3mf"),
                 "file_size": 1024,
                 "content_hash": f"aborthash{counter:06d}",
                 "status": "completed",
@@ -2633,7 +2635,7 @@ class TestResumeQueueAfterFailure:
             defaults = {
                 "filename": f"resume_print_{counter}.3mf",
                 "print_name": f"Resume Print {counter}",
-                "file_path": f"/tmp/resume_print_{counter}.3mf",  # nosec B108
+                "file_path": str(Path("test-artifacts") / f"resume_print_{counter}.3mf"),
                 "file_size": 1024,
                 "content_hash": f"resumehash{counter:08d}",
                 "status": "completed",
@@ -2872,7 +2874,7 @@ class TestReorderEndpoint:
             defaults = {
                 "filename": f"reorder_{_counter[0]}.3mf",
                 "print_name": f"Reorder {_counter[0]}",
-                "file_path": f"/tmp/reorder_{_counter[0]}.3mf",  # nosec B108
+                "file_path": str(Path("test-artifacts") / f"reorder_{_counter[0]}.3mf"),
                 "file_size": 1024,
                 "content_hash": f"reorderhash{_counter[0]:06d}",
                 "status": "completed",

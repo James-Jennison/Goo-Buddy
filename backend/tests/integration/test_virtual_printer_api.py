@@ -3,6 +3,7 @@
 Tests the full request/response cycle for /api/v1/settings/virtual-printer endpoints.
 """
 
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -198,7 +199,7 @@ class TestPendingUploadsAPI:
 
             upload = PendingUpload(
                 filename=filename,
-                file_path=f"/tmp/{filename}",
+                file_path=str(Path("test-artifacts") / filename),
                 file_size=1024,
                 source_ip="192.168.1.100",
                 status="pending",

@@ -27,7 +27,7 @@ class TestTimelapseSessionManagement:
         _active_sessions.clear()
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test_bambuddy")
+            mock_settings.base_dir = Path("test-artifacts") / "bambuddy"
 
             session = start_session(
                 printer_id=1,
@@ -63,7 +63,7 @@ class TestTimelapseSessionManagement:
         _active_sessions.clear()
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test_bambuddy")
+            mock_settings.base_dir = Path("test-artifacts") / "bambuddy"
 
             # Start first session
             session1 = start_session(1, 100, "http://cam1/", "mjpeg")
@@ -107,7 +107,7 @@ class TestTimelapseSessionManagement:
         _active_sessions.clear()
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test_bambuddy")
+            mock_settings.base_dir = Path("test-artifacts") / "bambuddy"
 
             session = start_session(1, 100, "http://cam/", "mjpeg")
 
@@ -141,7 +141,7 @@ class TestTimelapseSession:
         _active_sessions.clear()
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test_bambuddy")
+            mock_settings.base_dir = Path("test-artifacts") / "bambuddy"
 
             session = TimelapseSession(
                 printer_id=1,
@@ -188,7 +188,7 @@ class TestLayerChangeLogic:
         from backend.app.services.layer_timelapse import TimelapseSession
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test")
+            mock_settings.base_dir = Path("test-artifacts")
 
             with patch.object(Path, "mkdir"):
                 session = TimelapseSession(1, 100, "http://test/", "mjpeg")
@@ -228,7 +228,7 @@ class TestLayerChangeLogic:
         from backend.app.services.layer_timelapse import TimelapseSession
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test")
+            mock_settings.base_dir = Path("test-artifacts")
 
             with patch.object(Path, "mkdir"):
                 session = TimelapseSession(1, 100, "http://test/", "mjpeg")
@@ -262,7 +262,7 @@ class TestOnLayerChange:
         _active_sessions.clear()
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test")
+            mock_settings.base_dir = Path("test-artifacts")
 
             with patch.object(Path, "mkdir"):
                 session = start_session(1, 100, "http://test/", "mjpeg")
@@ -302,7 +302,7 @@ class TestGetActiveSessions:
         _active_sessions.clear()
 
         with patch("backend.app.services.layer_timelapse.settings") as mock_settings:
-            mock_settings.base_dir = Path("/tmp/test")
+            mock_settings.base_dir = Path("test-artifacts")
 
             with patch.object(Path, "mkdir"):
                 start_session(1, 100, "http://test/", "mjpeg")
