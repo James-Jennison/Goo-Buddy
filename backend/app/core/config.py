@@ -8,9 +8,9 @@ from pydantic_settings import BaseSettings
 
 # Application version - single source of truth
 # Canonical independently published Goo Buddy container prerelease.
-# ``0.3.0-alpha.2`` is intentionally also the Git/GHCR release tag; Python's
+# ``0.3.0-alpha.3`` is intentionally also the Git/GHCR release tag; Python's
 # PEP 440 tooling normalizes it to 0.3.0a2 when a package-form value is needed.
-APP_VERSION = "0.3.0-alpha.2"
+APP_VERSION = "0.3.0-alpha.3"
 GITHUB_REPO = "James-Jennison/Goo-Buddy"
 # A relay is opt-in. Goo Buddy does not inherit an upstream external service.
 BUG_REPORT_RELAY_URL = os.environ.get("BUG_REPORT_RELAY_URL", "")

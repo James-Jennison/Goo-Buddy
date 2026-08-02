@@ -35,7 +35,7 @@ start, or control prints.
 
 ### Docker Compose
 
-Goo Buddy `0.3.0-alpha.2` is distributed as a public, multi-architecture OCI
+Goo Buddy `0.3.0-alpha.3` is distributed as a public, multi-architecture OCI
 image for `linux/amd64` and `linux/arm64`. The normal published-image install
 does not compile source on the host:
 

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG VERSION=0.3.0-alpha.2
+ARG VERSION=0.3.0-alpha.3
 ARG REVISION=unknown
 ARG CREATED=unknown
 
@@ -48,6 +48,7 @@ RUN apk add --no-cache \
     ffmpeg \
     iproute2 \
     libstdc++ \
+    'py3-setuptools>=78.1.1' \
     su-exec
 
 # Install Python dependencies with cache mount.
