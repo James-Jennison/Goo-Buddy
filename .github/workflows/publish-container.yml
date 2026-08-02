@@ -646,9 +646,9 @@ jobs:
             )"
             docker pull "$IMAGE@$platform_digest"
             test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{.Architecture}}/{{.Os}}')" = "$platform/linux"
-            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels \"org.opencontainers.image.source\" }}')" = "https://github.com/James-Jennison/Goo-Buddy"
-            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels \"org.opencontainers.image.revision\" }}')" = "$COMMIT"
-            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels \"org.opencontainers.image.version\" }}')" = "$VERSION"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels "org.opencontainers.image.source" }}')" = "https://github.com/James-Jennison/Goo-Buddy"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "$COMMIT"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels "org.opencontainers.image.version" }}')" = "$VERSION"
           done
           anonymous_config="$(mktemp -d)"
           trap 'rm -rf "$anonymous_config"' EXIT
