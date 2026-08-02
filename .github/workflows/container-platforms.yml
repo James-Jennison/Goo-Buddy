@@ -24,19 +24,19 @@ jobs:
           - platform: linux/arm64
             suffix: arm64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Set up QEMU for ARM64
         if: matrix.platform == 'linux/arm64'
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
         with:
           platforms: arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Build and load production image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           platforms: ${{ matrix.platform }}
@@ -57,6 +57,13 @@ jobs:
             python -c "import backend.app.main"
           docker run --rm --network none --platform ${{ matrix.platform }} \
             --entrypoint test goo-buddy:validate-${{ matrix.suffix }} -d /app/static
+          docker run --rm --network none --platform ${{ matrix.platform }} \
+            --entrypoint sh goo-buddy:validate-${{ matrix.suffix }} -ec '
+              test ! -e /app/.git
+              test ! -d /app/backend/tests
+              test ! -d /app/frontend
+              test ! -e /app/static/synthetic-printer-preview.mjs
+            '
 
       - name: Validate Compose configuration for selected platform
         env:
@@ -64,3 +71,87 @@ jobs:
         run: |
           docker compose -f docker-compose.yml config --quiet
           docker compose -f docker-compose.test.yml config --quiet
+          docker compose -f docker-compose.release.yml config --quiet
+
+      - name: Validate published-image contract
+        run: python3 scripts/container/validate_release_contract.py
+
+      - name: Exercise published Compose lifecycle on AMD64
+        if: matrix.platform == 'linux/amd64'
+        env:
+          GOO_BUDDY_IMAGE: goo-buddy:validate-amd64
+          GOO_BUDDY_PLATFORM: linux/amd64
+          GOO_BUDDY_PULL_POLICY: never
+          GOO_BUDDY_PORT: "18000"
+          COMPOSE_PROJECT_NAME: goo-buddy-release-ci
+        run: |
+          set -eu
+          docker compose -f docker-compose.release.yml up -d
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:18000/health; then
+              break
+            fi
+            test "$attempt" -lt 30
+            sleep 2
+          done
+          docker compose -f docker-compose.release.yml exec -T goo-buddy sh -ec \
+            'printf retained > /app/data/.container-lifecycle-marker; test -f /app/data/.container-lifecycle-marker'
+          container_id="$(docker compose -f docker-compose.release.yml ps -q goo-buddy)"
+          docker stop --time 30 "$container_id"
+          test "$(docker inspect "$container_id" --format '{{.State.ExitCode}}')" = "0"
+          docker compose -f docker-compose.release.yml up -d
+          docker compose -f docker-compose.release.yml restart goo-buddy
+          docker compose -f docker-compose.release.yml exec -T goo-buddy test -f /app/data/.container-lifecycle-marker
+          docker compose -f docker-compose.release.yml down
+          docker compose -f docker-compose.release.yml up -d
+          docker compose -f docker-compose.release.yml exec -T goo-buddy test -f /app/data/.container-lifecycle-marker
+          docker compose -f docker-compose.release.yml down -v
+
+      - name: Exercise legacy-volume upgrade and restore contract on AMD64
+        if: matrix.platform == 'linux/amd64'
+        env:
+          GOO_BUDDY_IMAGE: goo-buddy:validate-amd64
+          GOO_BUDDY_PLATFORM: linux/amd64
+          GOO_BUDDY_PULL_POLICY: never
+          GOO_BUDDY_PORT: "18001"
+          GOO_BUDDY_DATA_VOLUME: bambuddy_data
+          GOO_BUDDY_LOGS_VOLUME: bambuddy_logs
+          COMPOSE_PROJECT_NAME: goo-buddy-legacy-ci
+        run: |
+          set -eu
+          docker volume create bambuddy_data
+          docker volume create bambuddy_logs
+          docker run --rm --network none --entrypoint sh -v bambuddy_data:/data \
+            goo-buddy:validate-amd64 -ec 'printf legacy > /data/.legacy-marker'
+          ./scripts/container/legacy_volume_plan.sh | grep -F 'GOO_BUDDY_DATA_VOLUME=bambuddy_data'
+          docker compose -f docker-compose.release.yml up -d
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:18001/health; then
+              break
+            fi
+            test "$attempt" -lt 30
+            sleep 2
+          done
+          docker compose -f docker-compose.release.yml exec -T goo-buddy test -f /app/data/.legacy-marker
+          backup_dir="$(mktemp -d)"
+          trap 'rm -rf "$backup_dir"' EXIT
+          docker compose -f docker-compose.release.yml down
+          docker run --rm --network none --entrypoint sh -v bambuddy_data:/data:ro -v "$backup_dir:/backup" \
+            goo-buddy:validate-amd64 -ec 'tar -C /data -czf /backup/data.tgz .'
+          sha256sum "$backup_dir/data.tgz" > "$backup_dir/data.tgz.sha256"
+          sha256sum -c "$backup_dir/data.tgz.sha256"
+          docker volume create goo-buddy-restored-ci
+          docker run --rm --network none --entrypoint sh -v goo-buddy-restored-ci:/data -v "$backup_dir:/backup:ro" \
+            goo-buddy:validate-amd64 -ec 'tar -C /data -xzf /backup/data.tgz; test -f /data/.legacy-marker'
+          GOO_BUDDY_DATA_VOLUME=goo-buddy-restored-ci GOO_BUDDY_LOGS_VOLUME=bambuddy_logs \
+            GOO_BUDDY_PORT=18002 docker compose -f docker-compose.release.yml up -d
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:18002/health; then
+              break
+            fi
+            test "$attempt" -lt 30
+            sleep 2
+          done
+          GOO_BUDDY_DATA_VOLUME=goo-buddy-restored-ci GOO_BUDDY_LOGS_VOLUME=bambuddy_logs \
+            docker compose -f docker-compose.release.yml down -v
+          docker volume rm bambuddy_data bambuddy_logs
