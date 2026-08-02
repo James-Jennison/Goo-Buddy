@@ -5,6 +5,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const frontendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repositoryDir = path.resolve(frontendDir, '..');
 const publicDir = path.join(frontendDir, 'public');
 const staticDir = path.resolve(frontendDir, '..', 'static');
 
@@ -52,4 +53,18 @@ test('authoritative production output preserves the branded PWA boundary', async
   assert.doesNotMatch(serviceWorker, /bambuddy\.cool/i);
   await assert.rejects(access(path.join(staticDir, 'img', 'bambuddy_logo_dark.png')));
   await assert.rejects(access(path.join(staticDir, 'img', 'screenshot-desktop.png')));
+});
+
+test('roadmap and operator update guidance match the published Goo Buddy state', async () => {
+  const [roadmap, updating] = await Promise.all([
+    readFile(path.join(repositoryDir, 'docs', 'GOO_BUDDY_ROADMAP.md'), 'utf8'),
+    readFile(path.join(repositoryDir, 'UPDATING.md'), 'utf8'),
+  ]);
+
+  assert.match(roadmap, /Goo Buddy branding migration and Goo Buddy Workshop UX[\s\S]{0,80}\*\*complete\*\*/);
+  assert.match(roadmap, /first independently published alpha distribution \*\*complete\*\* at\s+`0\.3\.0-alpha\.5`/);
+  assert.match(updating, /Goo Buddy publishes the `0\.3\.0-alpha\.5` multi-architecture OCI image/);
+  assert.match(updating, /docker-compose\.release\.yml/);
+  assert.doesNotMatch(updating, /does not yet publish a container image/i);
+  assert.doesNotMatch(updating, /distribution is planned, not available now/i);
 });
