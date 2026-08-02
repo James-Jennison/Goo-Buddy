@@ -23,11 +23,14 @@ stage contains production backend code, built static assets, and the required
 G-code viewer assets, but excludes Git metadata, tests, frontend development
 scripts, preview fixtures, local configuration, and build caches.
 
-Runtime uses a root entrypoint only to normalise the chosen data/log-volume
-ownership, then drops to `PUID:PGID`. It has a local health check and a
-five-second application graceful-shutdown bound inside Compose's 30-second
-stop grace period. The published Compose contract runs without host networking,
-privileged mode, Docker socket access, or added capabilities.
+Where the runtime retains the required Unix capabilities, the root entrypoint
+normalises the chosen data/log-volume ownership and drops to `PUID:PGID`. The
+published Compose contract deliberately drops every Linux capability; in that
+mode it runs capless as UID 0 rather than attempting an impossible ownership or
+UID switch. It has a local health check and a five-second application
+graceful-shutdown bound inside Compose's 30-second stop grace period. The
+published Compose contract runs without host networking, privileged mode,
+Docker socket access, or added capabilities.
 
 ## Validation and publication
 

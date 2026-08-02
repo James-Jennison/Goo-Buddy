@@ -1,0 +1,18 @@
+# Dockerfile.test needs backend tests in its build context. Keep routine local
+# artifacts out of the test image without inheriting the production-only rule
+# that excludes backend/tests/ from .dockerignore.
+.git/
+.gitignore
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+frontend/node_modules/
+frontend/.npm/
+.pytest_cache/
+.coverage
+htmlcov/
+logs/
+data/
+*.log
+*.db

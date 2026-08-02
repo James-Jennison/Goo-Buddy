@@ -1,10 +1,12 @@
 #!/bin/sh
 # Bambuddy container entrypoint.
 #
-# Runs as root (the image leaves USER unset, so containers start as
-# root by default), chowns /app/data and /app/logs to PUID:PGID, then
-# drops to PUID:PGID via gosu and execs the application. This fixes the
-# class of "Permission denied" errors that bit users when:
+# When the runtime retains the required capabilities, this runs as root (the
+# image leaves USER unset), chowns /app/data and /app/logs to PUID:PGID, then
+# drops to PUID:PGID via gosu and execs the application. The hardened release
+# Compose profile drops every capability and follows its capless branch below.
+# The normal path fixes the class of "Permission denied" errors that bit users
+# when:
 #
 #   - a Docker named volume was first created with root ownership and
 #     the container was running with `user: 1000:1000` (named volumes
@@ -30,6 +32,13 @@ set -eu
 # editing the compose user: directive.
 PUID="${PUID:-1000}"
 PGID="${PGID:-1000}"
+
+case "$PUID:$PGID" in
+    *[!0-9:]*|:|*::* )
+        echo "[entrypoint] error: PUID and PGID must be numeric" >&2
+        exit 1
+        ;;
+esac
 
 # If requested, update and use the system trust store inside the container.
 # Users can set USE_SYSTEM_TRUST_STORE to any non-empty value to enable.
@@ -69,6 +78,18 @@ if [ "$(id -u)" -ne 0 ]; then
     exec "$@"
 fi
 
+# The published Compose contract deliberately drops every Linux capability.
+# That also removes CAP_CHOWN, CAP_SETUID, and CAP_SETGID, so a root
+# entrypoint cannot safely normalize volume ownership or switch to PUID:PGID.
+# In that intentionally capless mode, run the application as UID 0 with an
+# empty capability set instead of entering a restart loop. Root without Linux
+# capabilities cannot perform privileged kernel operations; callers that need
+# a non-root UID can use an unrestricted runtime or pre-own their volumes.
+if grep -Eq '^CapEff:[[:space:]]*0+$' /proc/self/status; then
+    echo "[entrypoint] capability set is empty; running without UID switch"
+    exec "$@"
+fi
+
 # `chown -R` is gated behind a top-level ownership check so a correctly-
 # owned directory isn't traversed on every container start. A user with
 # a multi-GB archive directory would otherwise pay seconds-to-minutes
@@ -94,7 +115,7 @@ if [ -d /app/data/virtual_printer ]; then
     chown_if_needed /app/data/virtual_printer
 fi
 
-# Drop privileges and run the application. python's file capabilities
-# (cap_net_bind_service=+ep, set in the Dockerfile) survive the uid
-# switch, so binding to :322 / :990 still works post-drop.
+# Drop privileges and run the application when the runtime retains the
+# capabilities needed for the UID switch. The hardened release Compose profile
+# takes the capless branch above instead.
 exec gosu "${PUID}:${PGID}" "$@"

@@ -133,6 +133,9 @@ that permanently removes persisted Goo Buddy data.
   logs goo-buddy`; do not add a printer merely to test application health.
 - Upgrade planner reports ambiguity: do not start another stack. Preserve the
   existing volumes and resolve ownership from a backup first.
-- Permission errors: set `PUID` and `PGID` in `.env` to the intended host user
-  IDs, then restart. The entrypoint normalises only the selected data/log
-  volumes before dropping runtime privileges.
+- Permission errors in a runtime that permits ownership changes: set `PUID`
+  and `PGID` in `.env` to the intended host user IDs, then restart. The
+  entrypoint normalises only the selected data/log volumes before dropping
+  runtime privileges. The supplied hardened Compose profile removes every
+  Linux capability, so it instead runs with an empty capability set and cannot
+  change volume ownership or UID at startup.

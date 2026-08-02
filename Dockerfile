@@ -48,7 +48,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     gosu \
     iproute2 \
-    libcap2-bin \
     openssh-client \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -64,11 +63,6 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg \
         -o /etc/apt/sources.list.d/tailscale.list \
     && apt-get update && apt-get install -y --no-install-recommends tailscale \
     && rm -rf /var/lib/apt/lists/*
-
-# Allow binding to privileged ports (e.g. 990/FTPS) as non-root user.
-# File capabilities are more reliable than Docker cap_add with user: directive,
-# which depends on ambient capability support in the container runtime.
-RUN setcap cap_net_bind_service=+ep "$(readlink -f /usr/local/bin/python3)"
 
 # Install Python dependencies with cache mount.
 # pip is upgraded to >=26.1 first to close CVE-2026-6357 — the python:3.13-slim
@@ -95,12 +89,11 @@ COPY --from=frontend-builder /app/static ./static
 # the dev server serves it via a configureServer middleware that's dev-only.
 COPY gcode_viewer/ ./gcode_viewer/
 
-# Create data directories. Ownership is normalised at startup by the
-# entrypoint (chowns to PUID:PGID and drops privileges via gosu before
-# exec'ing the app), so we don't need a chmod 777 hack here — that was
-# the workaround for the previous compose `user: "1000:1000"` model and
-# only worked when the volume's perms happened to survive (named volume
-# first-create case; bind-mount-source case bit users in #1211 / #668).
+# Create data directories. In runtimes that retain the needed capabilities,
+# the entrypoint normalises ownership and drops to PUID:PGID before exec'ing
+# the app. The hardened release Compose profile instead runs capless, so it
+# needs no chmod-777 workaround for the previous compose `user: "1000:1000"`
+# model (which only worked when volume permissions happened to survive).
 #
 # The sentinel file is needed so a freshly-created Docker named volume
 # isn't "empty" from Docker's POV. On empty volumes Docker resyncs the

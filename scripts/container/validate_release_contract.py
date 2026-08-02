@@ -52,7 +52,11 @@ def main() -> None:
         "COPY backend/app/ ./backend/app/",
     ):
         require(dockerfile, label, "Dockerfile")
-    for forbidden in ("COPY .git/HEAD", "COPY backend/ ./backend/"):
+    for forbidden in (
+        "COPY .git/HEAD",
+        "COPY backend/ ./backend/",
+        "setcap cap_net_bind_service",
+    ):
         forbid(dockerfile, forbidden, "Dockerfile")
 
     for excluded in (".git/", "frontend/scripts/", "backend/tests/"):
