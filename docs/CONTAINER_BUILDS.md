@@ -53,6 +53,13 @@ both images, creates a multi-architecture index, records SBOM and provenance
 attestations, verifies the remote manifest, makes the new package public, tests
 unauthenticated metadata access, and only then applies `latest`.
 
+If an immutable publication completes but a later public-access or verification
+step fails, operators must not rerun the tag publication or replace its tags.
+The dispatch-only recovery path accepts that annotated tag and its expected
+index digest, re-verifies the public manifests, OCI labels, attestations, and
+platform set, and promotes a previously absent `latest` only after those checks
+pass.
+
 OCI attestation manifests are legitimate index entries but are not runnable
 architectures. Platform verification counts only `linux/amd64` and
 `linux/arm64` runnable descriptors.

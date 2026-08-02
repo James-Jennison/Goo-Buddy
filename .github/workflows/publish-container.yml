@@ -4,6 +4,16 @@ on:
   push:
     tags:
       - "v[0-9]*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing immutable annotated release tag to verify and promote
+        required: true
+        type: string
+      expected_digest:
+        description: Immutable OCI index digest already published for the release
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -15,6 +25,7 @@ env:
 jobs:
   validate:
     name: Validate release image (${{ matrix.platform }})
+    if: github.event_name == 'push'
     # Runtime validation uses matching native GitHub-hosted architectures.
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
@@ -179,6 +190,7 @@ jobs:
 
   publish:
     name: Publish immutable multi-architecture image
+    if: github.event_name == 'push'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -500,6 +512,152 @@ jobs:
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -eu
+          docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE@$DIGEST"
+          token="$(curl --fail --silent --show-error \
+            'https://ghcr.io/token?scope=repository:james-jennison/goo-buddy:pull' | \
+            python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')"
+          latest_digest="$(curl --fail --silent --show-error --head \
+            -H "Authorization: Bearer $token" \
+            -H 'Accept: application/vnd.oci.image.index.v1+json' \
+            'https://ghcr.io/v2/James-Jennison/goo-buddy/manifests/latest' | \
+            awk 'BEGIN{IGNORECASE=1}/docker-content-digest/{print $2}' | tr -d '\r')"
+          test "$latest_digest" = "$DIGEST"
+
+  recover-publication:
+    name: Verify published immutable image and promote latest
+    # This dispatch-only path is deliberately limited to resuming a release
+    # whose immutable tags were published before a later publication step
+    # failed. It never builds, retags, or overwrites immutable evidence.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      attestations: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+
+      - name: Verify immutable release identity
+        id: release
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          EXPECTED_DIGEST: ${{ inputs.expected_digest }}
+        run: |
+          set -eu
+          case "$RELEASE_TAG" in
+            v[0-9]*.*.*-alpha.[0-9]*) ;;
+            *) echo "not a supported immutable prerelease tag: $RELEASE_TAG" >&2; exit 1 ;;
+          esac
+          python3 - "$EXPECTED_DIGEST" <<'PY'
+          import re
+          import sys
+
+          if not re.fullmatch(r"sha256:[0-9a-f]{64}", sys.argv[1]):
+              raise SystemExit("expected_digest must be a sha256 OCI digest")
+          PY
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = tag
+          commit="$(git rev-parse "${RELEASE_TAG}^{}")"
+          version="${RELEASE_TAG#v}"
+          source_version="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          text = Path("backend/app/core/config.py").read_text(encoding="utf-8")
+          match = re.search(r'^APP_VERSION = "([0-9A-Za-z.-]+)"$', text, re.MULTILINE)
+          if match is None:
+              raise SystemExit("canonical APP_VERSION is missing")
+          print(match.group(1))
+          PY
+          )"
+          test "$source_version" = "$version"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=sha-$commit" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR with the repository workflow token
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Reverify published immutable image and public access
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DIGEST: ${{ inputs.expected_digest }}
+          VERSION: ${{ steps.release.outputs.version }}
+          SHA_TAG: ${{ steps.release.outputs.sha_tag }}
+          COMMIT: ${{ steps.release.outputs.commit }}
+        run: |
+          set -eu
+          token="$(curl --fail --silent --show-error \
+            'https://ghcr.io/token?scope=repository:james-jennison/goo-buddy:pull' | \
+            python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')"
+          manifest_digest() {
+            curl --fail --silent --show-error --head \
+              -H "Authorization: Bearer $token" \
+              -H 'Accept: application/vnd.oci.image.index.v1+json' \
+              "https://ghcr.io/v2/James-Jennison/goo-buddy/manifests/$1" | \
+              awk 'BEGIN{IGNORECASE=1}/docker-content-digest/{print $2}' | tr -d '\r'
+          }
+          test "$(manifest_digest "$VERSION")" = "$DIGEST"
+          test "$(manifest_digest "$SHA_TAG")" = "$DIGEST"
+          if manifest_digest latest >/dev/null 2>&1; then
+            echo "latest already exists and will not be overwritten" >&2
+            exit 1
+          fi
+          docker buildx imagetools inspect "$IMAGE@$DIGEST" --raw > manifest.json
+          python3 - <<'PY'
+          import json
+
+          manifest = json.load(open("manifest.json", encoding="utf-8"))
+          platforms = {
+              f'{item.get("platform", {}).get("os")}/{item.get("platform", {}).get("architecture")}'
+              for item in manifest.get("manifests", [])
+              if item.get("platform", {}).get("os") == "linux"
+          }
+          if platforms != {"linux/amd64", "linux/arm64"}:
+              raise SystemExit(f"unexpected runnable platforms: {platforms}")
+          PY
+          gh attestation verify "oci://$IMAGE@$DIGEST" --repo "$GITHUB_REPOSITORY"
+          for platform in amd64 arm64; do
+            platform_digest="$(python3 - "$platform" <<'PY'
+          import json
+          import sys
+
+          for item in json.load(open("manifest.json", encoding="utf-8"))["manifests"]:
+              data = item.get("platform", {})
+              if data.get("os") == "linux" and data.get("architecture") == sys.argv[1]:
+                  print(item["digest"])
+                  break
+          else:
+              raise SystemExit(f"linux/{sys.argv[1]} manifest missing")
+          PY
+            )"
+            docker pull "$IMAGE@$platform_digest"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{.Architecture}}/{{.Os}}')" = "$platform/linux"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels \"org.opencontainers.image.source\" }}')" = "https://github.com/James-Jennison/Goo-Buddy"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels \"org.opencontainers.image.revision\" }}')" = "$COMMIT"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels \"org.opencontainers.image.version\" }}')" = "$VERSION"
+          done
+          anonymous_config="$(mktemp -d)"
+          trap 'rm -rf "$anonymous_config"' EXIT
+          DOCKER_CONFIG="$anonymous_config" docker pull "$IMAGE:$VERSION"
+
+      - name: Promote latest only after immutable re-verification
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DIGEST: ${{ inputs.expected_digest }}
         run: |
           set -eu
           docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE@$DIGEST"
