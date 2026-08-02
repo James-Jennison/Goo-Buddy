@@ -13,25 +13,54 @@ permissions:
 jobs:
   production-image:
     name: Production image (${{ matrix.platform }})
-    runs-on: ubuntu-latest
-    # Alpine builds OpenCV from source; ARM64 executes that build under QEMU.
-    timeout-minutes: 120
+    # Runtime validation runs on matching native GitHub-hosted architectures.
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux/amd64
             suffix: amd64
+            runner: ubuntu-24.04
+            expected_host_arch: x86_64
+            port: "18000"
+            compose_project: goo-buddy-release-amd64-ci
           - platform: linux/arm64
             suffix: arm64
+            runner: ubuntu-24.04-arm
+            expected_host_arch: aarch64
+            port: "18010"
+            compose_project: goo-buddy-release-arm64-ci
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - name: Set up QEMU for ARM64
-        if: matrix.platform == 'linux/arm64'
-        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
-        with:
-          platforms: arm64
+      - name: Log native runner diagnostics
+        run: |
+          set -eu
+          echo "intended_oci_platform=${{ matrix.platform }}"
+          echo "runner_label=${{ matrix.runner }}"
+          echo "expected_host_arch=${{ matrix.expected_host_arch }}"
+          echo "runner_os=${{ runner.os }}"
+          uname -a
+          uname -m
+          docker version
+          docker buildx version
+          docker compose version
+
+      - name: Assert native runner architecture
+        env:
+          EXPECTED_HOST_ARCH: ${{ matrix.expected_host_arch }}
+        run: |
+          set -eu
+          actual_arch="$(uname -m)"
+          case "$EXPECTED_HOST_ARCH:$actual_arch" in
+            x86_64:x86_64|x86_64:amd64|aarch64:aarch64|aarch64:arm64) ;;
+            *)
+              echo "Expected native host architecture $EXPECTED_HOST_ARCH, got $actual_arch" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
@@ -77,19 +106,18 @@ jobs:
       - name: Validate published-image contract
         run: python3 scripts/container/validate_release_contract.py
 
-      - name: Exercise published Compose lifecycle on AMD64
-        if: matrix.platform == 'linux/amd64'
+      - name: Exercise published Compose lifecycle natively
         env:
-          GOO_BUDDY_IMAGE: goo-buddy:validate-amd64
-          GOO_BUDDY_PLATFORM: linux/amd64
+          GOO_BUDDY_IMAGE: goo-buddy:validate-${{ matrix.suffix }}
+          GOO_BUDDY_PLATFORM: ${{ matrix.platform }}
           GOO_BUDDY_PULL_POLICY: never
-          GOO_BUDDY_PORT: "18000"
-          COMPOSE_PROJECT_NAME: goo-buddy-release-ci
+          GOO_BUDDY_PORT: ${{ matrix.port }}
+          COMPOSE_PROJECT_NAME: ${{ matrix.compose_project }}
         run: |
           set -eu
           docker compose -f docker-compose.release.yml up -d
           for attempt in $(seq 1 30); do
-            if curl --fail --silent --show-error http://127.0.0.1:18000/health; then
+            if curl --fail --silent --show-error http://127.0.0.1:${{ matrix.port }}/health; then
               break
             fi
             test "$attempt" -lt 30
