@@ -1,0 +1,262 @@
+name: Publish verified container image
+
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: james-jennison/goo-buddy
+
+jobs:
+  validate:
+    name: Validate release image (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            suffix: amd64
+          - platform: linux/arm64
+            suffix: arm64
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify annotated release tag and source relationship
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = tag
+          TAG_COMMIT="$(git rev-parse "${RELEASE_TAG}^{}")"
+          MAIN_COMMIT="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test "$TAG_COMMIT" = "$MAIN_COMMIT"
+          test "$TAG_COMMIT" = "$(git rev-parse HEAD)"
+          echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "commit=$TAG_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "created=$(git show -s --format=%cI "$TAG_COMMIT")" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU for ARM64
+        if: matrix.platform == 'linux/arm64'
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Build and load release candidate
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          pull: true
+          load: true
+          push: false
+          provenance: false
+          build-args: |
+            VERSION=${{ steps.release.outputs.version }}
+            REVISION=${{ steps.release.outputs.commit }}
+            CREATED=${{ steps.release.outputs.created }}
+          tags: goo-buddy:release-validate-${{ matrix.suffix }}
+
+      - name: Verify architecture and production boundary
+        run: |
+          set -eu
+          test "$(docker image inspect goo-buddy:release-validate-${{ matrix.suffix }} --format '{{.Architecture}}/{{.Os}}')" = "${{ matrix.suffix }}/linux"
+          docker run --rm --network none --platform ${{ matrix.platform }} \
+            goo-buddy:release-validate-${{ matrix.suffix }} \
+            python -c "import backend.app.main"
+          docker run --rm --network none --platform ${{ matrix.platform }} \
+            --entrypoint sh goo-buddy:release-validate-${{ matrix.suffix }} -ec '
+              test ! -e /app/.git
+              test ! -d /app/backend/tests
+              test ! -d /app/frontend
+              test ! -e /app/static/synthetic-printer-preview.mjs
+            '
+
+      - name: Scan candidate for unresolved high and critical vulnerabilities
+        # aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          image-ref: goo-buddy:release-validate-${{ matrix.suffix }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: "false"
+          exit-code: "1"
+          format: table
+          version: v0.69.2
+
+  publish:
+    name: Publish immutable multi-architecture image
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify release source and derive immutable tags
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = tag
+          COMMIT="$(git rev-parse "${RELEASE_TAG}^{}")"
+          test "$COMMIT" = "$(git ls-remote origin refs/heads/main | cut -f1)"
+          VERSION="${RELEASE_TAG#v}"
+          case "$VERSION" in
+            *[!0-9A-Za-z.-]*|'') exit 1 ;;
+          esac
+          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=sha-$COMMIT" >> "$GITHUB_OUTPUT"
+          echo "created=$(git show -s --format=%cI "$COMMIT")" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR with the repository workflow token
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Refuse existing immutable image tags
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          VERSION: ${{ steps.release.outputs.version }}
+          SHA_TAG: ${{ steps.release.outputs.sha_tag }}
+        run: |
+          set -eu
+          if docker buildx imagetools inspect "$IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "immutable version tag already exists: $VERSION" >&2
+            exit 1
+          fi
+          if docker buildx imagetools inspect "$IMAGE:$SHA_TAG" >/dev/null 2>&1; then
+            echo "immutable commit tag already exists: $SHA_TAG" >&2
+            exit 1
+          fi
+
+      - name: Build and publish immutable image index
+        id: push
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          pull: true
+          push: true
+          provenance: mode=max
+          sbom: true
+          build-args: |
+            VERSION=${{ steps.release.outputs.version }}
+            REVISION=${{ steps.release.outputs.commit }}
+            CREATED=${{ steps.release.outputs.created }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.release.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.release.outputs.sha_tag }}
+
+      - name: Generate SPDX SBOM for the published image
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}
+          format: spdx-json
+          output-file: goo-buddy.spdx.json
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest SPDX SBOM
+        uses: actions/attest-sbom@bd218ad0dbcb3e146bd073d1d9c6d78e08aa8a0b # v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: goo-buddy.spdx.json
+          push-to-registry: true
+
+      - name: Verify remote platforms, labels, and attestations
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+          VERSION: ${{ steps.release.outputs.version }}
+          COMMIT: ${{ steps.release.outputs.commit }}
+        run: |
+          set -eu
+          docker buildx imagetools inspect "$IMAGE@$DIGEST"
+          docker buildx imagetools inspect "$IMAGE:$VERSION"
+          gh attestation verify "oci://$IMAGE@$DIGEST" --repo "$GITHUB_REPOSITORY"
+          docker buildx imagetools inspect "$IMAGE@$DIGEST" --raw > manifest.json
+          python3 - <<'PY'
+          import json
+          manifest = json.load(open("manifest.json", encoding="utf-8"))
+          platforms = {
+              f'{item.get("platform", {}).get("os")}/{item.get("platform", {}).get("architecture")}'
+              for item in manifest.get("manifests", [])
+              if item.get("platform", {}).get("os") == "linux"
+          }
+          required = {"linux/amd64", "linux/arm64"}
+          if not required <= platforms:
+              raise SystemExit(f"missing runnable platforms: {required - platforms}")
+          PY
+          for platform in linux/amd64 linux/arm64; do
+            docker pull --platform "$platform" "$IMAGE@$DIGEST"
+            test "$(docker image inspect "$IMAGE@$DIGEST" --format '{{ index .Config.Labels "org.opencontainers.image.source" }}')" = "https://github.com/James-Jennison/Goo-Buddy"
+            test "$(docker image inspect "$IMAGE@$DIGEST" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "$COMMIT"
+            test "$(docker image inspect "$IMAGE@$DIGEST" --format '{{ index .Config.Labels "org.opencontainers.image.version" }}')" = "$VERSION"
+            docker image rm "$IMAGE@$DIGEST"
+          done
+
+      - name: Set linked GHCR package public
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PATCH "/user/packages/container/goo-buddy" -f visibility=public
+
+      - name: Verify unauthenticated immutable public manifest access
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          VERSION: ${{ steps.release.outputs.version }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -eu
+          token="$(curl --fail --silent --show-error \
+            'https://ghcr.io/token?scope=repository:james-jennison/goo-buddy:pull' | \
+            python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')"
+          remote_digest="$(curl --fail --silent --show-error --head \
+            -H "Authorization: Bearer $token" \
+            -H 'Accept: application/vnd.oci.image.index.v1+json' \
+            "https://ghcr.io/v2/James-Jennison/goo-buddy/manifests/$VERSION" | \
+            awk 'BEGIN{IGNORECASE=1}/docker-content-digest/{print $2}' | tr -d '\r')"
+          test "$remote_digest" = "$DIGEST"
+          anonymous_config="$(mktemp -d)"
+          DOCKER_CONFIG="$anonymous_config" docker pull "$IMAGE:$VERSION"
+
+      - name: Promote latest only after immutable verification
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -eu
+          docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE@$DIGEST"
+          docker buildx imagetools inspect "$IMAGE:latest"
