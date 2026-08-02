@@ -10,13 +10,11 @@ release, deployment, image publication, printer contact, or upstream sync.
    compatibility contracts, and establish Goo Buddy Workshop as the shared
    capability-driven design direction.
 2. **Repository fork-network detachment and independent-project identity** —
-   readiness and recoverable preservation are recorded in
-   [fork-detachment readiness](FORK_DETACHMENT_READINESS.md). Actual
-   detachment remains a separately reviewed, irreversible decision; it does
-   not synchronize newer Bambuddy history. It requires the upstream remote,
-   common fork point, last-reviewed upstream SHA, backups, attribution, and
-   independently green Goo Buddy security workflows to be recorded and
-   preserved.
+   **complete**. Goo Buddy left GitHub's fork network in place while retaining
+   repository ID, URL, Git history, AGPL attribution, the technical `upstream`
+   remote, and verified before/after snapshots. The completed audit is recorded
+   in [fork-network detachment record](FORK_DETACHMENT_READINESS.md); it did
+   not synchronize newer Bambuddy history.
 3. **Upstream Bambuddy security and compatibility review** — an ongoing,
    human-classified maintenance track that applies after fork-network
    detachment and continues for the life of Goo Buddy. It never automatically

@@ -1,8 +1,9 @@
 # Upstream Bambuddy security and compatibility review
 
-Goo Buddy retains [maziggy/bambuddy](https://github.com/maziggy/bambuddy) as a
-technical upstream, even after any separately approved GitHub fork-network
-detachment. Ordinary workflows use `origin`
+Goo Buddy is an independent GitHub repository after its completed 2026-08-02
+in-place fork-network detachment. It retains
+[maziggy/bambuddy](https://github.com/maziggy/bambuddy) as a technical
+upstream. Ordinary workflows use `origin`
 (`https://github.com/James-Jennison/Goo-Buddy.git`) for Goo Buddy and treat
 `upstream` (`https://github.com/maziggy/bambuddy.git`) as fetch-only. Never
 push to upstream.
@@ -13,11 +14,11 @@ The recorded common fork point is
 been established under this new recurring process. Goo Buddy retains applicable
 AGPL, copyright, attribution, and Git-history obligations.
 
-The 2026-08-01 detachment-readiness package preserves the fork point, Git
-history, and this policy without changing the GitHub fork relationship. See
-[fork-detachment readiness](FORK_DETACHMENT_READINESS.md). A future detachment
-must retain this remote as a technical reference and continue the recurring
-human-classified review process.
+The 2026-08-01 before-state readiness package and 2026-08-02 after-state
+snapshot preserve the fork point, Git history, and this policy. See the
+[fork-network detachment record](FORK_DETACHMENT_READINESS.md). The completed
+detachment leaves this remote as a technical reference and the recurring
+human-classified review process remains mandatory.
 
 ## Recurring review procedure
 
@@ -60,10 +61,10 @@ upstream. A future notification-only workflow may fetch metadata and open an
 issue when upstream advances; it may not modify source, create commits or code
 PRs, or bypass human classification.
 
-## Fork-network-detachment prerequisite
+## Completed detachment audit record
 
-Any future detachment proposal must verify this remote and fork point, record a
-last-reviewed upstream SHA, preserve repository metadata/backups and required
-attribution, and show Goo Buddy's independent security workflows green. It is a
-separate, irreversible goal; this policy does not authorize detachment or
-upstream synchronization.
+The completed detachment preserved `origin`, this `upstream` remote, the
+recorded fork point, attribution, and independent security workflows. It did
+not synchronize, merge, rebase, or cherry-pick upstream history. Future work
+continues under the recurring review procedure above; it must never attempt to
+rejoin a fork network or automatically synchronize Bambuddy.
