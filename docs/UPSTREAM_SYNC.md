@@ -9,10 +9,13 @@ upstream. Ordinary workflows use `origin`
 push to upstream.
 
 The recorded common fork point is
-`82656c8760bd620bd31fbb31faa3024062e55e88`. The latest fetched upstream SHA is
-`d36632db0f0ad45d91b86a3b772c796fdb478586`; a last-reviewed SHA has not yet
-been established under this new recurring process. Goo Buddy retains applicable
-AGPL, copyright, attribution, and Git-history obligations.
+`82656c8760bd620bd31fbb31faa3024062e55e88`. The first human-classified review
+froze `upstream/main` at `d36632db0f0ad45d91b86a3b772c796fdb478586` on
+2026-08-02. That SHA is now the recurring-review baseline: the next review
+starts after it, never from the common fork point again. See the
+[first classified review record](upstream-reviews/2026-08-02-first-classified-review.md).
+Goo Buddy retains applicable AGPL, copyright, attribution, and Git-history
+obligations.
 
 The 2026-08-01 before-state readiness package and 2026-08-02 after-state
 snapshot preserve the fork point, Git history, and this policy. See the
@@ -27,9 +30,10 @@ significant inherited-functionality release, before a Goo Buddy stable release,
 or when Goo Buddy's own security tooling flags a possible inherited issue.
 
 1. Start from clean Goo Buddy `main` aligned with `origin/main`.
-2. Fetch `upstream` without merging, rebasing, cherry-picking, or otherwise
-   changing the worktree. Record the previous and newly fetched upstream SHAs
-   and the bounded commit list between them.
+2. Fetch the documented upstream review branch without merging, rebasing,
+   cherry-picking, or otherwise changing the worktree. Record the previous and
+   newly fetched SHAs, freeze the latter immediately, and inspect only the
+   bounded range after the last classified baseline through that frozen SHA.
 3. Review security-sensitive areas first: authentication/authorization,
    secret and printer credentials, network clients/TLS, uploads/archives, path
    handling, migrations, command execution, virtual-printer services,

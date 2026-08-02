@@ -17,8 +17,10 @@ release, deployment, image publication, printer contact, or upstream sync.
    not synchronize newer Bambuddy history.
 3. **Upstream Bambuddy security and compatibility review** — an ongoing,
    human-classified maintenance track that applies after fork-network
-   detachment and continues for the life of Goo Buddy. It never automatically
-   merges, rebases, cherry-picks, or pushes upstream code.
+   detachment and continues for the life of Goo Buddy. Its first review is
+   complete at frozen upstream SHA `d36632db0f0ad45d91b86a3b772c796fdb478586`;
+   later reviews start after that baseline and never automatically merge,
+   rebase, cherry-pick, or push upstream code.
 4. **Multi-architecture container distribution and Raspberry Pi installation**
    — complete this goal before Goo Buddy's first generally recommended public
    release.
