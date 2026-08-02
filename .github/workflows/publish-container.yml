@@ -439,12 +439,36 @@ jobs:
           if not required <= platforms:
               raise SystemExit(f"missing runnable platforms: {required - platforms}")
           PY
-          for platform in linux/amd64 linux/arm64; do
-            docker pull --platform "$platform" "$IMAGE@$DIGEST"
-            test "$(docker image inspect "$IMAGE@$DIGEST" --format '{{ index .Config.Labels "org.opencontainers.image.source" }}')" = "https://github.com/James-Jennison/Goo-Buddy"
-            test "$(docker image inspect "$IMAGE@$DIGEST" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "$COMMIT"
-            test "$(docker image inspect "$IMAGE@$DIGEST" --format '{{ index .Config.Labels "org.opencontainers.image.version" }}')" = "$VERSION"
-            docker image rm "$IMAGE@$DIGEST"
+          amd64_digest="$(python3 -c '
+          import json
+          import sys
+
+          for manifest in json.load(open(sys.argv[1], encoding="utf-8"))["manifests"]:
+              platform = manifest.get("platform", {})
+              if platform.get("os") == "linux" and platform.get("architecture") == "amd64":
+                  print(manifest["digest"])
+                  break
+          else:
+              raise SystemExit("linux/amd64 manifest missing from published index")
+          ' manifest.json)"
+          arm64_digest="$(python3 -c '
+          import json
+          import sys
+
+          for manifest in json.load(open(sys.argv[1], encoding="utf-8"))["manifests"]:
+              platform = manifest.get("platform", {})
+              if platform.get("os") == "linux" and platform.get("architecture") == "arm64":
+                  print(manifest["digest"])
+                  break
+          else:
+              raise SystemExit("linux/arm64 manifest missing from published index")
+          ' manifest.json)"
+          for platform_digest in "$amd64_digest" "$arm64_digest"; do
+            docker pull "$IMAGE@$platform_digest"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels "org.opencontainers.image.source" }}')" = "https://github.com/James-Jennison/Goo-Buddy"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "$COMMIT"
+            test "$(docker image inspect "$IMAGE@$platform_digest" --format '{{ index .Config.Labels "org.opencontainers.image.version" }}')" = "$VERSION"
+            docker image rm "$IMAGE@$platform_digest"
           done
 
       - name: Set linked GHCR package public

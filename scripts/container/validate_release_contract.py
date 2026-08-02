@@ -107,6 +107,7 @@ def main() -> None:
         "linux/arm64 manifest missing from published index",
         'docker pull "$IMAGE@$amd64_digest"',
         'docker pull "$IMAGE@$arm64_digest"',
+        'for platform_digest in "$amd64_digest" "$arm64_digest"; do',
     ):
         require(publication_workflow, required_publication_text, ".github/workflows/publish-container.yml")
     for forbidden_publication_text in (
@@ -114,6 +115,7 @@ def main() -> None:
         ".trivyignore",
         'docker pull --platform linux/amd64 "$IMAGE@$DIGEST"',
         'docker pull --platform linux/arm64 "$IMAGE@$DIGEST"',
+        'docker pull --platform "$platform" "$IMAGE@$DIGEST"',
     ):
         forbid(publication_workflow, forbidden_publication_text, ".github/workflows/publish-container.yml")
     for source, workflow in (
