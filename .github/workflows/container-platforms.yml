@@ -80,8 +80,14 @@ jobs:
         run: |
           test "$(docker image inspect goo-buddy:validate-${{ matrix.suffix }} --format '{{.Architecture}}/{{.Os}}')" = "${{ matrix.suffix }}/linux"
 
-      - name: Run non-networked import and static smoke checks
+      - name: Run non-networked Debian, OpenCV, and static smoke checks
         run: |
+          docker run --rm --network none --platform ${{ matrix.platform }} \
+            --entrypoint sh goo-buddy:validate-${{ matrix.suffix }} -ec '
+              . /etc/os-release
+              test "$ID" = debian
+              python -c "import cv2; print(cv2.__version__)"
+            '
           docker run --rm --network none --platform ${{ matrix.platform }} \
             goo-buddy:validate-${{ matrix.suffix }} \
             python -c "import backend.app.main"

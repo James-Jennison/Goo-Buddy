@@ -20,7 +20,7 @@
  * mint the WS ticket anyway.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { CameraWall, type CameraWallStatus } from '../components/CameraWall';

@@ -11,7 +11,7 @@ import type React from 'react';
 import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 import { render } from '../utils';
 import { PrintModal } from '../../components/PrintModal';
 import { AuthProvider } from '../../contexts/AuthContext';

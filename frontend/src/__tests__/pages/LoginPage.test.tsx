@@ -14,8 +14,8 @@ import { server } from '../mocks/server';
 // Spy on navigation so we can assert the #1889 redirect-away-if-authenticated
 // guard. importActual keeps BrowserRouter / useLocation / useSearchParams real.
 const mockNavigate = vi.fn();
-vi.mock('react-router-dom', async (importActual) => {
-  const actual = await importActual<typeof import('react-router-dom')>();
+vi.mock('react-router', async (importActual) => {
+  const actual = await importActual<typeof import('react-router')>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
 

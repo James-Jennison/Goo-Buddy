@@ -3,7 +3,7 @@
 #
 # When the runtime retains the required capabilities, this runs as root (the
 # image leaves USER unset), chowns /app/data and /app/logs to PUID:PGID, then
-# drops to PUID:PGID via su-exec and execs the application. The hardened release
+# drops to PUID:PGID via gosu and execs the application. The hardened release
 # Compose profile drops every capability and follows its capless branch below.
 # The normal path fixes the class of "Permission denied" errors that bit users
 # when:
@@ -118,4 +118,4 @@ fi
 # Drop privileges and run the application when the runtime retains the
 # capabilities needed for the UID switch. The hardened release Compose profile
 # takes the capless branch above instead.
-exec su-exec "${PUID}:${PGID}" "$@"
+exec gosu "${PUID}:${PGID}" "$@"

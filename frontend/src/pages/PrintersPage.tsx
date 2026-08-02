@@ -88,7 +88,7 @@ import {
 } from 'lucide-react';
 
 // Aliased: lucide-react already exports a `Link` icon into this module.
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router';
 import { api, discoveryApi, firmwareApi, withStreamToken, ApiError } from '../api/client';
 import { formatDateOnly, formatETA, formatDuration, parseUTCDate } from '../utils/date';
 import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult, ElegooSourceCreate, MoonrakerSourceCreate } from '../api/client';

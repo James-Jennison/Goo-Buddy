@@ -34,10 +34,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -57,12 +57,11 @@ jobs:
     name: Backend Security
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -70,24 +69,13 @@ jobs:
         run: |
           # Upgrade setuptools too: the runner's Python toolcache ships an old
           # setuptools that trips pip-audit (PYSEC-2026-3447, fixed in 83.0.0).
-          # A fix exists, so we upgrade rather than --ignore-vuln.
+          # A fix exists, so the scanner installs the fixed version.
           python -m pip install --upgrade pip setuptools
           pip install -r requirements.txt
           pip install pip-audit
 
       - name: Run pip-audit
-        run: |
-          # CVE-2026-4539: low-severity ReDoS in Pygments AdlLexer (indirect dep via mkdocs-material/pytest/rich).
-          # No fix available yet. Remove --ignore-vuln once Pygments releases a patched version.
-          #
-          # CVE-2025-45768 (PYSEC-2025-183 / GHSA-65pc-fj4g-8rjx): disputed by PyJWT maintainers.
-          # Advisory says "key length is chosen by the application that uses the library" — no
-          # PyJWT fix exists or will exist. Bambuddy is safe: backend/app/core/auth.py:184 uses
-          # secrets.token_urlsafe(64) (~86 chars of entropy) for auto-generated secrets and
-          # rejects file-loaded secrets shorter than 32 chars at :177. Keep ignored permanently.
-          pip-audit --desc on \
-            --ignore-vuln CVE-2026-4539 \
-            --ignore-vuln CVE-2025-45768
+        run: pip-audit --desc on
 
   backend-tests:
     name: Backend Tests (shard ${{ matrix.shard }}/4)
@@ -102,15 +90,15 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
@@ -149,10 +137,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -170,12 +158,11 @@ jobs:
     name: Frontend Security
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -187,75 +174,17 @@ jobs:
 
       - name: Run npm audit
         working-directory: frontend
-        run: |
-          # Only audit production dependencies and filter out npm-internal packages.
-          # npm 10.x audit/ls reports vulns in its own bundled deps (npm, tar, minimatch)
-          # so we parse package-lock.json directly to get the real prod dep list.
-          npm audit --omit=dev --json > /tmp/audit.json 2>/dev/null || true
-          python3 -c "
-          import json, sys
-          data = json.load(open('/tmp/audit.json'))
-          lock = json.load(open('package-lock.json'))
-          prod = set()
-          for path, info in lock.get('packages', {}).items():
-              if path and not info.get('dev') and not info.get('devOptional'):
-                  prod.add(path.split('node_modules/')[-1])
-          vulns = data.get('vulnerabilities', {})
-          # Documented advisory exceptions: high/critical findings whose only offered
-          # 'fix' is a semver-major change and which do not apply to how Bambuddy ships.
-          # Keyed by GHSA id; RE-REVIEW ON EVERY react-router BUMP.
-          #   GHSA-qwww-vcr4-c8h2 - React Router RSC-mode CSRF. Bambuddy is a Vite SPA
-          #   using BrowserRouter with no RSC runtime (@react-router/server is NOT
-          #   installed), so the vulnerable code path is unreachable. No non-major fix
-          #   exists (7.18.1 is the most-patched 7.x - it clears 14 other advisories that
-          #   older 7.x carry - and the RSC fix landed only in the 8.3.0 major). react-router
-          #   /-dom are pinned to 7.18.1 in package.json. If a non-major fix ships, this stops
-          #   being exempt (major-only guard below) and the gate fails until we take it.
-          ALLOWLIST = {'GHSA-qwww-vcr4-c8h2'}
-          def advisory_ids(name, seen=None):
-              seen = seen if seen is not None else set()
-              if name in seen:
-                  return set()
-              seen.add(name)
-              ids = set()
-              for item in vulns.get(name, {}).get('via', []):
-                  if isinstance(item, dict):
-                      url = item.get('url', '')
-                      if '/advisories/' in url:
-                          ids.add(url.rsplit('/', 1)[-1])
-                  elif isinstance(item, str):
-                      ids |= advisory_ids(item, seen)
-              return ids
-          def fix_is_major(v):
-              fa = v.get('fixAvailable')
-              return isinstance(fa, dict) and fa.get('isSemVerMajor')
-          def exempt(name, v):
-              ids = advisory_ids(name)
-              return bool(ids) and ids <= ALLOWLIST and fix_is_major(v)
-          fixable = {n: v for n, v in vulns.items()
-                     if n in prod and v.get('severity') in ('high', 'critical')
-                     and v.get('fixAvailable') and not exempt(n, v)}
-          skipped = len(vulns) - len({n: v for n, v in vulns.items() if n in prod})
-          if fixable:
-              for name, v in fixable.items():
-                  print(f'FIXABLE {v[\"severity\"].upper()}: {name}')
-              sys.exit(1)
-          total = sum(1 for n, v in vulns.items() if n in prod and v.get('severity') in ('high', 'critical'))
-          exempted = sorted(n for n, v in vulns.items() if n in prod and exempt(n, v))
-          print(f'npm audit: {total} high/critical (0 fixable), {len(vulns)} total ({skipped} npm-internal filtered)')
-          if exempted:
-              print('exempted (documented, unreachable): ' + ', '.join(exempted))
-          "
+        run: npm audit --audit-level=high
 
   frontend-typecheck:
     name: Frontend Type Check
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -275,10 +204,10 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
     needs: [frontend-lint, frontend-typecheck]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -299,10 +228,10 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
     needs: [frontend-tests]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -337,17 +266,17 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
 
       # Build the backend-test image with GHA BuildKit cache backend so
       # the pip-install layer is shared across the 4 matrix shards AND
       # across CI runs. First run on a given requirements.txt is cold
       # (~60-90s); subsequent runs are ~5-10s.
       - name: Build backend test image (cached)
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
         with:
           context: .
           file: Dockerfile.test
@@ -374,18 +303,20 @@ jobs:
     name: Docker Build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
-    # The production image compiles OpenCV natively on Alpine.
+    # The Debian 13 Trixie production image validates OpenCV natively.
     timeout-minutes: 45
     needs: [backend-tests, frontend-build]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       # Test 1: Docker Build
       - name: Build production image
         run: docker build -t bambuddy:test .
 
-      - name: Verify backend imports
-        run: docker run --rm bambuddy:test python -c "import backend.app.main; print('Backend imports OK')"
+      - name: Verify Debian runtime and backend imports
+        run: |
+          docker run --rm --entrypoint sh bambuddy:test -ec '. /etc/os-release; test "$ID" = debian'
+          docker run --rm bambuddy:test python -c "import cv2; import backend.app.main; print('Debian OpenCV backend imports OK')"
 
       - name: Verify static files exist
         run: docker run --rm bambuddy:test test -d /app/static

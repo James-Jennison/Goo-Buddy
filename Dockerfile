@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG VERSION=0.3.0-alpha.3
+ARG VERSION=0.3.0-alpha.4
 ARG REVISION=unknown
 ARG CREATED=unknown
 
@@ -21,10 +21,24 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY frontend/ ./
 RUN npm run build
 
-# Production image
-# Pinned multi-platform index for python:3.13-alpine, selected because its
-# current package set keeps the strict release vulnerability gate actionable.
-FROM python:3.13-alpine@sha256:399babc8b49529dabfd9c922f2b5eea81d611e4512e3ed250d75bd2e7683f4b0
+# Build Python dependencies separately so compiler toolchains never enter the
+# final runtime image. Glibc-compatible wheels are selected natively for both
+# supported architectures; the builder remains available for the few pure
+# Python packages that build a wheel during installation.
+FROM python:3.13-slim-trixie@sha256:6771159cd4fa5d9bba1258caf0b82e6b73458c694d178ad97c5e925c2d0e1a91 AS python-builder
+
+WORKDIR /build
+COPY requirements.txt ./
+RUN --mount=type=cache,target=/root/.cache/pip \
+    apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential cmake \
+ && python -m venv /opt/goo-buddy-venv \
+ && /opt/goo-buddy-venv/bin/pip install --root-user-action=ignore --upgrade 'pip>=26.1.2' 'setuptools>=78.1.1' \
+ && /opt/goo-buddy-venv/bin/pip install --root-user-action=ignore -r requirements.txt \
+ && rm -rf /var/lib/apt/lists/*
+
+# Production image: Debian 13 Trixie for Raspberry Pi OS-family and Debian/Ubuntu hosts.
+FROM python:3.13-slim-trixie@sha256:6771159cd4fa5d9bba1258caf0b82e6b73458c694d178ad97c5e925c2d0e1a91
 
 ARG VERSION
 ARG REVISION
@@ -40,32 +54,16 @@ LABEL org.opencontainers.image.title="Goo Buddy" \
 
 WORKDIR /app
 
-# Install only runtime system dependencies. `su-exec` is Alpine's small,
-# capability-compatible equivalent of gosu for the entrypoint's UID switch.
-RUN apk add --no-cache \
-    ca-certificates \
-    curl \
-    ffmpeg \
-    iproute2 \
-    libstdc++ \
-    'py3-setuptools>=78.1.1' \
-    su-exec
+# Install only Debian runtime dependencies. `gosu` drops privileges at startup.
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates curl ffmpeg gosu iproute2 libgomp1 libstdc++6 \
+ && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies with cache mount.
-# pip is upgraded to >=26.1 first to close CVE-2026-6357 — the python:3.13
-# base image ships pip 26.0.1, which runs its self-update check after installing
-# wheels (so a hostile wheel could hijack stdlib imports during install).
-COPY requirements.txt ./
-RUN --mount=type=cache,target=/root/.cache/pip \
-    apk add --no-cache --virtual .build-deps \
-      build-base \
-      cmake \
-      linux-headers \
-      ninja \
- && \
-    pip install --root-user-action=ignore --upgrade 'pip>=26.1.2' 'setuptools>=78.1.1' \
- && pip install --root-user-action=ignore -r requirements.txt \
- && apk del .build-deps
+# Bring in only the isolated Python runtime, including the upgraded pip and
+# setuptools security baselines. No compiler, header, or APT index enters this
+# final stage.
+COPY --from=python-builder /opt/goo-buddy-venv /opt/goo-buddy-venv
 
 # Copy only production backend code. Tests and source-control metadata are
 # deliberately excluded from the production image by .dockerignore.
@@ -108,6 +106,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1
+ENV PATH=/opt/goo-buddy-venv/bin:${PATH}
 ENV DATA_DIR=/app/data
 ENV LOG_DIR=/app/logs
 ENV PORT=8000

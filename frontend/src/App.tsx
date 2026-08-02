@@ -1,5 +1,5 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
 import { PrintersPage } from './pages/PrintersPage';

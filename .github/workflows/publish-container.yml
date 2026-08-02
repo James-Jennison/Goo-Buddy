@@ -100,6 +100,12 @@ jobs:
           set -eu
           test "$(docker image inspect goo-buddy:release-validate-${{ matrix.suffix }} --format '{{.Architecture}}/{{.Os}}')" = "${{ matrix.suffix }}/linux"
           docker run --rm --network none --platform ${{ matrix.platform }} \
+            --entrypoint sh goo-buddy:release-validate-${{ matrix.suffix }} -ec '
+              . /etc/os-release
+              test "$ID" = debian
+              python -c "import cv2; print(cv2.__version__)"
+            '
+          docker run --rm --network none --platform ${{ matrix.platform }} \
             goo-buddy:release-validate-${{ matrix.suffix }} \
             python -c "import backend.app.main"
           docker run --rm --network none --platform ${{ matrix.platform }} \
@@ -110,16 +116,66 @@ jobs:
               test ! -e /app/static/synthetic-printer-preview.mjs
             '
 
-      - name: Scan candidate for unresolved high and critical vulnerabilities
+      - name: Record strict Trivy candidate scan as JSON
         # aquasecurity/trivy-action@v0.35.0
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
           image-ref: goo-buddy:release-validate-${{ matrix.suffix }}
           severity: HIGH,CRITICAL
           ignore-unfixed: "false"
-          exit-code: "1"
-          format: table
+          exit-code: "0"
+          format: json
+          output: trivy-${{ matrix.suffix }}.json
           version: v0.69.2
+
+      - name: Record strict Trivy candidate scan as a table
+        # aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          image-ref: goo-buddy:release-validate-${{ matrix.suffix }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: "false"
+          exit-code: "0"
+          format: table
+          output: trivy-${{ matrix.suffix }}.txt
+          version: v0.69.2
+
+      - name: Generate candidate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: goo-buddy:release-validate-${{ matrix.suffix }}
+          format: spdx-json
+          output-file: goo-buddy-${{ matrix.suffix }}.spdx.json
+
+      - name: Gate fixable container vulnerabilities and report upstream risk
+        env:
+          IMAGE: goo-buddy:release-validate-${{ matrix.suffix }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -eu
+          observed_at="$(date --utc +%FT%TZ)"
+          review_deadline="$(date --utc -d '+14 days' +%F)"
+          python3 scripts/container/validate_vulnerability_gate.py \
+            --trivy-json trivy-${{ matrix.suffix }}.json \
+            --sbom goo-buddy-${{ matrix.suffix }}.spdx.json \
+            --image "$IMAGE" \
+            --platform "$PLATFORM" \
+            --observed-at "$observed_at" \
+            --review-deadline "$review_deadline" \
+            --report unresolved-upstream-base-${{ matrix.suffix }}.md
+
+      - name: Upload complete candidate security evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: container-security-${{ matrix.suffix }}
+          path: |
+            trivy-${{ matrix.suffix }}.json
+            trivy-${{ matrix.suffix }}.txt
+            goo-buddy-${{ matrix.suffix }}.spdx.json
+            unresolved-upstream-base-${{ matrix.suffix }}.md
+          if-no-files-found: error
+          retention-days: 90
 
   publish:
     name: Publish immutable multi-architecture image
@@ -205,6 +261,119 @@ jobs:
           format: spdx-json
           output-file: goo-buddy.spdx.json
 
+      - name: Pull immutable published platform images for final security evidence
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -eu
+          docker pull --platform linux/amd64 "$IMAGE@$DIGEST"
+          amd64_image_id="$(docker image inspect "$IMAGE@$DIGEST" --format '{{.Id}}')"
+          docker tag "$amd64_image_id" goo-buddy:published-amd64
+          docker pull --platform linux/arm64 "$IMAGE@$DIGEST"
+          arm64_image_id="$(docker image inspect "$IMAGE@$DIGEST" --format '{{.Id}}')"
+          docker tag "$arm64_image_id" goo-buddy:published-arm64
+
+      - name: Record strict final AMD64 Trivy scan as JSON
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: goo-buddy:published-amd64
+          severity: HIGH,CRITICAL
+          ignore-unfixed: "false"
+          exit-code: "0"
+          format: json
+          output: trivy-published-amd64.json
+          version: v0.69.2
+
+      - name: Record strict final AMD64 Trivy scan as a table
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: goo-buddy:published-amd64
+          severity: HIGH,CRITICAL
+          ignore-unfixed: "false"
+          exit-code: "0"
+          format: table
+          output: trivy-published-amd64.txt
+          version: v0.69.2
+
+      - name: Generate final AMD64 SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: goo-buddy:published-amd64
+          format: spdx-json
+          output-file: goo-buddy-published-amd64.spdx.json
+
+      - name: Gate final AMD64 fixable vulnerabilities and report upstream risk
+        run: |
+          set -eu
+          python3 scripts/container/validate_vulnerability_gate.py \
+            --trivy-json trivy-published-amd64.json \
+            --sbom goo-buddy-published-amd64.spdx.json \
+            --image "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}" \
+            --platform linux/amd64 \
+            --observed-at "$(date --utc +%FT%TZ)" \
+            --review-deadline "$(date --utc -d '+14 days' +%F)" \
+            --report unresolved-upstream-base-published-amd64.md
+
+      - name: Record strict final ARM64 Trivy scan as JSON
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: goo-buddy:published-arm64
+          severity: HIGH,CRITICAL
+          ignore-unfixed: "false"
+          exit-code: "0"
+          format: json
+          output: trivy-published-arm64.json
+          version: v0.69.2
+
+      - name: Record strict final ARM64 Trivy scan as a table
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: goo-buddy:published-arm64
+          severity: HIGH,CRITICAL
+          ignore-unfixed: "false"
+          exit-code: "0"
+          format: table
+          output: trivy-published-arm64.txt
+          version: v0.69.2
+
+      - name: Generate final ARM64 SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: goo-buddy:published-arm64
+          format: spdx-json
+          output-file: goo-buddy-published-arm64.spdx.json
+
+      - name: Gate final ARM64 fixable vulnerabilities and report upstream risk
+        run: |
+          set -eu
+          python3 scripts/container/validate_vulnerability_gate.py \
+            --trivy-json trivy-published-arm64.json \
+            --sbom goo-buddy-published-arm64.spdx.json \
+            --image "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}" \
+            --platform linux/arm64 \
+            --observed-at "$(date --utc +%FT%TZ)" \
+            --review-deadline "$(date --utc -d '+14 days' +%F)" \
+            --report unresolved-upstream-base-published-arm64.md
+
+      - name: Upload complete final security evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: published-container-security-evidence
+          path: |
+            goo-buddy.spdx.json
+            trivy-published-amd64.json
+            trivy-published-amd64.txt
+            goo-buddy-published-amd64.spdx.json
+            unresolved-upstream-base-published-amd64.md
+            trivy-published-arm64.json
+            trivy-published-arm64.txt
+            goo-buddy-published-arm64.spdx.json
+            unresolved-upstream-base-published-arm64.md
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Attest build provenance
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
@@ -285,4 +454,12 @@ jobs:
         run: |
           set -eu
           docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE@$DIGEST"
-          docker buildx imagetools inspect "$IMAGE:latest"
+          token="$(curl --fail --silent --show-error \
+            'https://ghcr.io/token?scope=repository:james-jennison/goo-buddy:pull' | \
+            python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')"
+          latest_digest="$(curl --fail --silent --show-error --head \
+            -H "Authorization: Bearer $token" \
+            -H 'Accept: application/vnd.oci.image.index.v1+json' \
+            'https://ghcr.io/v2/James-Jennison/goo-buddy/manifests/latest' | \
+            awk 'BEGIN{IGNORECASE=1}/docker-content-digest/{print $2}' | tr -d '\r')"
+          test "$latest_digest" = "$DIGEST"

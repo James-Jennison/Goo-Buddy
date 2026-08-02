@@ -43,10 +43,10 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -54,11 +54,10 @@ jobs:
         run: pip install bandit[sarif]
 
       - name: Run Bandit
-        run: |
-          bandit -r backend/ -f sarif -o bandit-results.sarif --severity-level medium || true
+        run: bandit -r backend/ -f sarif -o bandit-results.sarif --severity-level medium
 
       - name: Upload Bandit results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38
         if: always()
         with:
           sarif_file: bandit-results.sarif
@@ -71,7 +70,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Build Docker image
         run: docker build -t bambuddy:security-scan .
@@ -87,7 +86,7 @@ jobs:
           version: 'v0.69.2'
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38
         if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: trivy-results.sarif
@@ -105,7 +104,7 @@ jobs:
           version: 'v0.69.2'
 
       - name: Upload Trivy config results
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38
         if: always() && hashFiles('trivy-config-results.sarif') != ''
         with:
           sarif_file: trivy-config-results.sarif
@@ -118,10 +117,10 @@ jobs:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -129,7 +128,7 @@ jobs:
         run: |
           # Upgrade setuptools too: the runner's Python toolcache ships an old
           # setuptools that trips pip-audit (PYSEC-2026-3447, fixed in 83.0.0).
-          # A fix exists, so we upgrade rather than --ignore-vuln.
+          # A fix exists, so the scanner installs the fixed version.
           python -m pip install --upgrade pip setuptools
           pip install -r requirements.txt
           pip install pip-audit
@@ -137,21 +136,15 @@ jobs:
       - name: Run pip-audit
         id: pip-audit
         run: |
-          # CVE-2025-45768 (PYSEC-2025-183 / GHSA-65pc-fj4g-8rjx): disputed by PyJWT maintainers.
-          # Advisory says "key length is chosen by the application that uses the library" — no
-          # PyJWT fix exists or will exist. Bambuddy is safe: backend/app/core/auth.py:184 uses
-          # secrets.token_urlsafe(64) (~86 chars of entropy) for auto-generated secrets and
-          # rejects file-loaded secrets shorter than 32 chars at :177. Keep ignored permanently.
-          pip-audit --desc on --format json --output pip-audit-results.json \
-            --ignore-vuln CVE-2025-45768 \
-            || echo "vulnerabilities_found=true" >> $GITHUB_OUTPUT
-          pip-audit --desc on \
-            --ignore-vuln CVE-2025-45768 \
-            || true
+          if ! pip-audit --desc on --format json --output pip-audit-results.json; then
+            echo "vulnerabilities_found=true" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "vulnerabilities_found=false" >> "$GITHUB_OUTPUT"
 
       - name: Upload audit results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: pip-audit-results
           path: pip-audit-results.json
@@ -159,7 +152,7 @@ jobs:
 
       - name: Create or close pip security issue
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
             const fs = require('fs');
@@ -276,10 +269,10 @@ jobs:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -293,73 +286,15 @@ jobs:
         id: npm-audit
         working-directory: frontend
         run: |
-          npm audit --omit=dev --json > npm-audit-raw.json 2>/dev/null || true
-          # Filter audit results to only include actual project dependencies.
-          # npm 10.x audit/ls reports vulns in its own bundled deps (npm, tar, minimatch)
-          # so we parse package-lock.json directly to get the real prod dep list.
-          node -e "
-            const fs = require('fs');
-            const raw = fs.readFileSync('npm-audit-raw.json', 'utf8');
-            let results;
-            try { results = JSON.parse(raw); } catch { results = { vulnerabilities: {} }; }
-            const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
-            const prodDeps = new Set();
-            for (const [path, info] of Object.entries(lock.packages || {})) {
-              if (path && !info.dev && !info.devOptional) {
-                prodDeps.add(path.split('node_modules/').pop());
-              }
-            }
-            const vulns = results.vulnerabilities || {};
-            // Documented advisory exceptions (keyed by GHSA id) - see ci.yml for the
-            // full rationale and the matching hard gate. GHSA-qwww-vcr4-c8h2: React
-            // Router RSC-mode CSRF, not reachable from Bambuddy's BrowserRouter SPA
-            // (@react-router/server not installed); react-router/-dom pinned to 7.18.1
-            // (the most-patched 7.x), no non-major fix exists. Auto-surfaces again if a
-            // non-major fix ships.
-            const ALLOWLIST = new Set(['GHSA-qwww-vcr4-c8h2']);
-            function advisoryIds(name, seen) {
-              seen = seen || new Set();
-              if (seen.has(name)) return new Set();
-              seen.add(name);
-              const ids = new Set();
-              for (const item of (vulns[name] || {}).via || []) {
-                if (item && typeof item === 'object') {
-                  const url = item.url || '';
-                  if (url.includes('/advisories/')) ids.add(url.split('/').pop());
-                } else if (typeof item === 'string') {
-                  for (const id of advisoryIds(item, seen)) ids.add(id);
-                }
-              }
-              return ids;
-            }
-            function fixIsMajor(info) {
-              const fa = info.fixAvailable;
-              return fa && typeof fa === 'object' && fa.isSemVerMajor;
-            }
-            function exempt(name, info) {
-              const ids = advisoryIds(name);
-              return ids.size > 0 && [...ids].every(id => ALLOWLIST.has(id)) && fixIsMajor(info);
-            }
-            const filtered = {};
-            const flagged = {};
-            for (const [name, info] of Object.entries(vulns)) {
-              if (!prodDeps.has(name)) continue;
-              filtered[name] = info;
-              if (!exempt(name, info)) flagged[name] = info;
-            }
-            results.vulnerabilities = filtered;
-            fs.writeFileSync('npm-audit-results.json', JSON.stringify(results, null, 2));
-            const count = Object.keys(flagged).length;
-            console.log(count > 0
-              ? count + ' production vulnerabilities found'
-              : 'No production vulnerabilities (filtered ' + Object.keys(vulns).length + ' npm-internal entries)');
-            if (count > 0) process.exit(1);
-          " || echo "vulnerabilities_found=true" >> $GITHUB_OUTPUT
-          npm audit --omit=dev --audit-level=high || true
+          if ! npm audit --json > npm-audit-results.json; then
+            echo "vulnerabilities_found=true" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "vulnerabilities_found=false" >> "$GITHUB_OUTPUT"
 
       - name: Upload audit results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: npm-audit-results
           path: frontend/npm-audit-results.json
@@ -367,7 +302,7 @@ jobs:
 
       - name: Create or close npm security issue
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
             const fs = require('fs');
@@ -381,7 +316,7 @@ jobs:
             });
             const existingIssue = existingIssues.data.find(i => i.title.startsWith('Security Alert:') && i.title.includes('npm'));
 
-            // If filter didn't flag vulnerabilities, auto-close any stale issue
+            // If the strict audit found no vulnerabilities, auto-close any stale issue
             if ('${{ steps.npm-audit.outputs.vulnerabilities_found }}' !== 'true') {
               if (existingIssue) {
                 await github.rest.issues.createComment({
