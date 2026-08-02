@@ -267,11 +267,36 @@ jobs:
           DIGEST: ${{ steps.push.outputs.digest }}
         run: |
           set -eu
-          docker pull --platform linux/amd64 "$IMAGE@$DIGEST"
-          amd64_image_id="$(docker image inspect "$IMAGE@$DIGEST" --format '{{.Id}}')"
+          manifest_json="$(docker buildx imagetools inspect --raw "$IMAGE@$DIGEST")"
+          amd64_digest="$(printf '%s' "$manifest_json" | python3 -c '
+          import json
+          import sys
+
+          for manifest in json.load(sys.stdin)["manifests"]:
+              platform = manifest.get("platform", {})
+              if platform.get("os") == "linux" and platform.get("architecture") == "amd64":
+                  print(manifest["digest"])
+                  break
+          else:
+              raise SystemExit("linux/amd64 manifest missing from published index")
+          ')"
+          arm64_digest="$(printf '%s' "$manifest_json" | python3 -c '
+          import json
+          import sys
+
+          for manifest in json.load(sys.stdin)["manifests"]:
+              platform = manifest.get("platform", {})
+              if platform.get("os") == "linux" and platform.get("architecture") == "arm64":
+                  print(manifest["digest"])
+                  break
+          else:
+              raise SystemExit("linux/arm64 manifest missing from published index")
+          ')"
+          docker pull "$IMAGE@$amd64_digest"
+          amd64_image_id="$(docker image inspect "$IMAGE@$amd64_digest" --format '{{.Id}}')"
           docker tag "$amd64_image_id" goo-buddy:published-amd64
-          docker pull --platform linux/arm64 "$IMAGE@$DIGEST"
-          arm64_image_id="$(docker image inspect "$IMAGE@$DIGEST" --format '{{.Id}}')"
+          docker pull "$IMAGE@$arm64_digest"
+          arm64_image_id="$(docker image inspect "$IMAGE@$arm64_digest" --format '{{.Id}}')"
           docker tag "$arm64_image_id" goo-buddy:published-arm64
 
       - name: Record strict final AMD64 Trivy scan as JSON

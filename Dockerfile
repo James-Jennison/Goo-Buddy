@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG VERSION=0.3.0-alpha.4
+ARG VERSION=0.3.0-alpha.5
 ARG REVISION=unknown
 ARG CREATED=unknown
 

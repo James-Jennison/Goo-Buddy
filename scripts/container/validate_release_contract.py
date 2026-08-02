@@ -94,7 +94,7 @@ def main() -> None:
 
     for required_publication_text in (
         "validate_vulnerability_gate.py",
-        "ignore-unfixed: \"false\"",
+        'ignore-unfixed: "false"',
         "trivy-${{ matrix.suffix }}.json",
         "unresolved-upstream-base-${{ matrix.suffix }}.md",
         "published-container-security-evidence",
@@ -102,11 +102,24 @@ def main() -> None:
         "unresolved-upstream-base-published-arm64.md",
         "retention-days: 90",
         "ubuntu-24.04-arm",
+        'manifest_json="$(docker buildx imagetools inspect --raw "$IMAGE@$DIGEST")"',
+        "linux/amd64 manifest missing from published index",
+        "linux/arm64 manifest missing from published index",
+        'docker pull "$IMAGE@$amd64_digest"',
+        'docker pull "$IMAGE@$arm64_digest"',
     ):
         require(publication_workflow, required_publication_text, ".github/workflows/publish-container.yml")
-    for forbidden_publication_text in ("--ignore-unfixed", ".trivyignore"):
+    for forbidden_publication_text in (
+        "--ignore-unfixed",
+        ".trivyignore",
+        'docker pull --platform linux/amd64 "$IMAGE@$DIGEST"',
+        'docker pull --platform linux/arm64 "$IMAGE@$DIGEST"',
+    ):
         forbid(publication_workflow, forbidden_publication_text, ".github/workflows/publish-container.yml")
-    for source, workflow in ((".github/workflows/ci.yml", ci_workflow), (".github/workflows/security.yml", security_workflow)):
+    for source, workflow in (
+        (".github/workflows/ci.yml", ci_workflow),
+        (".github/workflows/security.yml", security_workflow),
+    ):
         for forbidden_security_bypass in ("--ignore-vuln", "ALLOWLIST", "continue-on-error: true"):
             forbid(workflow, forbidden_security_bypass, source)
 

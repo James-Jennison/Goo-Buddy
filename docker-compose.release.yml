@@ -5,7 +5,7 @@ name: goo-buddy
 # Bambuddy-derived service and volume identifiers for upgrade compatibility.
 services:
   goo-buddy:
-    image: ${GOO_BUDDY_IMAGE:-ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.4}
+    image: ${GOO_BUDDY_IMAGE:-ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.5}
     platform: ${GOO_BUDDY_PLATFORM:-linux/arm64}
     pull_policy: ${GOO_BUDDY_PULL_POLICY:-always}
     ports:

@@ -11,7 +11,7 @@ published. AMD64 Linux Docker hosts use the same image by setting
 `GOO_BUDDY_PLATFORM=linux/amd64`.
 
 The first independently published Goo Buddy image is
-`ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.4`. It is an alpha release:
+`ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.5`. It is an alpha release:
 Bambu support is inherited and mature; Elegoo SDCP monitoring is read-only;
 Moonraker monitoring is alpha and read-only.
 
@@ -38,7 +38,7 @@ docker compose -f docker-compose.release.yml logs -f goo-buddy
 To confirm Docker selected a 64-bit image:
 
 ```bash
-docker image inspect ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.4 \
+docker image inspect ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.5 \
   --format '{{.Architecture}}/{{.Os}}'
 ```
 

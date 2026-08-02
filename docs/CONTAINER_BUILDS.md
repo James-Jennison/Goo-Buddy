@@ -1,6 +1,6 @@
 # Container distribution and verification
 
-Goo Buddy publishes `ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.4` as an OCI
+Goo Buddy publishes `ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.5` as an OCI
 multi-architecture image index. It resolves native `linux/amd64` and
 `linux/arm64` images. The immutable version tag, `sha-<commit>` tag, and
 `latest` are all verified by the guarded tag-publication workflow; `latest` is
@@ -9,7 +9,7 @@ SBOM, provenance, vulnerability scan, and public registry checks pass.
 
 ## Release identity
 
-`0.3.0-alpha.4` is the first independently published Goo Buddy container
+`0.3.0-alpha.5` is the first independently published Goo Buddy container
 prerelease. The project has
 an alpha Moonraker monitor and a first public distribution, so this is not a
 stable-release claim. The application, Git tag, image metadata, and immutable
