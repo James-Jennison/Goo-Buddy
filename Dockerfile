@@ -44,6 +44,7 @@ WORKDIR /app
 # capability-compatible equivalent of gosu for the entrypoint's UID switch.
 RUN apk add --no-cache \
     ca-certificates \
+    curl \
     ffmpeg \
     iproute2 \
     libstdc++ \
