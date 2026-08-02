@@ -3,7 +3,7 @@ name: Windows Installer
 # Build the Windows installer .exe.
 #
 # Triggers:
-#   - Tag push matching v* (release builds, uploaded as a release asset)
+#   - Stable tag push matching v* (release builds, uploaded as a release asset)
 #   - Manual dispatch (for testing the build pipeline)
 #
 # The installer is unsigned until SignPath OSS approval lands. Once it
@@ -26,6 +26,11 @@ permissions:
 
 jobs:
   build:
+    # Goo Buddy's first independent container release is a prerelease and must
+    # not create a GitHub Release or publish inherited Bambuddy-branded assets.
+    # Manual dispatch remains available for installer-pipeline maintenance;
+    # stable tags retain the existing artifact and release-attachment path.
+    if: github.event_name == 'workflow_dispatch' || !contains(github.ref_name, '-')
     runs-on: windows-latest
     timeout-minutes: 30
 
