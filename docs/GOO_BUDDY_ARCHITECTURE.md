@@ -54,8 +54,10 @@ explicit re-enablement.
 
 ## Platform target
 
-Raspberry Pi ARM64 is a primary Goo Buddy target. Bambuddy's existing
-multi-architecture Docker foundation remains intact; the driver foundation is
-pure Python and architecture-neutral. See [container build validation](CONTAINER_BUILDS.md)
-for the non-publishing amd64 and ARM64 build commands. No deployment or image
-publication is part of this change.
+Raspberry Pi ARM64 is a primary Goo Buddy target. The driver foundation is pure
+Python and architecture-neutral. Goo Buddy's independently published container
+contract builds native AMD64 and ARM64 images, while preserving the inherited
+legacy data-volume identifiers only where upgrades require them. See
+[container distribution and verification](CONTAINER_BUILDS.md) and the
+[Raspberry Pi installation guide](RASPBERRY_PI_FIRST_RUN.md). Publication does
+not deploy Goo Buddy or contact a printer.

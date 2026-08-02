@@ -22,8 +22,8 @@ release, deployment, image publication, printer contact, or upstream sync.
    later reviews start after that baseline and never automatically merge,
    rebase, cherry-pick, or push upstream code.
 4. **Multi-architecture container distribution and Raspberry Pi installation**
-   — complete this goal before Goo Buddy's first generally recommended public
-   release.
+   — first independently published alpha distribution in progress. It remains
+   separate from a generally recommended stable release.
 
 ## Approved design direction: Goo Buddy Workshop
 
@@ -159,12 +159,12 @@ for appearance alone.
 
 ### Release safety boundary
 
-This roadmap entry does **not** authorize publication. A separately approved
-release execution must use GitHub Actions and GitHub-provided credentials from
-an exact reviewed, clean commit; never overwrite immutable version tags; verify
-the remote digest and architecture manifest; and make no physical-printer
-contact. Creating a GitHub Release, tag, deployment, or `latest` update needs
-explicit release approval. Stop on any failed security, architecture, migration,
+Publication is permitted only by a separately approved release execution using
+GitHub Actions and GitHub-provided credentials from an exact reviewed, clean
+commit. It must never overwrite immutable version tags, must verify the remote
+digest and architecture manifest, and must make no physical-printer contact.
+Creating a GitHub Release, tag, deployment, or `latest` update needs explicit
+release approval. Stop on any failed security, architecture, migration,
 installation, or smoke-test gate.
 
 ### Acceptance criteria

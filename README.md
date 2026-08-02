@@ -35,51 +35,40 @@ start, or control prints.
 
 ### Docker Compose
 
-Goo Buddy is built locally from this repository; this Compose configuration
-does not pull a published Goo Buddy application image.
+Goo Buddy `0.3.0-alpha.1` is distributed as a public, multi-architecture OCI
+image for `linux/amd64` and `linux/arm64`. The normal published-image install
+does not compile source on the host:
 
 ```bash
 git clone https://github.com/James-Jennison/Goo-Buddy.git
 cd Goo-Buddy
-docker compose up -d --build
+cp .env.release.example .env
+docker compose -f docker-compose.release.yml pull
+docker compose -f docker-compose.release.yml up -d
 ```
 
-The default application port is `8000`, so a local installation is normally
-available at `http://localhost:8000`. Check the service before exposing it
-through a reverse proxy:
+The published Compose contract binds to `127.0.0.1:8000` by default. Check the
+service before deciding whether to place it behind a separately configured
+reverse proxy:
 
 ```bash
-docker compose logs -f bambuddy
+docker compose -f docker-compose.release.yml logs -f goo-buddy
 curl -f http://127.0.0.1:8000/health
 ```
 
-The Compose service, container, and named volumes intentionally retain the
-historical `bambuddy`, `bambuddy_data`, and `bambuddy_logs` identifiers for
-existing-installation compatibility. Do not rename those volumes during an
-upgrade. Stop the local stack with:
+See the [Raspberry Pi and Docker installation guide](docs/RASPBERRY_PI_FIRST_RUN.md)
+for ARM64 requirements, immutable digest pinning, backup, restore, rollback,
+and a compatibility-preserving upgrade from a Bambuddy-derived Compose layout.
+The legacy `docker-compose.yml` remains available only for source-build and
+upgrade compatibility; do not rename its `bambuddy_data` or `bambuddy_logs`
+volumes during an upgrade.
+
+Stop the published-image stack with:
 
 ```bash
-docker compose down
+docker compose -f docker-compose.release.yml down
 ```
 
-For Raspberry Pi 4/5, use a current 64-bit Raspberry Pi OS with Docker Engine
-and the Compose plugin, then follow the [Raspberry Pi first-run guide](docs/RASPBERRY_PI_FIRST_RUN.md).
-The same Compose configuration supports Linux ARM64 and AMD64.
-
-### Update an existing source checkout
-
-Back up the stopped persistent data volume, then update and rebuild the
-approved source revision:
-
-```bash
-git pull --ff-only origin main
-docker compose build
-docker compose up -d
-```
-
-The persistent data volume contains application configuration and protected
-secrets. Keep backups private and restore only from an offline backup made
-while the service was stopped.
 
 ## Manual printer setup
 
@@ -144,7 +133,7 @@ control capabilities.
 - [Elegoo SDCP v3 read-only connection](docs/ELEGOO_SDCP_V3_READ_ONLY.md)
 - [Moonraker / Klipper read-only alpha](docs/MOONRAKER_READ_ONLY_ALPHA.md)
 - [Raspberry Pi first run](docs/RASPBERRY_PI_FIRST_RUN.md)
-- [Container and ARM64 validation](docs/CONTAINER_BUILDS.md)
+- [Container distribution and verification](docs/CONTAINER_BUILDS.md)
 - [Project roadmap](docs/GOO_BUDDY_ROADMAP.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)

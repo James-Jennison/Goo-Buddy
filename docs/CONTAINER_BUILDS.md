@@ -1,83 +1,49 @@
-# Container build validation
+# Container distribution and verification
 
-## Current state
+Goo Buddy publishes `ghcr.io/james-jennison/goo-buddy:0.3.0-alpha.1` as an OCI
+multi-architecture image index. It resolves native `linux/amd64` and
+`linux/arm64` images. The immutable version tag, `sha-<commit>` tag, and
+`latest` are all verified by the guarded tag-publication workflow; `latest` is
+promoted only after the immutable release identity, architecture manifests,
+SBOM, provenance, vulnerability scan, and public registry checks pass.
 
-AMD64 and ARM64 container builds are validated in CI, including non-networked
-smoke checks. No Goo Buddy container image has been published. Raspberry Pi
-users currently build locally from this repository; GitHub Container Registry
-distribution is planned under the [multi-architecture container distribution
-and Raspberry Pi installation goal](GOO_BUDDY_ROADMAP.md#goal-multi-architecture-container-distribution-and-raspberry-pi-installation).
-This planning note does not authorize publication.
+## Release identity
 
-Goo Buddy preserves the inherited Linux container support for both `linux/amd64`
-and `linux/arm64` (Raspberry Pi 4/5). The production Dockerfile uses BuildKit
-cache mounts, so use Docker Buildx rather than Docker's legacy builder.
+`0.3.0-alpha.1` is the first independent Goo Buddy prerelease. The project has
+an alpha Moonraker monitor and a first public distribution, so this is not a
+stable-release claim. The application, Git tag, image metadata, and immutable
+container tag use this same canonical external version spelling.
 
-The official `node:22-bookworm-slim` and `python:3.13-slim-trixie` base tags
-are resolved afresh with `--pull`; both publish Linux amd64 and arm64/v8
-manifests. No platform is hard-coded in either Compose file.
+## Production image contract
 
-## Local native build
+The Dockerfile pins supported multi-platform Node and Python base-image
+manifests by digest. It labels each image with OCI title, description, source,
+URL, revision, version, creation time, and AGPL-3.0-only license. The final
+stage contains production backend code, built static assets, and the required
+G-code viewer assets, but excludes Git metadata, tests, frontend development
+scripts, preview fixtures, local configuration, and build caches.
 
-On a machine matching the desired runtime architecture:
+Runtime uses a root entrypoint only to normalise the chosen data/log-volume
+ownership, then drops to `PUID:PGID`. It has a local health check and a
+five-second application graceful-shutdown bound inside Compose's 30-second
+stop grace period. The published Compose contract runs without host networking,
+privileged mode, Docker socket access, or added capabilities.
 
-```bash
-docker buildx build --pull --progress=plain --load -t goo-buddy:local .
-docker run --rm --network none goo-buddy:local python -c "import backend.app.main"
-```
+## Validation and publication
 
-`--load` is appropriate here because this is a single-platform local image.
-The smoke check has no network access and does not start the application,
-expose ports, or contact a printer.
+The source workflow builds and smoke-tests both architectures with no runtime
+network access. It checks image architecture, final-stage file boundaries, and
+Compose configuration. The tag-only publication workflow rejects tags that do
+not peel to the current `main` commit, refuses pre-existing immutable image
+tags, scans both images, creates a multi-architecture index, records SBOM and
+provenance attestations, verifies the remote manifest, makes the new package
+public, tests unauthenticated metadata access, and only then applies `latest`.
 
-## Raspberry Pi ARM64 build
+OCI attestation manifests are legitimate index entries but are not runnable
+architectures. Platform verification counts only `linux/amd64` and
+`linux/arm64` runnable descriptors.
 
-On a native ARM64 Raspberry Pi:
-
-```bash
-docker buildx build --platform linux/arm64 --pull --progress=plain --load \
-  -t goo-buddy:local-arm64 .
-docker image inspect goo-buddy:local-arm64 --format '{{.Architecture}}/{{.Os}}'
-DOCKER_DEFAULT_PLATFORM=linux/arm64 docker compose -f docker-compose.yml config --quiet
-```
-
-An x86_64 workstation requires an arm64 `binfmt_misc` emulator before Buildx
-can execute the Dockerfile's ARM64 `RUN` steps. Installing it changes host
-kernel state and requires explicit administrator approval. The one-time
-command is:
-
-```bash
-docker run --privileged --rm tonistiigi/binfmt --install arm64
-```
-
-After approval, create an isolated builder without changing the default
-builder:
-
-```bash
-docker buildx create --name goo-buddy-arm64 --driver docker-container --use --bootstrap
-docker buildx inspect --bootstrap
-```
-
-Confirm that the builder reports `linux/arm64` before running the ARM64 build.
-Do not remove unrelated builders, images, caches, containers, or volumes as a
-substitute for platform support.
-
-## Authorized multi-architecture release build
-
-Only an explicitly authorized release process may publish an image:
-
-```bash
-docker buildx build --platform linux/amd64,linux/arm64 --pull --progress=plain \
-  -t ghcr.io/james-jennison/goo-buddy:VERSION --push .
-```
-
-`--load` cannot load a combined multi-platform manifest into Docker's classic
-local image store. Validate each platform separately with `--load`, as CI
-does, or use an explicit OCI output when a local artifact is required.
-
-## CI policy
-
-`.github/workflows/container-platforms.yml` resolves current registry
-manifests, builds amd64 and arm64 separately with Buildx, loads each image,
-and runs import/static smoke checks with `--network none`. It never pushes or
-publishes a container image.
+See [Raspberry Pi and Docker Compose installation](RASPBERRY_PI_FIRST_RUN.md)
+for fresh install, compatibility-preserving upgrade, backup, restore, rollback,
+and operator steps. Publication evidence records final digests; do not infer a
+digest from a mutable `latest` tag.
