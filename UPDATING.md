@@ -1,28 +1,50 @@
 # Updating Goo Buddy
 
-Goo Buddy does not yet publish a container image. Update a reviewed source
-checkout and rebuild locally. The Compose service, volumes, database filename,
-and native service identifiers retain their legacy `bambuddy` names so existing
-installations keep their data; do not rename them during an update.
+Goo Buddy publishes the `0.3.0-alpha.5` multi-architecture OCI image for
+AMD64 and ARM64 hosts. The normal operator update path pulls a reviewed,
+immutable published image through `docker-compose.release.yml`; it does not
+rebuild the application on the host. This is an alpha distribution, not a
+generally recommended stable release.
 
-## Docker Compose source checkout
+## Published Docker Compose installation
 
-1. Back up the stopped persistent data volume or its exact host directory.
-2. Update only from the configured Goo Buddy origin:
-
-   ```bash
-   git pull --ff-only origin main
-   docker compose build --pull
-   docker compose up -d
-   docker compose logs -f bambuddy
-   ```
-
-3. Confirm the health endpoint before exposing the service through a reverse
-   proxy:
+1. Back up the selected persistent data volume before changing images. Keep
+   backups and protected-secret material private.
+2. In the checked-out Goo Buddy release directory, select a known immutable
+   version tag or verified digest in `.env`. Do not use `latest` as a rollback
+   target.
+3. Pull, replace the container, and verify the local health endpoint:
 
    ```bash
+   docker compose -f docker-compose.release.yml pull
+   docker compose -f docker-compose.release.yml up -d
    curl -f http://127.0.0.1:8000/health
+   docker compose -f docker-compose.release.yml logs -f goo-buddy
    ```
+
+The published Compose contract remains loopback-bound at `127.0.0.1:8000` by
+default. Do not widen it without an independently chosen firewall or reverse
+proxy boundary. For ARM64/AMD64 selection, legacy-volume upgrades, backup,
+restore, and digest-pinned rollback, follow the [Raspberry Pi and Docker
+Compose guide](docs/RASPBERRY_PI_FIRST_RUN.md).
+
+## Legacy source checkout
+
+The legacy `docker-compose.yml` source-build path and native helpers remain
+available for development and compatibility-sensitive existing deployments.
+Their Compose service, volumes, database filename, and native service
+identifiers retain their legacy `bambuddy` names so established data is not
+stranded; do not rename them during an update.
+
+To update a reviewed source checkout:
+
+```bash
+git pull --ff-only origin main
+docker compose build --pull
+docker compose up -d
+docker compose logs -f bambuddy
+curl -f http://127.0.0.1:8000/health
+```
 
 ## Native source checkout
 
@@ -55,10 +77,6 @@ product name.
 Use Settings → Backup → **Create Backup** before a manual update and keep the
 result private: it contains application state and protected secrets. Restore
 only while the service is stopped, using the same install path and persistent
-volume. Roll back only to a reviewed source revision that supports the current
-schema; test representative data before relying on a rollback in production.
-
-## Future packaged releases
-
-Verified multi-architecture GHCR distribution is planned, not available now.
-See the [container distribution and Raspberry Pi installation roadmap goal](docs/GOO_BUDDY_ROADMAP.md#goal-multi-architecture-container-distribution-and-raspberry-pi-installation).
+volume. Roll back only to a reviewed image or source revision that supports the
+current schema; test representative data before relying on a rollback in
+production.

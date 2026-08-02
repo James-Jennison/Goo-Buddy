@@ -5,10 +5,14 @@ release, deployment, image publication, printer contact, or upstream sync.
 
 ## Current sequence
 
-1. **Active user-facing Goo Buddy branding migration and Goo Buddy Workshop UX**
-   — replace active Bambuddy branding while retaining required attribution and
-   compatibility contracts, and establish Goo Buddy Workshop as the shared
-   capability-driven design direction.
+1. **User-facing Goo Buddy branding migration and Goo Buddy Workshop UX** —
+   **complete**. Goo Buddy is the active user-facing identity across the
+   application, PWA metadata, static output, operator guidance, and supported
+   diagnostics. The shared, capability-driven Workshop presentation is in
+   place for Bambu Lab, Elegoo SDCP v3, and Moonraker sources; retained
+   observations and unavailable capabilities remain explicit. Required
+   Bambuddy attribution and compatibility-sensitive persisted identifiers are
+   retained where changing them could strand an upgrade.
 2. **Repository fork-network detachment and independent-project identity** —
    **complete**. Goo Buddy left GitHub's fork network in place while retaining
    repository ID, URL, Git history, AGPL attribution, the technical `upstream`
@@ -22,8 +26,9 @@ release, deployment, image publication, printer contact, or upstream sync.
    later reviews start after that baseline and never automatically merge,
    rebase, cherry-pick, or push upstream code.
 4. **Multi-architecture container distribution and Raspberry Pi installation**
-   — first independently published alpha distribution in progress. It remains
-   separate from a generally recommended stable release.
+   — first independently published alpha distribution **complete** at
+   `0.3.0-alpha.5`. Continued validation and a future generally recommended
+   stable release remain separate work.
 
 ## Approved design direction: Goo Buddy Workshop
 
