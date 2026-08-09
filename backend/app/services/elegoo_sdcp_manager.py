@@ -19,8 +19,8 @@ from datetime import datetime, timedelta, timezone
 
 import aiohttp
 
-from backend.app.control.contract import PlatformControlCommand
-from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
+from backend.app.control.contract import PlatformControlCommand, control_operation_is_available
+from backend.app.drivers.contract import ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4
 from backend.app.services.elegoo_sdcp_control import serialize_control_request
@@ -147,7 +147,7 @@ class ElegooSDCPManager:
         if live is None or command.configuration_revision != live.configuration_revision:
             return False
         observation = self.observation(command.source_id)
-        if observation.phase is not ConnectionPhase.READY or Capability.JOB_CONTROL not in observation.capabilities:
+        if not control_operation_is_available(command.operation, observation):
             return False
         if live.mainboard_id is None or live.websocket is None or live.stop.is_set():
             return False

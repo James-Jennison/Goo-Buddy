@@ -35,8 +35,18 @@ def test_normalizes_observed_moonraker_monitoring_values_only():
     assert snapshot.job.current_layer == 2 and snapshot.job.total_layers == 8
     assert snapshot.job.elapsed_seconds == 120 and snapshot.job.estimated_remaining_seconds == 360
     assert Capability.LAYERS in snapshot.capabilities
-    assert Capability.JOB_CONTROL not in snapshot.capabilities
+    assert Capability.JOB_CONTROL in snapshot.capabilities
     assert Capability.FILES not in snapshot.capabilities
+
+
+def test_normalizer_withholds_job_control_when_no_active_job_can_be_observed():
+    status = _status()
+    status["print_stats"]["state"] = "complete"
+    snapshot = normalize_moonraker_observation(
+        local_id="moon-1", display_name="Synthetic Klipper", observed_at=NOW, status=status, server=_server()
+    )
+
+    assert Capability.JOB_CONTROL not in snapshot.capabilities
 
 
 def test_driver_labels_stale_and_disconnected_data_as_retained():

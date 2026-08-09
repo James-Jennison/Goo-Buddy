@@ -102,6 +102,8 @@ def normalize_moonraker_observation(
             estimated_remaining_seconds=remaining_seconds,
         )
         caps.add(Capability.JOB_STATUS)
+        if job.state in {"printing", "paused"}:
+            caps.add(Capability.JOB_CONTROL)
         if progress_percent is not None:
             caps.add(Capability.JOB_PROGRESS)
         if current_layer is not None or total_layers is not None:

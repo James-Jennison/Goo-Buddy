@@ -132,9 +132,9 @@ def normalize_synthetic_sdcp_v3(
         raise SdcpNormalizationError("incomplete printer identity")
 
     # Declared protocol capabilities are not a safe UI claim by themselves.
-    # This synthetic-only foundation exposes only data it has actually parsed;
-    # in particular it does not turn CANVAS or control declarations into data or
-    # action capabilities.
+    # This driver exposes only data it has actually parsed.  Its three fixed
+    # SDCP v3 job commands are available only for a fresh, active print state;
+    # CANVAS or other declared capabilities never become action capabilities.
     capabilities: set[Capability] = set()
     temperatures: dict[str, TemperatureReading] = {}
     for key, current, target in (
@@ -189,6 +189,8 @@ def normalize_synthetic_sdcp_v3(
                 total_layers=total_layers,
             )
             capabilities.add(Capability.JOB_STATUS)
+            if job.state in {"printing", "paused"}:
+                capabilities.add(Capability.JOB_CONTROL)
             if progress is not None:
                 capabilities.add(Capability.JOB_PROGRESS)
             if current_layer is not None or total_layers is not None:

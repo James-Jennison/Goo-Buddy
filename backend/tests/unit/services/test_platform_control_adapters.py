@@ -4,11 +4,20 @@ from __future__ import annotations
 
 import inspect
 import json
+from datetime import datetime, timezone
 
 import pytest
 
 from backend.app.control.contract import PlatformControlCommand, PlatformControlOperation
-from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
+from backend.app.drivers.contract import (
+    Capability,
+    ConnectionPhase,
+    DriverKind,
+    DriverObservation,
+    JobProgress,
+    NormalizedPrinterSnapshot,
+    PrinterIdentity,
+)
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.drivers.moonraker import MoonrakerDriver
 from backend.app.services.elegoo_sdcp_manager import ElegooSDCPManager, _LiveSource
@@ -25,8 +34,17 @@ def _command(driver: DriverKind, operation: PlatformControlOperation, revision: 
     return PlatformControlCommand(driver, 7, revision, operation, "0123456789abcdef0123456789abcdef")
 
 
-def _ready_observation() -> DriverObservation:
-    return DriverObservation(ConnectionPhase.READY, frozenset({Capability.JOB_CONTROL}))
+def _ready_observation(operation: PlatformControlOperation) -> DriverObservation:
+    state = "paused" if operation is PlatformControlOperation.RESUME_JOB else "printing"
+    snapshot = NormalizedPrinterSnapshot(
+        identity=PrinterIdentity("fixture-printer", "Fixture printer"),
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        observed_at=datetime.now(timezone.utc),
+        state=state,
+        capabilities=frozenset({Capability.JOB_CONTROL}),
+        job=JobProgress(name=None, state=state),
+    )
+    return DriverObservation(ConnectionPhase.READY, snapshot.capabilities, current=snapshot)
 
 
 @pytest.mark.asyncio
@@ -47,7 +65,7 @@ async def test_elegoo_dispatch_uses_only_the_closed_sdcp_operation_map(
     live.mainboard_id = MAINBOARD_ID
     live.websocket = socket  # type: ignore[assignment]
     manager._sources[7] = live
-    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation())
+    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation(operation))
 
     assert await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, operation)) is True
     assert socket.operations == [operation]
@@ -120,7 +138,7 @@ async def test_moonraker_dispatch_uses_only_the_closed_bodyless_operation_map(
     )
     live.client = client  # type: ignore[assignment]
     manager._sources[7] = live
-    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation())
+    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation(operation))
 
     assert await manager.dispatch_command(_command(DriverKind.MOONRAKER, operation)) is True
     assert client.operations == [operation]
@@ -172,7 +190,11 @@ async def test_dispatch_fails_closed_for_an_unavailable_capability_or_stale_conf
     assert (
         await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, PlatformControlOperation.PAUSE_JOB)) is False
     )
-    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation())
+    monkeypatch.setattr(
+        manager,
+        "observation",
+        lambda _source_id: _ready_observation(PlatformControlOperation.PAUSE_JOB),
+    )
     assert (
         await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, PlatformControlOperation.PAUSE_JOB, 2))
         is False

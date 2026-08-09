@@ -1,5 +1,7 @@
 """Tests for the closed cross-platform control contract and audit migration."""
 
+from datetime import datetime, timezone
+
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
@@ -8,10 +10,31 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from backend.app.control.contract import (
     PlatformControlOperation,
     PlatformControlState,
+    control_operation_is_available,
     new_platform_control_command,
 )
 from backend.app.core import database
-from backend.app.drivers.contract import DriverKind
+from backend.app.drivers.contract import (
+    Capability,
+    ConnectionPhase,
+    DriverKind,
+    DriverObservation,
+    JobProgress,
+    NormalizedPrinterSnapshot,
+    PrinterIdentity,
+)
+
+
+def _ready_observation(state: str) -> DriverObservation:
+    snapshot = NormalizedPrinterSnapshot(
+        identity=PrinterIdentity("fixture-printer", "Fixture printer"),
+        driver=DriverKind.MOONRAKER,
+        observed_at=datetime.now(timezone.utc),
+        state=state,
+        capabilities=frozenset({Capability.JOB_CONTROL}),
+        job=JobProgress(name=None, state=state),
+    )
+    return DriverObservation(ConnectionPhase.READY, snapshot.capabilities, current=snapshot)
 
 
 def test_platform_control_command_accepts_only_supported_drivers_and_operations():
@@ -39,6 +62,29 @@ def test_platform_control_command_accepts_only_supported_drivers_and_operations(
             configuration_revision=2,
             operation="printer.gcode.script",  # type: ignore[arg-type]
         )
+
+
+@pytest.mark.parametrize(
+    ("operation", "state", "available"),
+    [
+        (PlatformControlOperation.PAUSE_JOB, "printing", True),
+        (PlatformControlOperation.PAUSE_JOB, "paused", False),
+        (PlatformControlOperation.RESUME_JOB, "paused", True),
+        (PlatformControlOperation.RESUME_JOB, "printing", False),
+        (PlatformControlOperation.CANCEL_JOB, "printing", True),
+        (PlatformControlOperation.CANCEL_JOB, "paused", True),
+        (PlatformControlOperation.CANCEL_JOB, "idle", False),
+    ],
+)
+def test_control_operation_availability_is_closed_and_state_gated(
+    operation: PlatformControlOperation, state: str, available: bool
+) -> None:
+    assert control_operation_is_available(operation, _ready_observation(state)) is available
+
+
+@pytest.mark.parametrize("operation", ["M112", 129, "/printer/gcode/script", {"Cmd": 129}, None])
+def test_control_operation_availability_rejects_arbitrary_values(operation: object) -> None:
+    assert control_operation_is_available(operation, _ready_observation("printing")) is False
 
 
 @pytest.mark.asyncio

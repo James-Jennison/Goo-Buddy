@@ -64,7 +64,7 @@ in the same change.
   behaviour.
 - [x] Add deterministic Elegoo SDCP v3 control simulators and redacted fixtures
   for each operation considered for support.
-- [ ] Implement the closed Elegoo capability adapter and its API/UI paths,
+- [x] Implement the closed Elegoo capability adapter and its API/UI paths,
   preserving manual activation, endpoint validation, and secret redaction.
 - [x] Add deterministic Moonraker control simulators and redacted fixtures for
   each operation considered for support.

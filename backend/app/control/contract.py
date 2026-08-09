@@ -14,7 +14,7 @@ import uuid
 from dataclasses import dataclass
 
 from backend.app.core.compat import StrEnum
-from backend.app.drivers.contract import DriverKind
+from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
 
 
 class PlatformControlOperation(StrEnum):
@@ -77,3 +77,28 @@ def new_platform_control_command(
         operation=operation,
         idempotency_key=uuid.uuid4().hex,
     )
+
+
+def control_operation_is_available(operation: object, observation: DriverObservation) -> bool:
+    """Return whether a fresh observation permits one closed job operation.
+
+    A generic ``JOB_CONTROL`` capability alone is deliberately insufficient:
+    a command must also match the currently observed job state.  This avoids
+    sending pause/resume/cancel blindly after the printer has changed state.
+    """
+
+    if type(operation) is not PlatformControlOperation:
+        return False
+    if (
+        observation.phase is not ConnectionPhase.READY
+        or Capability.JOB_CONTROL not in observation.capabilities
+        or observation.current is None
+        or observation.current.job is None
+    ):
+        return False
+    state = observation.current.job.state
+    if operation is PlatformControlOperation.PAUSE_JOB:
+        return state == "printing"
+    if operation is PlatformControlOperation.RESUME_JOB:
+        return state == "paused"
+    return state in {"printing", "paused"}

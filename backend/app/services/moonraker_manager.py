@@ -18,8 +18,8 @@ from datetime import datetime, timezone
 
 import aiohttp
 
-from backend.app.control.contract import PlatformControlCommand
-from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
+from backend.app.control.contract import PlatformControlCommand, control_operation_is_available
+from backend.app.drivers.contract import ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.moonraker import MoonrakerDriver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4
 from backend.app.services.moonraker_control import request_for_control_operation
@@ -148,7 +148,7 @@ class MoonrakerManager:
         if live is None or command.configuration_revision != live.configuration_revision:
             return False
         observation = self.observation(command.source_id)
-        if observation.phase is not ConnectionPhase.READY or Capability.JOB_CONTROL not in observation.capabilities:
+        if not control_operation_is_available(command.operation, observation):
             return False
         if live.client is None or live.stop.is_set():
             return False

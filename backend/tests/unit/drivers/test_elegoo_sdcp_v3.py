@@ -33,11 +33,11 @@ def test_normalizes_only_observed_sdcp_fields_and_advertised_capabilities():
     assert snapshot.job.total_layers == 20
     assert Capability.TEMPERATURES in snapshot.capabilities
     assert Capability.JOB_STATUS in snapshot.capabilities
-    assert Capability.JOB_CONTROL not in snapshot.capabilities
+    assert Capability.JOB_CONTROL in snapshot.capabilities
     assert Capability.MULTI_MATERIAL not in snapshot.capabilities
 
 
-def test_normalizer_does_not_infer_unsupported_or_canvas_capabilities():
+def test_normalizer_advertises_only_closed_active_job_control_not_other_declared_capabilities():
     snapshot = normalize_synthetic_sdcp_v3(
         local_id="synthetic-centauri-1",
         observed_at=NOW,
@@ -46,9 +46,20 @@ def test_normalizer_does_not_infer_unsupported_or_canvas_capabilities():
     )
 
     assert Capability.MULTI_MATERIAL not in snapshot.capabilities
-    assert Capability.JOB_CONTROL not in snapshot.capabilities
+    assert Capability.JOB_CONTROL in snapshot.capabilities
     assert Capability.CAMERA not in snapshot.capabilities
     assert Capability.FILES not in snapshot.capabilities
+
+
+def test_normalizer_withholds_job_control_when_no_active_job_can_be_observed():
+    idle = normalize_synthetic_sdcp_v3(
+        local_id="synthetic-centauri-1",
+        observed_at=NOW,
+        status_payload=status(current_status=0),
+        attributes_payload=attributes(),
+    )
+
+    assert Capability.JOB_CONTROL not in idle.capabilities
 
 
 def test_normalizer_marks_ambiguous_state_as_error_and_rejects_incomplete_identity():
