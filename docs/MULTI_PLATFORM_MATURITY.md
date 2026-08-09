@@ -75,7 +75,7 @@ in the same change.
   pending state, result, and unavailable-capability explanation accessibly.
 - [x] Add regression coverage proving non-Bambu sources cannot use Bambu-only
   command, queue, upload, virtual-printer, file, camera, or maintenance paths.
-- [ ] Add API, driver, simulator, and frontend tests for success, denial,
+- [x] Add API, driver, simulator, and frontend tests for success, denial,
   disconnect, timeout, duplicate-command, stale-state, and restart recovery
   behaviour.
 - [ ] Pass the complete local validation gate from a disposable Docker test

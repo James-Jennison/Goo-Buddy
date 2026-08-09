@@ -146,6 +146,37 @@ async def test_control_routes_require_printer_control_permission_and_record_time
 
 @pytest.mark.asyncio
 @pytest.mark.integration
+@pytest.mark.parametrize(
+    ("platform", "route_operation", "patch_target"),
+    [
+        ("elegoo", "pause", "elegoo_sdcp_manager"),
+        ("moonraker", "cancel", "moonraker_manager"),
+    ],
+)
+async def test_control_routes_record_disconnects_without_exposing_transport_details(
+    async_client: AsyncClient,
+    db_session,
+    platform: str,
+    route_operation: str,
+    patch_target: str,
+) -> None:
+    source_id = await _create_source(async_client, platform)
+    disconnect = AsyncMock(side_effect=ConnectionError("private transport disconnected"))
+
+    with patch(f"backend.app.api.routes.printers.{patch_target}.dispatch_command", disconnect):
+        response = await async_client.post(
+            f"/api/v1/printers/{platform}/{source_id}/control/{route_operation}", headers=_control_headers()
+        )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "failed"
+    assert "private transport" not in response.text
+    record = (await db_session.execute(select(PlatformControlCommandRecord))).scalar_one()
+    assert (record.status, record.error_code) == ("failed", "dispatch_failed")
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
 async def test_control_routes_replay_the_same_key_without_a_second_dispatch(
     async_client: AsyncClient, db_session
 ) -> None:

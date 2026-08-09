@@ -117,3 +117,37 @@ async def test_platform_control_migration_is_idempotent_and_rejects_unlisted_ope
                 )
     finally:
         await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_platform_control_restart_recovery_never_replays_interrupted_commands(monkeypatch):
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    monkeypatch.setattr(database, "is_sqlite", lambda: True)
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY)"))
+            await database._migrate_platform_control_commands(conn)
+            await conn.execute(
+                text(
+                    "INSERT INTO platform_control_commands "
+                    "(driver, source_id, configuration_revision, operation, status, idempotency_key) VALUES "
+                    "('elegoo.sdcp-v3', 7, 1, 'pause_job', 'queued', '0123456789abcdef0123456789abcdef'), "
+                    "('moonraker', 8, 1, 'cancel_job', 'dispatching', 'abcdef0123456789abcdef0123456789'), "
+                    "('moonraker', 9, 1, 'resume_job', 'acknowledged', 'fedcba9876543210fedcba9876543210')"
+                )
+            )
+
+            await database._reconcile_interrupted_platform_control_commands(conn)
+            rows = (
+                await conn.execute(
+                    text("SELECT status, error_code, completed_at FROM platform_control_commands ORDER BY source_id")
+                )
+            ).all()
+
+            assert rows[0][0:2] == ("failed", "restart_interrupted")
+            assert rows[0][2] is not None
+            assert rows[1][0:2] == ("failed", "restart_interrupted")
+            assert rows[1][2] is not None
+            assert rows[2] == ("acknowledged", None, None)
+    finally:
+        await engine.dispose()

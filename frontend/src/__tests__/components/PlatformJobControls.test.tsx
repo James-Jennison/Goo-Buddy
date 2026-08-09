@@ -59,4 +59,23 @@ describe('PlatformJobControls', () => {
     expect(screen.getByRole('button', { name: 'Resume' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Cancel print' })).toBeEnabled();
   });
+
+  it('keeps the fixed operation pending and reports a failed adapter result without adding another control', async () => {
+    const user = userEvent.setup();
+    let resolveSubmit!: (value: { id: number; operation: 'cancel_job'; status: 'failed' }) => void;
+    const unavailableSubmit = vi.fn(
+      () => new Promise<{ id: number; operation: 'cancel_job'; status: 'failed' }>((resolve) => { resolveSubmit = resolve; }),
+    );
+    renderControls({ submit: unavailableSubmit });
+
+    await user.click(screen.getByRole('button', { name: 'Cancel print' }));
+    await user.click(screen.getAllByRole('button', { name: 'Cancel print' }).at(-1)!);
+
+    expect(unavailableSubmit).toHaveBeenCalledWith('cancel');
+    expect(screen.getByRole('button', { name: 'Sending control request…' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeDisabled();
+    resolveSubmit({ id: 1, operation: 'cancel_job', status: 'failed' });
+    expect(await screen.findByText(/Cancel print is unavailable for Synthetic printer/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /G-code|console|restart/i })).not.toBeInTheDocument();
+  });
 });

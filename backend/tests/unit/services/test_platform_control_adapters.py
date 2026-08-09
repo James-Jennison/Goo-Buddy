@@ -175,27 +175,47 @@ async def test_dispatch_rejects_non_contract_values_and_has_no_raw_transport_par
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("manager_kind", ["elegoo", "moonraker"])
 async def test_dispatch_fails_closed_for_an_unavailable_capability_or_stale_configuration(
     monkeypatch: pytest.MonkeyPatch,
+    manager_kind: str,
 ) -> None:
-    manager = ElegooSDCPManager()
-    live = _LiveSource(7, "192.168.1.40", SyntheticElegooSdcpV3Driver("elegoo-7"), configuration_revision=3)
-    live.mainboard_id = MAINBOARD_ID
-    live.websocket = StrictSdcpControlPeer()  # type: ignore[assignment]
-    manager._sources[7] = live
+    if manager_kind == "elegoo":
+        manager = ElegooSDCPManager()
+        live = _LiveSource(7, "192.168.1.40", SyntheticElegooSdcpV3Driver("elegoo-7"), configuration_revision=3)
+        live.mainboard_id = MAINBOARD_ID
+        live.websocket = StrictSdcpControlPeer()  # type: ignore[assignment]
+        manager._sources[7] = live
+        driver = DriverKind.ELEGOO_SDCP_V3
+    else:
+        manager = MoonrakerManager()
+        live = _LiveMoonraker(
+            7,
+            "Synthetic",
+            "192.168.1.44",
+            7125,
+            "http",
+            None,
+            MoonrakerDriver("moonraker-7", "Synthetic"),
+            configuration_revision=3,
+        )
+        live.client = StrictMoonrakerControlPeer("http://192.168.1.44:7125")  # type: ignore[assignment]
+        manager._sources[7] = live
+        driver = DriverKind.MOONRAKER
     monkeypatch.setattr(
         manager, "observation", lambda _source_id: DriverObservation(ConnectionPhase.READY, frozenset())
     )
 
-    assert (
-        await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, PlatformControlOperation.PAUSE_JOB)) is False
-    )
+    assert await manager.dispatch_command(_command(driver, PlatformControlOperation.PAUSE_JOB)) is False
     monkeypatch.setattr(
         manager,
         "observation",
         lambda _source_id: _ready_observation(PlatformControlOperation.PAUSE_JOB),
     )
-    assert (
-        await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, PlatformControlOperation.PAUSE_JOB, 2))
-        is False
+    assert await manager.dispatch_command(_command(driver, PlatformControlOperation.PAUSE_JOB, 2)) is False
+    monkeypatch.setattr(
+        manager,
+        "observation",
+        lambda _source_id: DriverObservation(ConnectionPhase.STALE, frozenset({Capability.JOB_CONTROL})),
     )
+    assert await manager.dispatch_command(_command(driver, PlatformControlOperation.PAUSE_JOB)) is False

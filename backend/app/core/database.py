@@ -561,6 +561,26 @@ async def _migrate_platform_control_commands(conn) -> None:
     )
 
 
+async def _reconcile_interrupted_platform_control_commands(conn) -> None:
+    """Fail commands interrupted by a process restart without replaying them.
+
+    A command in either pre-completion state has an unknown physical outcome
+    after a process exits.  Replaying it could pause, resume, or cancel a job
+    twice, so recovery is deliberately audit-only: retain the request and
+    require the operator to make a new explicit, capability-gated choice.
+    """
+
+    from sqlalchemy import text
+
+    await conn.execute(
+        text(
+            "UPDATE platform_control_commands "
+            "SET status = 'failed', error_code = 'restart_interrupted', completed_at = CURRENT_TIMESTAMP "
+            "WHERE status IN ('queued', 'dispatching')"
+        )
+    )
+
+
 async def _api_keys_column_exists(conn, column_name: str) -> bool:
     """Return True if the named column exists on ``api_keys``.
 
@@ -1008,6 +1028,7 @@ async def run_migrations(conn):
     await _migrate_elegoo_sdcp_sources(conn)
     await _migrate_moonraker_sources(conn)
     await _migrate_platform_control_commands(conn)
+    await _reconcile_interrupted_platform_control_commands(conn)
 
     # Migration: Add parent_run_id column to pipeline_runs (#1425 PR C).
     # Links a retry-failed run back to its parent so the dashboard can show
