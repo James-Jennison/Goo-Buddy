@@ -2,6 +2,7 @@ import asyncio
 import logging
 import re
 import zipfile
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
@@ -9,6 +10,11 @@ from pydantic import BaseModel, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.control.contract import (
+    PlatformControlOperation,
+    PlatformControlState,
+    new_platform_control_command,
+)
 from backend.app.core import database
 from backend.app.core.auth import (
     RequireCameraStreamTokenIfAuthEnabled,
@@ -20,9 +26,11 @@ from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.permissions import Permission
 from backend.app.core.tasks import spawn_background_task
+from backend.app.drivers.contract import DriverKind
 from backend.app.models.ams_label import AmsLabel
 from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
 from backend.app.models.moonraker_source import MoonrakerSource
+from backend.app.models.platform_control_command import PlatformControlCommand as PlatformControlCommandRecord
 from backend.app.models.printer import Printer
 from backend.app.models.slot_preset import SlotPresetMapping
 from backend.app.models.user import User
@@ -44,6 +52,7 @@ from backend.app.schemas.printer import (
     MoonrakerSourceUpdate,
     NozzleInfoResponse,
     NozzleRackSlot,
+    PlatformControlCommandResponse,
     PrinterCreate,
     PrinterDiagnosticResult,
     PrinterResponse,
@@ -85,6 +94,7 @@ router = APIRouter(prefix="/printers", tags=["printers"])
 # confirming the command landed before reporting 502 to the UI. Module-level
 # so tests can monkeypatch a near-zero value instead of mocking asyncio.sleep.
 HMS_ACTION_ACK_WAIT_SECONDS = 2.5
+PLATFORM_CONTROL_DISPATCH_TIMEOUT_SECONDS = 10
 
 
 async def _caller_can_view_printer_secrets(user: User | None, db: AsyncSession) -> bool:
@@ -145,6 +155,72 @@ async def _parse_moonraker_source_body(request: Request, schema: type[BaseModel]
         return schema.model_validate(body)
     except (TypeError, ValueError, ValidationError):
         raise HTTPException(422, "Invalid read-only Moonraker source configuration") from None
+
+
+async def _require_empty_platform_control_body(request: Request) -> None:
+    """Reject bodies so control routes cannot become payload tunnels."""
+
+    if await request.body():
+        raise HTTPException(422, "Platform control operations do not accept a payload")
+
+
+async def _dispatch_platform_control(
+    *,
+    request: Request,
+    db: AsyncSession,
+    user: User | None,
+    driver: DriverKind,
+    source_id: int,
+    configuration_revision: int,
+    operation: PlatformControlOperation,
+    dispatch: object,
+) -> PlatformControlCommandResponse:
+    """Audit and dispatch one fixed operation through its matching adapter.
+
+    This accepts no client-provided protocol values.  Each public route binds
+    the driver and operation to constants, and the manager receives only the
+    persisted operation-only contract.
+    """
+
+    await _require_empty_platform_control_body(request)
+    command = new_platform_control_command(driver, source_id, configuration_revision, operation)
+    record = PlatformControlCommandRecord(
+        driver=command.driver.value,
+        source_id=command.source_id,
+        configuration_revision=command.configuration_revision,
+        operation=command.operation.value,
+        status=PlatformControlState.QUEUED.value,
+        idempotency_key=command.idempotency_key,
+        requested_by=user.id if user is not None else None,
+    )
+    db.add(record)
+    await db.commit()
+    await db.refresh(record)
+
+    record.status = PlatformControlState.DISPATCHING.value
+    record.dispatched_at = datetime.now(timezone.utc)
+    await db.commit()
+    try:
+        dispatched = await asyncio.wait_for(dispatch(command), timeout=PLATFORM_CONTROL_DISPATCH_TIMEOUT_SECONDS)  # type: ignore[operator]
+    except asyncio.TimeoutError:
+        record.status = PlatformControlState.FAILED.value
+        record.error_code = "dispatch_timeout"
+    except Exception:
+        # Do not expose adapter or transport exceptions: they can carry a
+        # configured private endpoint or protocol data.
+        record.status = PlatformControlState.FAILED.value
+        record.error_code = "dispatch_failed"
+    else:
+        if dispatched:
+            record.status = PlatformControlState.ACKNOWLEDGED.value
+            record.error_code = None
+        else:
+            record.status = PlatformControlState.FAILED.value
+            record.error_code = "unavailable"
+    record.completed_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(record)
+    return PlatformControlCommandResponse(id=record.id, operation=record.operation, status=record.status)
 
 
 def _serialize_elegoo_source(source: ElegooSDCPSource) -> dict:
@@ -614,6 +690,72 @@ async def get_elegoo_status(
     return _elegoo_dashboard_status(source)
 
 
+@router.post("/elegoo/{source_id}/control/pause", response_model=PlatformControlCommandResponse)
+async def pause_elegoo_job(
+    source_id: int,
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return await _dispatch_platform_control(
+        request=request,
+        db=db,
+        user=user,
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        source_id=source.id,
+        configuration_revision=source.configuration_revision,
+        operation=PlatformControlOperation.PAUSE_JOB,
+        dispatch=elegoo_sdcp_manager.dispatch_command,
+    )
+
+
+@router.post("/elegoo/{source_id}/control/resume", response_model=PlatformControlCommandResponse)
+async def resume_elegoo_job(
+    source_id: int,
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return await _dispatch_platform_control(
+        request=request,
+        db=db,
+        user=user,
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        source_id=source.id,
+        configuration_revision=source.configuration_revision,
+        operation=PlatformControlOperation.RESUME_JOB,
+        dispatch=elegoo_sdcp_manager.dispatch_command,
+    )
+
+
+@router.post("/elegoo/{source_id}/control/cancel", response_model=PlatformControlCommandResponse)
+async def cancel_elegoo_job(
+    source_id: int,
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return await _dispatch_platform_control(
+        request=request,
+        db=db,
+        user=user,
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        source_id=source.id,
+        configuration_revision=source.configuration_revision,
+        operation=PlatformControlOperation.CANCEL_JOB,
+        dispatch=elegoo_sdcp_manager.dispatch_command,
+    )
+
+
 @router.delete("/elegoo/{source_id}")
 async def delete_elegoo_source(
     source_id: int,
@@ -741,6 +883,72 @@ async def get_moonraker_status(
     if source is None:
         raise HTTPException(404, "Printer not found")
     return _moonraker_dashboard_status(source)
+
+
+@router.post("/moonraker/{source_id}/control/pause", response_model=PlatformControlCommandResponse)
+async def pause_moonraker_job(
+    source_id: int,
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return await _dispatch_platform_control(
+        request=request,
+        db=db,
+        user=user,
+        driver=DriverKind.MOONRAKER,
+        source_id=source.id,
+        configuration_revision=source.configuration_revision,
+        operation=PlatformControlOperation.PAUSE_JOB,
+        dispatch=moonraker_manager.dispatch_command,
+    )
+
+
+@router.post("/moonraker/{source_id}/control/resume", response_model=PlatformControlCommandResponse)
+async def resume_moonraker_job(
+    source_id: int,
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return await _dispatch_platform_control(
+        request=request,
+        db=db,
+        user=user,
+        driver=DriverKind.MOONRAKER,
+        source_id=source.id,
+        configuration_revision=source.configuration_revision,
+        operation=PlatformControlOperation.RESUME_JOB,
+        dispatch=moonraker_manager.dispatch_command,
+    )
+
+
+@router.post("/moonraker/{source_id}/control/cancel", response_model=PlatformControlCommandResponse)
+async def cancel_moonraker_job(
+    source_id: int,
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    db: AsyncSession = Depends(get_db),
+):
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    return await _dispatch_platform_control(
+        request=request,
+        db=db,
+        user=user,
+        driver=DriverKind.MOONRAKER,
+        source_id=source.id,
+        configuration_revision=source.configuration_revision,
+        operation=PlatformControlOperation.CANCEL_JOB,
+        dispatch=moonraker_manager.dispatch_command,
+    )
 
 
 @router.delete("/moonraker/{source_id}")

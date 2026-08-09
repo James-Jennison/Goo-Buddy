@@ -131,6 +131,18 @@ class ElegooDashboardStatus(BaseModel):
     capabilities: list[str] = []
 
 
+class PlatformControlCommandResponse(BaseModel):
+    """Public result for one closed non-Bambu control operation.
+
+    The response exposes the requested allowlisted operation and its audit
+    state, never a protocol command number, endpoint, body, or device secret.
+    """
+
+    id: int
+    operation: str
+    status: str
+
+
 class ElegooSDCPSourceResponse(BaseModel):
     # Negative public IDs occupy no Bambu primary-key space. The raw address
     # is intentionally never returned by list/detail dashboard endpoints.
