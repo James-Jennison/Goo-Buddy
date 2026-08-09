@@ -458,6 +458,7 @@ export function PrintModal({
   // refetch of a plate we already have must not disable the button under the user.
   const perPlateReqsPending = perPlateReqQueries.some((q) => q.isPending);
   const perPlateReqsFailed = perPlateReqQueries.some((q) => q.isError);
+  const perPlateReqsUpdatedAt = perPlateReqQueries.map((q) => q.dataUpdatedAt).join('|');
 
   const perPlateReqs = useMemo(() => {
     const byPlate = new Map<number, FilamentReqsData>();
@@ -469,8 +470,7 @@ export function PrintModal({
     // Keyed on each query's last update stamp, not on the query objects (fresh every
     // render) and not on a spread of their data (a dep array whose *length* changes
     // with the plate count, which React treats as always-changed and warns about).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPlateIds, perPlateReqQueries.map((q) => q.dataUpdatedAt).join('|')]);
+  }, [selectedPlateIds, perPlateReqsUpdatedAt]);
 
   // Manual slot overrides are per plate: slot 3 of plate 1 and slot 3 of plate 2
   // are different prints and may want different trays.

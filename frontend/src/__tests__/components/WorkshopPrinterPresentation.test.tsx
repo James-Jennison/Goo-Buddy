@@ -42,6 +42,22 @@ describe('Workshop printer presentation', () => {
     expect(screen.getByText(/Camera, files, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
   });
 
+  it('shows a proxied camera preview only when the source has the camera capability', () => {
+    const { rerender } = render(<WorkshopReadOnlyPresentation platform="moonraker" snapshot={{
+      phase: 'ready', freshness: 'current', capabilities: ['camera'],
+    }} cameraSnapshotUrl="/api/v1/printers/moonraker/-1000001/camera/snapshot?token=opaque" />);
+
+    expect(screen.getByRole('img', { name: 'Latest camera preview for Klipper via Moonraker' })).toHaveAttribute(
+      'src',
+      '/api/v1/printers/moonraker/-1000001/camera/snapshot?token=opaque',
+    );
+    expect(screen.getByText('Read-only camera preview · refreshed on open')).toBeInTheDocument();
+
+    rerender(<WorkshopReadOnlyPresentation platform="moonraker" snapshot={{ phase: 'ready', freshness: 'current' }} />);
+    expect(screen.queryByRole('img', { name: /Latest camera preview/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Camera, files, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
+  });
+
   it('builds temperature trends from fresh observations instead of rendering an invented history', () => {
     const { rerender } = render(<WorkshopReadOnlyPresentation platform="elegoo" snapshot={{
       phase: 'ready', freshness: 'current', temperatures: { nozzle: { current_c: 200, target_c: 210 } },

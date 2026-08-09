@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import AsyncClient
 
+from backend.app.models.moonraker_source import MoonrakerSource
+
 
 @pytest.mark.asyncio
 @pytest.mark.integration
@@ -53,3 +55,49 @@ async def test_moonraker_endpoint_or_key_edit_cancels_and_requires_explicit_reen
         )
     assert changed.status_code == 200 and changed.json()["is_active"] is False
     disable.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_moonraker_camera_snapshot_is_backend_proxied_and_bounded_to_the_source(
+    async_client: AsyncClient, db_session
+):
+    """The browser receives only Goo Buddy JPEG bytes, never a printer URL."""
+    source = MoonrakerSource(
+        display_name="Synthetic camera",
+        private_ipv4="10.0.0.45",
+        port=7125,
+        scheme="http",
+        is_enabled=True,
+        read_only_acknowledged=True,
+    )
+    db_session.add(source)
+    await db_session.commit()
+    await db_session.refresh(source)
+    public_id = -1_000_000 - source.id
+
+    with patch(
+        "backend.app.api.routes.camera.moonraker_manager.camera_snapshot",
+        new=AsyncMock(return_value=b"\xff\xd8synthetic-jpeg"),
+    ) as snapshot:
+        response = await async_client.get(f"/api/v1/printers/moonraker/{public_id}/camera/snapshot")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    assert response.headers["cache-control"] == "no-store"
+    assert response.content == b"\xff\xd8synthetic-jpeg"
+    snapshot.assert_awaited_once_with(source.id)
+
+
+def test_moonraker_camera_snapshot_uses_browser_image_stream_token_gate():
+    """A bearer-only dependency would make a protected ``<img>`` unusable."""
+    from backend.app.core.auth import RequireCameraStreamTokenIfAuthEnabled
+    from backend.app.main import app
+
+    route = next(
+        route
+        for route in app.routes
+        if getattr(route, "path", None) == "/api/v1/printers/moonraker/{source_id}/camera/snapshot"
+    )
+    gates = [dependency.call for dependency in route.dependant.dependencies if dependency.call]
+    assert RequireCameraStreamTokenIfAuthEnabled.dependency in gates

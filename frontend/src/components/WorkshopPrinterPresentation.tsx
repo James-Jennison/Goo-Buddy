@@ -103,16 +103,14 @@ type TemperatureSeries = { label: string; values: Array<number | null>; dash: st
  * component has received. It deliberately has no synthetic baseline. */
 function LiveTemperatureChart({ temperatures }: { temperatures?: WorkshopSnapshot['temperatures'] }) {
   const [history, setHistory] = useState<Array<{ nozzle: number | null; bed: number | null; chamber: number | null }>>([]);
-  const sample = {
-    nozzle: typeof temperatures?.nozzle?.current_c === 'number' ? temperatures.nozzle.current_c : null,
-    bed: typeof temperatures?.bed?.current_c === 'number' ? temperatures.bed.current_c : null,
-    chamber: typeof temperatures?.chamber?.current_c === 'number' ? temperatures.chamber.current_c : null,
-  };
+  const nozzle = typeof temperatures?.nozzle?.current_c === 'number' ? temperatures.nozzle.current_c : null;
+  const bed = typeof temperatures?.bed?.current_c === 'number' ? temperatures.bed.current_c : null;
+  const chamber = typeof temperatures?.chamber?.current_c === 'number' ? temperatures.chamber.current_c : null;
 
   useEffect(() => {
-    if (Object.values(sample).every((value) => value == null)) return;
-    setHistory((previous) => [...previous, sample].slice(-TEMPERATURE_HISTORY_POINTS));
-  }, [sample.nozzle, sample.bed, sample.chamber]);
+    if (nozzle == null && bed == null && chamber == null) return;
+    setHistory((previous) => [...previous, { nozzle, bed, chamber }].slice(-TEMPERATURE_HISTORY_POINTS));
+  }, [nozzle, bed, chamber]);
 
   const series: TemperatureSeries[] = [
     { label: 'Nozzle', values: history.map((point) => point.nozzle), dash: '' },
@@ -151,7 +149,7 @@ function LiveTemperatureChart({ temperatures }: { temperatures?: WorkshopSnapsho
   );
 }
 
-export function WorkshopReadOnlyPresentation({ platform, snapshot }: { platform: Exclude<WorkshopPlatform, 'bambu'>; snapshot?: WorkshopSnapshot | null }) {
+export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapshotUrl }: { platform: Exclude<WorkshopPlatform, 'bambu'>; snapshot?: WorkshopSnapshot | null; cameraSnapshotUrl?: string }) {
   const meta = workshopPlatformMeta(platform);
   const retained = Boolean(snapshot?.retained || snapshot?.freshness === 'retained');
   const phase = snapshot?.phase ?? 'connecting';
@@ -195,7 +193,9 @@ export function WorkshopReadOnlyPresentation({ platform, snapshot }: { platform:
         </div>
       )}
 
-      <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>Camera, files, console, maintenance, uploads, and CANVAS are unavailable for this source. Any supported job controls are shown separately.</span></div>
+      {snapshot?.capabilities?.includes('camera') && cameraSnapshotUrl ? (
+        <figure className="workshop-camera-preview"><img src={cameraSnapshotUrl} alt={`Latest camera preview for ${meta.label}`} /><figcaption>Read-only camera preview · refreshed on open</figcaption></figure>
+      ) : <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>Camera, files, console, maintenance, uploads, and CANVAS are unavailable for this source. Any supported job controls are shown separately.</span></div>}
     </section>
   );
 }

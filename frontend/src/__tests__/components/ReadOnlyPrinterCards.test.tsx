@@ -46,7 +46,7 @@ describe('read-only printer cards', () => {
 
     renderCard(<ElegooPrinterCard printer={readOnlyPrinter({ platform: 'elegoo' })} />);
     await waitFor(() => expect(screen.getByText(/retained data — not current/i)).toBeInTheDocument());
-    expect(screen.getByText(/Chamber 33°C/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Chamber temperature')).toHaveTextContent('33.0°C');
     expect(screen.getByText(/camera, files, console, and maintenance remain unavailable/i)).toBeInTheDocument();
   });
 

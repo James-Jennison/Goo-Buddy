@@ -13,7 +13,8 @@ Moonraker data is logged.
 
 ## Closed monitoring surface
 
-The HTTP GET allowlist is `/server/info` and `/printer/objects/list`. The
+The HTTP GET allowlist is `/server/info`, `/printer/objects/list`, and the
+documented Moonraker webcam inventory endpoint `/server/webcams/list`. The
 WebSocket JSON-RPC allowlist is exactly:
 
 - `printer.objects.query`
@@ -41,8 +42,12 @@ The dashboard shows only validated Klipper/Moonraker state, available
 temperatures, safe job display name, progress, current/total layers when
 reported in `print_stats.info`, elapsed duration, and a progress-derived
 remaining estimate when both input values are present. It labels retained
-data separately from current data. Camera, files, console, uploads,
-maintenance, and all controls remain unavailable.
+data separately from current data. When Moonraker reports an enabled webcam
+with a same-origin relative JPEG snapshot path, Goo Buddy may expose one
+bounded, token-protected snapshot preview. The camera URL itself is never
+returned to the browser, redirects and external authorities are rejected, and
+the preview does not imply streaming, camera control, files, console, uploads,
+or maintenance support. Every other camera shape remains unavailable.
 
 Moonraker API reference: [Server administration](https://moonraker.readthedocs.io/en/latest/external_api/server/), [Printer objects](https://moonraker.readthedocs.io/en/latest/printer_objects/), and [WebSocket/API overview](https://moonraker.readthedocs.io/en/latest/external_api/introduction/).
 

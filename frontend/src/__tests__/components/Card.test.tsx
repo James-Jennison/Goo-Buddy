@@ -21,7 +21,7 @@ describe('Card', () => {
   it('applies default styling classes', () => {
     const { container } = render(<Card>Content</Card>);
     expect(container.firstChild).toHaveClass('bg-bambu-dark-secondary');
-    expect(container.firstChild).toHaveClass('rounded-xl');
+    expect(container.firstChild).toHaveClass('rounded-lg');
     expect(container.firstChild).toHaveClass('border');
   });
 

@@ -20,6 +20,7 @@ from backend.app.core.auth import (
 )
 from backend.app.core.database import get_db
 from backend.app.core.permissions import Permission
+from backend.app.models.moonraker_source import MoonrakerSource
 from backend.app.models.printer import Printer
 from backend.app.models.user import User
 from backend.app.services.camera import (
@@ -41,9 +42,11 @@ from backend.app.services.camera_fanout import (
     shutdown_broadcaster,
 )
 from backend.app.services.camera_profiles import get_camera_profile
+from backend.app.services.moonraker_manager import moonraker_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/printers", tags=["camera"])
+_MOONRAKER_PUBLIC_ID_OFFSET = 1_000_000
 
 # Upper bound on waiting for a SIGKILLed ffmpeg to be reaped (#2580). A killed
 # ffmpeg stuck in uninterruptible I/O on a dead RTSP socket can take arbitrarily
@@ -621,6 +624,24 @@ async def create_stream_token(
     to camera stream/snapshot URLs loaded via <img> tags.
     """
     return {"token": await create_camera_stream_token()}
+
+
+@router.get("/moonraker/{source_id}/camera/snapshot")
+async def moonraker_camera_snapshot(
+    source_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: None = RequireCameraStreamTokenIfAuthEnabled,
+):
+    """Return one validated Moonraker webcam snapshot without exposing its URL."""
+    if source_id > -_MOONRAKER_PUBLIC_ID_OFFSET:
+        raise HTTPException(status_code=404, detail="Printer not found")
+    source = await db.get(MoonrakerSource, -_MOONRAKER_PUBLIC_ID_OFFSET - source_id)
+    if source is None or not source.is_enabled:
+        raise HTTPException(status_code=404, detail="Printer not found")
+    frame = await moonraker_manager.camera_snapshot(source.id)
+    if frame is None:
+        raise HTTPException(status_code=503, detail="Camera preview is unavailable")
+    return Response(content=frame, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
 
 
 @router.get("/{printer_id}/camera/stream")

@@ -60,7 +60,7 @@ describe('AddPrinterModal Discovery', () => {
     render(<PrintersPage />);
     await waitFor(() => expect(screen.getByText('X1 Carbon')).toBeInTheDocument());
 
-    await userEvent.click(screen.getByText(/add printer/i));
+    await userEvent.click(screen.getAllByRole('button', { name: /add printer/i })[0]);
     await userEvent.selectOptions(screen.getByLabelText('Printer platform'), 'elegoo');
 
     expect(screen.getByText(/capability- and permission-gated pause, resume, and cancel requests/i)).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe('AddPrinterModal Discovery', () => {
     render(<PrintersPage />);
     await waitFor(() => expect(screen.getByText('X1 Carbon')).toBeInTheDocument());
 
-    await userEvent.click(screen.getByText(/add printer/i));
+    await userEvent.click(screen.getAllByRole('button', { name: /add printer/i })[0]);
     await userEvent.selectOptions(screen.getByLabelText('Printer platform'), 'moonraker');
 
     expect(screen.getByText(/Moonraker support is manual and opt-in/i)).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('AddPrinterModal Discovery', () => {
     });
 
     // Click the Add Printer button
-    const addButton = screen.getByText(/add printer/i);
+    const addButton = screen.getAllByRole('button', { name: /add printer/i })[0];
     await userEvent.click(addButton);
 
     // Wait for the modal and discovery info to load
@@ -137,7 +137,7 @@ describe('AddPrinterModal Discovery', () => {
       expect(screen.getByText('X1 Carbon')).toBeInTheDocument();
     });
 
-    const addButton = screen.getByText(/add printer/i);
+    const addButton = screen.getAllByRole('button', { name: /add printer/i })[0];
     await userEvent.click(addButton);
 
     await waitFor(() => {
@@ -173,7 +173,7 @@ describe('AddPrinterModal Discovery', () => {
       expect(screen.getByText('X1 Carbon')).toBeInTheDocument();
     });
 
-    const addButton = screen.getByText(/add printer/i);
+    const addButton = screen.getAllByRole('button', { name: /add printer/i })[0];
     await userEvent.click(addButton);
 
     await waitFor(() => {
@@ -206,7 +206,7 @@ describe('AddPrinterModal Discovery', () => {
       expect(screen.getByText('X1 Carbon')).toBeInTheDocument();
     });
 
-    const addButton = screen.getByText(/add printer/i);
+    const addButton = screen.getAllByRole('button', { name: /add printer/i })[0];
     await userEvent.click(addButton);
 
     // Detected subnet is the default value; "Custom subnet..." sits

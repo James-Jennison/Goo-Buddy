@@ -1,7 +1,10 @@
 #!/bin/sh
 
+set -eu
+
 cd backend
-ruff check && ruff format --check
+../venv/bin/ruff check
+../venv/bin/ruff format --check
 
 TEST_WORKERS="${GOO_BUDDY_PYTEST_WORKERS:-6}"
 case "$TEST_WORKERS" in

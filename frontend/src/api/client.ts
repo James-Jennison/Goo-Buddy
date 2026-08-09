@@ -5881,6 +5881,8 @@ export const api = {
     withStreamToken(`${API_BASE}/printers/${printerId}/camera/stream?fps=${fps}`),
   getCameraSnapshotUrl: (printerId: number) =>
     withStreamToken(`${API_BASE}/printers/${printerId}/camera/snapshot`),
+  getMoonrakerCameraSnapshotUrl: (sourceId: number) =>
+    withStreamToken(`${API_BASE}/printers/moonraker/${sourceId}/camera/snapshot`),
   testCameraConnection: (printerId: number) =>
     request<{ success: boolean; message?: string; error?: string }>(`/printers/${printerId}/camera/test`),
   getCameraStatus: (printerId: number) =>

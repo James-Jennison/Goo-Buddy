@@ -15,6 +15,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 import aiohttp
 
@@ -34,6 +35,7 @@ REQUEST_TIMEOUT_SECONDS = 10
 MAX_FRAME_BYTES = 128 * 1024
 MAX_BACKOFF_SECONDS = 60
 NO_VALID_INBOUND_SECONDS = 45
+MAX_CAMERA_SNAPSHOT_BYTES = 5 * 1024 * 1024
 
 
 @dataclass
@@ -55,6 +57,8 @@ class _LiveMoonraker:
     last_liveness: float | None = None
     client: aiohttp.ClientSession | None = None
     control_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    camera_snapshot_path: str | None = None
+    camera_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 class MoonrakerManager:
@@ -159,6 +163,29 @@ class MoonrakerManager:
             async with live.client.post(f"{self._base_url(live)}{request.path}", allow_redirects=False) as response:
                 return 200 <= response.status < 300
 
+    async def camera_snapshot(self, source_id: int) -> bytes | None:
+        """Fetch one bounded JPEG through a discovered, same-origin camera path.
+
+        URLs from Moonraker are never returned to callers. Only an enabled
+        webcam's validated relative snapshot path is used with the already
+        configured private Moonraker origin and its protected API-key header.
+        """
+        live = self._sources.get(source_id)
+        if live is None or live.client is None or live.camera_snapshot_path is None or live.stop.is_set():
+            return None
+        if self.observation(source_id).phase is not ConnectionPhase.READY:
+            return None
+        async with live.camera_lock:
+            if live.client is None or live.camera_snapshot_path is None or live.stop.is_set():
+                return None
+            async with live.client.get(
+                f"{self._base_url(live)}{live.camera_snapshot_path}", allow_redirects=False
+            ) as response:
+                if response.status != 200 or response.content_type != "image/jpeg":
+                    return None
+                payload = await response.content.read(MAX_CAMERA_SNAPSHOT_BYTES + 1)
+                return payload if 0 < len(payload) <= MAX_CAMERA_SNAPSHOT_BYTES else None
+
     @staticmethod
     def _base_url(live: _LiveMoonraker) -> str:
         return f"{live.scheme}://{live.private_ipv4}:{live.port}"
@@ -186,7 +213,8 @@ class MoonrakerManager:
                 ) as client:
                     live.client = client
                     try:
-                        live.server, available = await self._discover(client, live)
+                        live.server, available, live.camera_snapshot_path = await self._discover(client, live)
+                        live.driver.set_camera_available(live.camera_snapshot_path is not None)
                         objects = select_monitored_objects(available)
                         if not objects:
                             live.error = "no_supported_objects"
@@ -228,8 +256,8 @@ class MoonrakerManager:
 
     async def _discover(
         self, client: aiohttp.ClientSession, live: _LiveMoonraker
-    ) -> tuple[dict[str, object], list[str]]:
-        """Use two fixed HTTP GET endpoints; redirects are always rejected."""
+    ) -> tuple[dict[str, object], list[str], str | None]:
+        """Use fixed HTTP GET endpoints; redirects are always rejected."""
         async with client.get(f"{self._base_url(live)}/server/info", allow_redirects=False) as response:
             if response.status in {401, 403}:
                 raise aiohttp.ClientResponseError(response.request_info, response.history, status=response.status)
@@ -240,13 +268,45 @@ class MoonrakerManager:
                 raise aiohttp.ClientResponseError(response.request_info, response.history, status=response.status)
             response.raise_for_status()
             objects_payload = await response.json(content_type=None)
+        async with client.get(f"{self._base_url(live)}/server/webcams/list", allow_redirects=False) as response:
+            webcams_payload = await response.json(content_type=None) if response.status == 200 else None
         if not isinstance(server_payload, dict) or not isinstance(server_payload.get("result"), dict):
             raise ValueError("invalid server response")
         result = objects_payload.get("result") if isinstance(objects_payload, dict) else None
         available = result.get("objects") if isinstance(result, dict) else None
         if not isinstance(available, list):
             raise ValueError("invalid object response")
-        return server_payload["result"], available
+        return server_payload["result"], available, self._validated_snapshot_path(webcams_payload)
+
+    @staticmethod
+    def _validated_snapshot_path(payload: object) -> str | None:
+        """Select one enabled JPEG snapshot path without accepting a URL authority."""
+        result = payload.get("result") if isinstance(payload, dict) else None
+        webcams = result.get("webcams") if isinstance(result, dict) else None
+        if not isinstance(webcams, list):
+            return None
+        for webcam in webcams:
+            if not isinstance(webcam, dict) or webcam.get("enabled") is not True:
+                continue
+            candidate = webcam.get("snapshot_url")
+            if not isinstance(candidate, str) or len(candidate) > 512:
+                continue
+            parsed = urlsplit(candidate)
+            if (
+                parsed.scheme
+                or parsed.netloc
+                or parsed.fragment
+                or not parsed.path.startswith("/")
+                or parsed.path.startswith("//")
+            ):
+                continue
+            # Preserve only ordinary absolute paths.  Percent-encoded paths can
+            # conceal separators or traversal segments after a proxy decodes
+            # them, so they are deliberately outside this first closed surface.
+            if "%" in parsed.path or any(segment in {"", ".", ".."} for segment in parsed.path.split("/")[1:-1]):
+                continue
+            return parsed.path + (f"?{parsed.query}" if parsed.query else "")
+        return None
 
     async def _serve(
         self,

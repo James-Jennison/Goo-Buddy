@@ -1838,7 +1838,7 @@ export function MoonrakerPrinterCard({ printer }: { printer: Printer }) {
   };
   return <Card className="workshop-printer-card workshop-printer-card--moonraker overflow-hidden"><CardContent className="workshop-card-content space-y-4">
     <div className="flex items-start justify-between gap-3"><h3 className="workshop-printer-name">{printer.name}</h3><span className="sr-only">{current ? 'current' : 'not current'}</span></div>
-    <WorkshopReadOnlyPresentation platform="moonraker" snapshot={status} />
+    <WorkshopReadOnlyPresentation platform="moonraker" snapshot={status} cameraSnapshotUrl={status?.capabilities?.includes('camera') ? api.getMoonrakerCameraSnapshotUrl(printer.id) : undefined} />
     {!printer.is_active && <p className="text-sm text-bambu-gray">Disabled. Enable only when you want Goo Buddy to open its read-only monitoring connection.</p>}
     {printer.is_active && !status?.last_observation_at && ['connecting', 'waiting', 'reconnecting'].includes(status?.phase ?? 'connecting') && <p className="text-sm text-bambu-gray">Connecting to the saved private Moonraker endpoint and waiting for validated status.</p>}
     {status?.error && <p className="break-words text-sm text-red-300">Connection: {status.error.replaceAll('_', ' ')}</p>}

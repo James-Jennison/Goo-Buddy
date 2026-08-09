@@ -59,6 +59,34 @@ def test_status_parser_ignores_unknown_or_malformed_payloads():
     )
 
 
+def test_webcam_snapshot_path_is_same_origin_and_never_exposes_full_urls():
+    from backend.app.services.moonraker_manager import MoonrakerManager
+
+    payload = {
+        "result": {
+            "webcams": [
+                {"enabled": True, "snapshot_url": "https://camera.example/snapshot"},
+                {"enabled": True, "snapshot_url": "/webcam/?action=snapshot"},
+            ]
+        }
+    }
+    assert MoonrakerManager._validated_snapshot_path(payload) == "/webcam/?action=snapshot"
+    for candidate in (
+        "//camera/snapshot",
+        "/../server/config",
+        "/%2e%2e/server/config",
+        "/webcam/%2f..%2fserver/config",
+        "/webcam/#fragment",
+        "http://camera/snapshot",
+    ):
+        assert (
+            MoonrakerManager._validated_snapshot_path(
+                {"result": {"webcams": [{"enabled": True, "snapshot_url": candidate}]}}
+            )
+            is None
+        )
+
+
 class _FixtureMoonrakerSocket:
     """Deterministic in-memory Moonraker peer with no control vocabulary."""
 

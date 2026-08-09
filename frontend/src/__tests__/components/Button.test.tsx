@@ -55,14 +55,16 @@ describe('Button', () => {
       render(<Button variant="secondary">Secondary</Button>);
 
       const button = screen.getByRole('button');
-      expect(button.className).toContain('bg-bambu-dark-tertiary');
+      expect(button.className).toContain('border-bambu-dark-tertiary');
+      expect(button.className).toContain('bg-transparent');
     });
 
     it('applies danger variant styles', () => {
       render(<Button variant="danger">Danger</Button>);
 
       const button = screen.getByRole('button');
-      expect(button.className).toContain('bg-red-600');
+      expect(button.className).toContain('border-bambu-green');
+      expect(button.className).toContain('bg-transparent');
     });
 
     it('applies ghost variant styles', () => {

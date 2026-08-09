@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 cd frontend
 npx tsc
 npm run lint

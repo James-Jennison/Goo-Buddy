@@ -79,8 +79,8 @@ describe('ConfirmModal', () => {
         <ConfirmModal {...defaultProps} onCancel={onCancel} />
       );
 
-      // Click on the backdrop (first div with fixed class)
-      const backdrop = container.querySelector('.fixed');
+      // Native dialog receives backdrop clicks on the dialog element itself.
+      const backdrop = container.querySelector('dialog');
       if (backdrop) {
         await user.click(backdrop);
         expect(onCancel).toHaveBeenCalledTimes(1);
@@ -101,7 +101,7 @@ describe('ConfirmModal', () => {
       const onCancel = vi.fn();
       render(<ConfirmModal {...defaultProps} onCancel={onCancel} />);
 
-      fireEvent.keyDown(window, { key: 'Escape' });
+      fireEvent(screen.getByRole('dialog'), new Event('cancel', { bubbles: true, cancelable: true }));
       expect(onCancel).toHaveBeenCalledTimes(1);
     });
   });
@@ -149,7 +149,7 @@ describe('ConfirmModal', () => {
         <ConfirmModal {...defaultProps} onCancel={onCancel} isLoading={true} />
       );
 
-      const backdrop = container.querySelector('.fixed');
+      const backdrop = container.querySelector('dialog');
       if (backdrop) {
         await user.click(backdrop);
         expect(onCancel).not.toHaveBeenCalled();
@@ -160,7 +160,7 @@ describe('ConfirmModal', () => {
       const onCancel = vi.fn();
       render(<ConfirmModal {...defaultProps} onCancel={onCancel} isLoading={true} />);
 
-      fireEvent.keyDown(window, { key: 'Escape' });
+      fireEvent(screen.getByRole('dialog'), new Event('cancel', { bubbles: true, cancelable: true }));
       expect(onCancel).not.toHaveBeenCalled();
     });
   });

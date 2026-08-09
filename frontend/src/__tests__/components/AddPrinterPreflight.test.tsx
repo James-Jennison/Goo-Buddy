@@ -38,7 +38,7 @@ describe('AddPrinterModal pre-flight', () => {
     );
 
     render(<PrintersPage />);
-    await user.click(await screen.findByText(/add printer/i));
+    await user.click((await screen.findAllByRole('button', { name: /add printer/i }))[0]);
 
     await user.type(await screen.findByPlaceholderText('My Printer'), 'Test Printer');
     await user.type(screen.getByPlaceholderText('192.168.1.100 or printer.local'), '192.168.1.55');
@@ -75,7 +75,7 @@ describe('AddPrinterModal pre-flight', () => {
     );
 
     render(<PrintersPage />);
-    await user.click(await screen.findByText(/add printer/i));
+    await user.click((await screen.findAllByRole('button', { name: /add printer/i }))[0]);
 
     await user.type(await screen.findByPlaceholderText('My Printer'), 'Test Printer');
     await user.type(screen.getByPlaceholderText('192.168.1.100 or printer.local'), '192.168.1.55');
