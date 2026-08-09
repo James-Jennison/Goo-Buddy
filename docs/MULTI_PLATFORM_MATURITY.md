@@ -62,7 +62,7 @@ in the same change.
 - [ ] Add role/permission checks and an auditable command lifecycle for
   non-Bambu sources, with idempotency, cancellation, timeout, and reconciliation
   behaviour.
-- [ ] Add deterministic Elegoo SDCP v3 control simulators and redacted fixtures
+- [x] Add deterministic Elegoo SDCP v3 control simulators and redacted fixtures
   for each operation considered for support.
 - [ ] Implement the closed Elegoo capability adapter and its API/UI paths,
   preserving manual activation, endpoint validation, and secret redaction.

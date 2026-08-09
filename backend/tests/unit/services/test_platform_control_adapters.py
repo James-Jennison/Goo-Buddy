@@ -13,6 +13,11 @@ from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.drivers.moonraker import MoonrakerDriver
 from backend.app.services.elegoo_sdcp_manager import ElegooSDCPManager, _LiveSource
 from backend.app.services.moonraker_manager import MoonrakerManager, _LiveMoonraker
+from backend.tests._fixtures.elegoo_sdcp_v3_control import (
+    COMMAND_BY_OPERATION,
+    MAINBOARD_ID,
+    StrictSdcpControlPeer,
+)
 
 
 def _command(driver: DriverKind, operation: PlatformControlOperation, revision: int = 3) -> PlatformControlCommand:
@@ -21,14 +26,6 @@ def _command(driver: DriverKind, operation: PlatformControlOperation, revision: 
 
 def _ready_observation() -> DriverObservation:
     return DriverObservation(ConnectionPhase.READY, frozenset({Capability.JOB_CONTROL}))
-
-
-class _SdcpSocket:
-    def __init__(self) -> None:
-        self.sent: list[str] = []
-
-    async def send_str(self, payload: str) -> None:
-        self.sent.append(payload)
 
 
 class _MoonrakerResponse:
@@ -63,18 +60,55 @@ async def test_elegoo_dispatch_uses_only_the_closed_sdcp_operation_map(
     monkeypatch: pytest.MonkeyPatch, operation: PlatformControlOperation, protocol_command: int
 ) -> None:
     manager = ElegooSDCPManager()
-    socket = _SdcpSocket()
+    socket = StrictSdcpControlPeer()
     live = _LiveSource(7, "192.168.1.40", SyntheticElegooSdcpV3Driver("elegoo-7"), configuration_revision=3)
-    live.mainboard_id = "fixture-mainboard-01"
+    live.mainboard_id = MAINBOARD_ID
     live.websocket = socket  # type: ignore[assignment]
     manager._sources[7] = live
     monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation())
 
     assert await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, operation)) is True
-    envelope = json.loads(socket.sent.pop())
-    assert envelope["Data"]["Cmd"] == protocol_command
-    assert envelope["Data"]["Data"] == {}
-    assert envelope["Topic"] == "sdcp/request/fixture-mainboard-01"
+    assert socket.operations == [operation]
+    assert protocol_command == COMMAND_BY_OPERATION[operation]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "command_data",
+    [
+        {
+            "Cmd": 999,
+            "Data": {},
+            "RequestID": "00000000-0000-4000-8000-000000000001",
+            "MainboardID": MAINBOARD_ID,
+            "TimeStamp": 1,
+            "From": 0,
+        },
+        {
+            "Cmd": 129,
+            "Data": {"gcode": "M112"},
+            "RequestID": "00000000-0000-4000-8000-000000000001",
+            "MainboardID": MAINBOARD_ID,
+            "TimeStamp": 1,
+            "From": 0,
+        },
+    ],
+)
+async def test_elegoo_control_simulator_rejects_arbitrary_commands_and_payloads(
+    command_data: dict[str, object],
+) -> None:
+    peer = StrictSdcpControlPeer()
+    payload = json.dumps(
+        {
+            "Id": "00000000-0000-4000-8000-000000000000",
+            "Data": command_data,
+            "Topic": f"sdcp/request/{MAINBOARD_ID}",
+        }
+    )
+
+    with pytest.raises(AssertionError):
+        await peer.send_str(payload)
+    assert peer.operations == []
 
 
 @pytest.mark.asyncio
@@ -125,8 +159,8 @@ async def test_dispatch_fails_closed_for_an_unavailable_capability_or_stale_conf
 ) -> None:
     manager = ElegooSDCPManager()
     live = _LiveSource(7, "192.168.1.40", SyntheticElegooSdcpV3Driver("elegoo-7"), configuration_revision=3)
-    live.mainboard_id = "fixture-mainboard-01"
-    live.websocket = _SdcpSocket()  # type: ignore[assignment]
+    live.mainboard_id = MAINBOARD_ID
+    live.websocket = StrictSdcpControlPeer()  # type: ignore[assignment]
     manager._sources[7] = live
     monkeypatch.setattr(
         manager, "observation", lambda _source_id: DriverObservation(ConnectionPhase.READY, frozenset())
