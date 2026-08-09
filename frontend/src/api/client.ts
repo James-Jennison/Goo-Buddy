@@ -420,6 +420,15 @@ export interface PlatformControlCommandResponse {
   status: 'acknowledged' | 'failed';
 }
 
+function platformControlRequestOptions(): RequestInit {
+  // The key is opaque audit metadata, never a printer command. A retry can
+  // replay the same key without sending a second physical control operation.
+  return {
+    method: 'POST',
+    headers: { 'Idempotency-Key': crypto.randomUUID().replaceAll('-', '') },
+  };
+}
+
 export interface HMSError {
   code: string;
   attr: number;  // Attribute value for constructing wiki URL
@@ -3887,9 +3896,9 @@ export const api = {
       body: JSON.stringify(data),
     }),
   getElegooStatus: (id: number) => request<ElegooDashboardStatus>(`/printers/elegoo/${id}/status`),
-  pauseElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/pause`, { method: 'POST' }),
-  resumeElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/resume`, { method: 'POST' }),
-  cancelElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/cancel`, { method: 'POST' }),
+  pauseElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/pause`, platformControlRequestOptions()),
+  resumeElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/resume`, platformControlRequestOptions()),
+  cancelElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/cancel`, platformControlRequestOptions()),
   deleteElegooSource: (id: number) =>
     request<{ status: string }>(`/printers/elegoo/${id}`, { method: 'DELETE' }),
   createMoonrakerSource: (data: MoonrakerSourceCreate) =>
@@ -3897,9 +3906,9 @@ export const api = {
   updateMoonrakerSource: (id: number, data: Partial<MoonrakerSourceCreate>) =>
     request<Printer>(`/printers/moonraker/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getMoonrakerStatus: (id: number) => request<MoonrakerDashboardStatus>(`/printers/moonraker/${id}/status`),
-  pauseMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/pause`, { method: 'POST' }),
-  resumeMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/resume`, { method: 'POST' }),
-  cancelMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/cancel`, { method: 'POST' }),
+  pauseMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/pause`, platformControlRequestOptions()),
+  resumeMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/resume`, platformControlRequestOptions()),
+  cancelMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/cancel`, platformControlRequestOptions()),
   deleteMoonrakerSource: (id: number) =>
     request<{ status: string }>(`/printers/moonraker/${id}`, { method: 'DELETE' }),
   updatePrinter: (id: number, data: Partial<PrinterCreate>) =>

@@ -59,7 +59,7 @@ in the same change.
 
 - [x] Define a shared, persisted command and capability model that cannot
   represent an arbitrary transport request.
-- [ ] Add role/permission checks and an auditable command lifecycle for
+- [x] Add role/permission checks and an auditable command lifecycle for
   non-Bambu sources, with idempotency, cancellation, timeout, and reconciliation
   behaviour.
 - [x] Add deterministic Elegoo SDCP v3 control simulators and redacted fixtures

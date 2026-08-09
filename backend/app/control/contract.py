@@ -67,15 +67,22 @@ def new_platform_control_command(
     source_id: int,
     configuration_revision: int,
     operation: PlatformControlOperation,
+    idempotency_key: str | None = None,
 ) -> PlatformControlCommand:
-    """Create an operation-only command with a server-generated idempotency key."""
+    """Create an operation-only command with a bounded idempotency key.
+
+    HTTP callers supply their already-generated key so a network retry can be
+    reconciled with its original audit row.  Internal callers may omit it, in
+    which case the server creates an equally bounded value.  Neither form can
+    carry protocol data.
+    """
 
     return PlatformControlCommand(
         driver=driver,
         source_id=source_id,
         configuration_revision=configuration_revision,
         operation=operation,
-        idempotency_key=uuid.uuid4().hex,
+        idempotency_key=idempotency_key if idempotency_key is not None else uuid.uuid4().hex,
     )
 
 

@@ -8,9 +8,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.control.contract import (
+    PlatformControlCommand,
     PlatformControlOperation,
     PlatformControlState,
     new_platform_control_command,
@@ -95,6 +97,7 @@ router = APIRouter(prefix="/printers", tags=["printers"])
 # so tests can monkeypatch a near-zero value instead of mocking asyncio.sleep.
 HMS_ACTION_ACK_WAIT_SECONDS = 2.5
 PLATFORM_CONTROL_DISPATCH_TIMEOUT_SECONDS = 10
+_PLATFORM_CONTROL_IDEMPOTENCY_KEY = re.compile(r"^[a-f0-9]{32}$")
 
 
 async def _caller_can_view_printer_secrets(user: User | None, db: AsyncSession) -> bool:
@@ -164,6 +167,35 @@ async def _require_empty_platform_control_body(request: Request) -> None:
         raise HTTPException(422, "Platform control operations do not accept a payload")
 
 
+def _platform_control_idempotency_key(request: Request) -> str:
+    """Read one opaque, bounded retry key without accepting control data."""
+
+    key = request.headers.get("Idempotency-Key")
+    if key is None or not _PLATFORM_CONTROL_IDEMPOTENCY_KEY.fullmatch(key):
+        raise HTTPException(422, "A valid Idempotency-Key is required")
+    return key
+
+
+def _platform_control_response(record: PlatformControlCommandRecord) -> PlatformControlCommandResponse:
+    return PlatformControlCommandResponse(id=record.id, operation=record.operation, status=record.status)
+
+
+def _same_platform_control_request(
+    record: PlatformControlCommandRecord,
+    command: PlatformControlCommand,
+    requested_by: int | None,
+) -> bool:
+    """Keep a replay key bound to its original principal and fixed action."""
+
+    return bool(
+        record.driver == command.driver.value
+        and record.source_id == command.source_id
+        and record.configuration_revision == command.configuration_revision
+        and record.operation == command.operation.value
+        and record.requested_by == requested_by
+    )
+
+
 async def _dispatch_platform_control(
     *,
     request: Request,
@@ -183,7 +215,23 @@ async def _dispatch_platform_control(
     """
 
     await _require_empty_platform_control_body(request)
-    command = new_platform_control_command(driver, source_id, configuration_revision, operation)
+    command = new_platform_control_command(
+        driver,
+        source_id,
+        configuration_revision,
+        operation,
+        _platform_control_idempotency_key(request),
+    )
+    requested_by = user.id if user is not None else None
+    existing = await db.scalar(
+        select(PlatformControlCommandRecord).where(
+            PlatformControlCommandRecord.idempotency_key == command.idempotency_key
+        )
+    )
+    if existing is not None:
+        if not _same_platform_control_request(existing, command, requested_by):
+            raise HTTPException(409, "Idempotency-Key is already bound to another control request")
+        return _platform_control_response(existing)
     record = PlatformControlCommandRecord(
         driver=command.driver.value,
         source_id=command.source_id,
@@ -191,10 +239,24 @@ async def _dispatch_platform_control(
         operation=command.operation.value,
         status=PlatformControlState.QUEUED.value,
         idempotency_key=command.idempotency_key,
-        requested_by=user.id if user is not None else None,
+        requested_by=requested_by,
     )
     db.add(record)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        # A concurrent retry can win between the read above and this insert.
+        # Reload the already-persisted result; do not send the printer command
+        # a second time merely because two HTTP requests arrived together.
+        await db.rollback()
+        existing = await db.scalar(
+            select(PlatformControlCommandRecord).where(
+                PlatformControlCommandRecord.idempotency_key == command.idempotency_key
+            )
+        )
+        if existing is not None and _same_platform_control_request(existing, command, requested_by):
+            return _platform_control_response(existing)
+        raise HTTPException(409, "Idempotency-Key is already bound to another control request") from None
     await db.refresh(record)
 
     record.status = PlatformControlState.DISPATCHING.value
@@ -220,7 +282,7 @@ async def _dispatch_platform_control(
     record.completed_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(record)
-    return PlatformControlCommandResponse(id=record.id, operation=record.operation, status=record.status)
+    return _platform_control_response(record)
 
 
 def _serialize_elegoo_source(source: ElegooSDCPSource) -> dict:

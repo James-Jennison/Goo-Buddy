@@ -14,6 +14,10 @@ from backend.app.drivers.contract import DriverKind
 from backend.app.models.platform_control_command import PlatformControlCommand as PlatformControlCommandRecord
 
 
+def _control_headers(key: str = "0123456789abcdef0123456789abcdef") -> dict[str, str]:
+    return {"Idempotency-Key": key}
+
+
 async def _create_source(async_client: AsyncClient, platform: str) -> int:
     if platform == "elegoo":
         response = await async_client.post(
@@ -63,7 +67,9 @@ async def test_control_routes_persist_and_dispatch_only_fixed_operations(
     source_id = await _create_source(async_client, platform)
     dispatch = AsyncMock(return_value=True)
     with patch(f"backend.app.api.routes.printers.{patch_target}.dispatch_command", dispatch):
-        response = await async_client.post(f"/api/v1/printers/{platform}/{source_id}/control/{route_operation}")
+        response = await async_client.post(
+            f"/api/v1/printers/{platform}/{source_id}/control/{route_operation}", headers=_control_headers()
+        )
 
     assert response.status_code == 200, response.text
     assert response.json()["operation"] == operation.value
@@ -112,7 +118,9 @@ async def test_control_routes_require_printer_control_permission_and_record_time
         "/api/v1/auth/setup",
         json={"auth_enabled": True, "admin_username": "control-admin", "admin_password": "AdminPass1!"},
     )
-    denied = await async_client.post(f"/api/v1/printers/moonraker/{source_id}/control/pause")
+    denied = await async_client.post(
+        f"/api/v1/printers/moonraker/{source_id}/control/pause", headers=_control_headers()
+    )
     assert denied.status_code == 401
 
     login = await async_client.post("/api/v1/auth/login", json={"username": "control-admin", "password": "AdminPass1!"})
@@ -126,7 +134,7 @@ async def test_control_routes_require_printer_control_permission_and_record_time
     with patch("backend.app.api.routes.printers.moonraker_manager.dispatch_command", never_dispatch):
         response = await async_client.post(
             f"/api/v1/printers/moonraker/{source_id}/control/pause",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {token}", **_control_headers()},
         )
 
     assert response.status_code == 200
@@ -134,6 +142,64 @@ async def test_control_routes_require_printer_control_permission_and_record_time
     record = (await db_session.execute(select(PlatformControlCommandRecord))).scalar_one()
     assert record.error_code == "dispatch_timeout"
     assert record.requested_by is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_control_routes_replay_the_same_key_without_a_second_dispatch(
+    async_client: AsyncClient, db_session
+) -> None:
+    source_id = await _create_source(async_client, "elegoo")
+    dispatch = AsyncMock(return_value=True)
+    key = "abcdef0123456789abcdef0123456789"
+    with patch("backend.app.api.routes.printers.elegoo_sdcp_manager.dispatch_command", dispatch):
+        first = await async_client.post(
+            f"/api/v1/printers/elegoo/{source_id}/control/pause", headers=_control_headers(key)
+        )
+        replay = await async_client.post(
+            f"/api/v1/printers/elegoo/{source_id}/control/pause", headers=_control_headers(key)
+        )
+
+    assert first.status_code == replay.status_code == 200
+    assert replay.json() == first.json()
+    assert dispatch.await_count == 1
+    assert len((await db_session.execute(select(PlatformControlCommandRecord))).scalars().all()) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.parametrize("key", ["M112", "/printer/gcode/script", "A" * 32, "0" * 31])
+async def test_control_routes_reject_invalid_idempotency_keys(async_client: AsyncClient, db_session, key: str) -> None:
+    source_id = await _create_source(async_client, "moonraker")
+    response = await async_client.post(
+        f"/api/v1/printers/moonraker/{source_id}/control/cancel", headers={"Idempotency-Key": key}
+    )
+
+    assert response.status_code == 422
+    assert "M112" not in response.text and "gcode/script" not in response.text
+    assert (await db_session.execute(select(PlatformControlCommandRecord))).scalars().all() == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_control_routes_reject_key_reuse_for_a_different_fixed_operation(
+    async_client: AsyncClient, db_session
+) -> None:
+    source_id = await _create_source(async_client, "moonraker")
+    key = "fedcba9876543210fedcba9876543210"
+    dispatch = AsyncMock(return_value=True)
+    with patch("backend.app.api.routes.printers.moonraker_manager.dispatch_command", dispatch):
+        accepted = await async_client.post(
+            f"/api/v1/printers/moonraker/{source_id}/control/pause", headers=_control_headers(key)
+        )
+        rejected = await async_client.post(
+            f"/api/v1/printers/moonraker/{source_id}/control/cancel", headers=_control_headers(key)
+        )
+
+    assert accepted.status_code == 200
+    assert rejected.status_code == 409
+    assert dispatch.await_count == 1
+    assert len((await db_session.execute(select(PlatformControlCommandRecord))).scalars().all()) == 1
 
 
 @pytest.mark.asyncio
