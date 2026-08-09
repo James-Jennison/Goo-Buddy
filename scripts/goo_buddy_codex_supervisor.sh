@@ -17,12 +17,14 @@ readonly SUPERVISOR_LOG="$STATE_DIR/supervisor.log"
 readonly STATUS_PATH="$STATE_DIR/implementation-status.md"
 readonly LOCK_PATH="$STATE_DIR/implementation.lock"
 readonly STOP_SENTINEL="$STATE_DIR/human-only-blocker"
+readonly RESUME_FINGERPRINT="$STATE_DIR/resume-dirty-worktree.fingerprint"
 readonly TMUX_SESSION="goo-buddy-codex-supervisor"
 readonly CHECKLIST="$ROOT/docs/MULTI_PLATFORM_MATURITY.md"
 readonly INTERVAL_SECONDS="${GOO_BUDDY_SUPERVISOR_INTERVAL_SECONDS:-60}"
+readonly TASK_FOCUS="${GOO_BUDDY_SUPERVISOR_TASK_FOCUS:-Implement the closed Elegoo SDCP v3 and Moonraker control protocol adapters now. Add exact pause, resume, and cancel operation mappings only, with direct unit tests that reject arbitrary command values, paths, payloads, and G-code. Reuse the existing PlatformControlOperation contract.}"
 
 usage() {
-    printf '%s\n' "Usage: ${0##*/} [--worker|--once|--status-path|--log-path|--stop]"
+    printf '%s\n' "Usage: ${0##*/} [--worker|--once|--resume|--status-path|--log-path|--stop]"
 }
 
 prepare_state() {
@@ -103,7 +105,17 @@ meaningful_worktree_status() {
     git -C "$ROOT" status --porcelain=v1 --untracked-files=all | grep -vE '^\?\? \.codex/' || true
 }
 
-readonly TASK_PROMPT="You are the Goo Buddy implementation worker. Read AGENTS.md and inspect the current repository before acting. Continue the already-authorized multi-platform control milestone: mature Elegoo/OpenCentauri SDCP v3 and Klipper/Moonraker support, including safe permission-gated printer control. Complete exactly one bounded, user-visible unchecked item from the 'Automated delivery checklist' in docs/MULTI_PLATFORM_MATURITY.md. You must implement and test it; do not merely analyze, report status, or refactor without delivering the selected capability. Preserve all existing user and worker changes: never reset, checkout, clean, stash, or overwrite unrelated work. Do not publish, deploy, install, activate services, access credentials, scan any network, or contact/control any printer. Do not edit ignored supervisor device configuration. Keep controls closed and capability-driven: no arbitrary G-code, generic command tunnels, arbitrary HTTP paths, arbitrary payloads, or unreviewed write paths. Run focused relevant tests plus backend ruff check and format check when backend changes, then run ./test_all.sh before committing. Commit only the selected, validated milestone with a clear conventional subject, and push that commit to origin/main. Do not tag, create releases, or run publishing scripts. Update the checklist only when the selected item is actually complete and evidence-backed. If a genuine human-only blocker requires missing credentials, a production/public change, hardware action, destructive operation, or material product decision, write a concise non-secret explanation to $STOP_SENTINEL and exit; normal implementation choices are not blockers. When the one task is finished, leave a clean worktree aligned with origin/main and exit successfully."
+resume_matches_current_worktree() {
+    [[ -f "$RESUME_FINGERPRINT" ]] || return 1
+    [[ "$(<"$RESUME_FINGERPRINT")" == "$(fingerprint)" ]]
+}
+
+upstream_is_not_ahead() {
+    git -C "$ROOT" rev-parse --verify --quiet '@{upstream}' >/dev/null &&
+        git -C "$ROOT" merge-base --is-ancestor '@{upstream}' HEAD
+}
+
+readonly TASK_PROMPT="You are the Goo Buddy implementation worker. Read AGENTS.md and inspect only the files relevant to the task before acting. Continue the already-authorized multi-platform control milestone: mature Elegoo/OpenCentauri SDCP v3 and Klipper/Moonraker support, including safe permission-gated printer control. Complete exactly one bounded, user-visible unchecked item from the 'Automated delivery checklist' in docs/MULTI_PLATFORM_MATURITY.md. Priority focus for this run: $TASK_FOCUS Begin implementation immediately after inspecting the relevant contract, manager, and adjacent test files; do not perform repository-wide searches. You must implement and test it; do not merely analyze, report status, or refactor without delivering the selected capability. Preserve all existing user and worker changes: never reset, checkout, clean, stash, or overwrite unrelated work. Do not publish, deploy, install, activate services, access credentials, scan any network, or contact/control any printer. Do not edit ignored supervisor device configuration. Keep controls closed and capability-driven: no arbitrary G-code, generic command tunnels, arbitrary HTTP paths, arbitrary payloads, or unreviewed write paths. Run focused relevant tests plus backend ruff check and format check when backend changes, then run ./test_all.sh before committing. Commit only the selected, validated milestone with a clear conventional subject. Do not push, tag, create releases, or run publishing scripts. Update the checklist only when the selected item is actually complete and evidence-backed. If a genuine human-only blocker requires missing credentials, a production/public change, hardware action, destructive operation, or material product decision, write a concise non-secret explanation to $STOP_SENTINEL and exit; normal implementation choices are not blockers. When the one task is finished, leave a clean worktree with the committed milestone on local main and exit successfully."
 
 worker() {
     prepare_state
@@ -130,10 +142,14 @@ worker() {
             stop_cleanly blocked 'Repository is not on the documented main branch.'
         fi
         if [[ -n "$(meaningful_worktree_status)" ]]; then
-            stop_cleanly blocked 'Repository has uncommitted product changes; preserve and resolve them before the next task.'
+            if resume_matches_current_worktree; then
+                log 'resuming the exact interrupted worktree authorized by the local user'
+            else
+                stop_cleanly blocked 'Repository has uncommitted product changes; preserve and resolve them before the next task.'
+            fi
         fi
-        if [[ "$(git -C "$ROOT" rev-parse HEAD)" != "$(git -C "$ROOT" rev-parse '@{upstream}')" ]]; then
-            stop_cleanly blocked 'Repository is not aligned with its upstream before the next task.'
+        if ! upstream_is_not_ahead; then
+            stop_cleanly blocked 'Repository is behind or has diverged from its upstream before the next task.'
         fi
 
         local before after worker_status
@@ -153,8 +169,9 @@ worker() {
         if [[ -n "$(meaningful_worktree_status)" ]]; then
             stop_cleanly blocked 'Implementation worker left uncommitted product changes.'
         fi
-        if [[ "$(git -C "$ROOT" rev-parse HEAD)" != "$(git -C "$ROOT" rev-parse '@{upstream}')" ]]; then
-            stop_cleanly blocked 'Implementation worker did not push an aligned origin/main commit.'
+        rm -f -- "$RESUME_FINGERPRINT"
+        if ! upstream_is_not_ahead; then
+            stop_cleanly blocked 'Implementation worker left local main behind or diverged from its upstream.'
         fi
 
         after="$(fingerprint)"
@@ -183,12 +200,31 @@ controller() {
     fi
 }
 
+resume() {
+    prepare_state
+    if [[ -z "$(meaningful_worktree_status)" ]]; then
+        rm -f -- "$RESUME_FINGERPRINT" "$STOP_SENTINEL"
+        controller
+        return
+    fi
+
+    local temporary
+    temporary="$(mktemp "$STATE_DIR/.resume-dirty-worktree.XXXXXX")"
+    fingerprint > "$temporary"
+    chmod 600 -- "$temporary"
+    mv -f -- "$temporary" "$RESUME_FINGERPRINT"
+    rm -f -- "$STOP_SENTINEL"
+    log 'local user authorized resumption of the exact interrupted worktree'
+    controller
+}
+
 case "${1:-}" in
     --worker) worker ;;
     --once)
         export GOO_BUDDY_SUPERVISOR_INTERVAL_SECONDS=1
         worker
         ;;
+    --resume) resume ;;
     --status-path) printf '%s\n' "$STATUS_PATH" ;;
     --log-path) printf '%s\n' "$WORKER_LOG" ;;
     --stop)
