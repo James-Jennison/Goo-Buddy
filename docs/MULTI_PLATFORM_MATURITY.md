@@ -66,7 +66,7 @@ in the same change.
   for each operation considered for support.
 - [ ] Implement the closed Elegoo capability adapter and its API/UI paths,
   preserving manual activation, endpoint validation, and secret redaction.
-- [ ] Add deterministic Moonraker control simulators and redacted fixtures for
+- [x] Add deterministic Moonraker control simulators and redacted fixtures for
   each operation considered for support.
 - [ ] Implement the closed Moonraker capability adapter and its API/UI paths,
   preserving private-endpoint validation, protected API keys, and no generic

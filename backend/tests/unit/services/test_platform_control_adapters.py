@@ -18,6 +18,7 @@ from backend.tests._fixtures.elegoo_sdcp_v3_control import (
     MAINBOARD_ID,
     StrictSdcpControlPeer,
 )
+from backend.tests._fixtures.moonraker_control import PATH_BY_OPERATION, StrictMoonrakerControlPeer
 
 
 def _command(driver: DriverKind, operation: PlatformControlOperation, revision: int = 3) -> PlatformControlCommand:
@@ -26,25 +27,6 @@ def _command(driver: DriverKind, operation: PlatformControlOperation, revision: 
 
 def _ready_observation() -> DriverObservation:
     return DriverObservation(ConnectionPhase.READY, frozenset({Capability.JOB_CONTROL}))
-
-
-class _MoonrakerResponse:
-    status = 200
-
-    async def __aenter__(self) -> _MoonrakerResponse:
-        return self
-
-    async def __aexit__(self, *_args: object) -> None:
-        return None
-
-
-class _MoonrakerClient:
-    def __init__(self) -> None:
-        self.calls: list[tuple[str, dict[str, object]]] = []
-
-    def post(self, url: str, **kwargs: object) -> _MoonrakerResponse:
-        self.calls.append((url, kwargs))
-        return _MoonrakerResponse()
 
 
 @pytest.mark.asyncio
@@ -113,18 +95,19 @@ async def test_elegoo_control_simulator_rejects_arbitrary_commands_and_payloads(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("operation", "path"),
+    "operation",
     [
-        (PlatformControlOperation.PAUSE_JOB, "/printer/print/pause"),
-        (PlatformControlOperation.RESUME_JOB, "/printer/print/resume"),
-        (PlatformControlOperation.CANCEL_JOB, "/printer/print/cancel"),
+        PlatformControlOperation.PAUSE_JOB,
+        PlatformControlOperation.RESUME_JOB,
+        PlatformControlOperation.CANCEL_JOB,
     ],
 )
 async def test_moonraker_dispatch_uses_only_the_closed_bodyless_operation_map(
-    monkeypatch: pytest.MonkeyPatch, operation: PlatformControlOperation, path: str
+    monkeypatch: pytest.MonkeyPatch, operation: PlatformControlOperation
 ) -> None:
     manager = MoonrakerManager()
-    client = _MoonrakerClient()
+    base_url = "http://192.168.1.44:7125"
+    client = StrictMoonrakerControlPeer(base_url)
     live = _LiveMoonraker(
         7,
         "Synthetic",
@@ -140,7 +123,27 @@ async def test_moonraker_dispatch_uses_only_the_closed_bodyless_operation_map(
     monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation())
 
     assert await manager.dispatch_command(_command(DriverKind.MOONRAKER, operation)) is True
-    assert client.calls == [(f"http://192.168.1.44:7125{path}", {"allow_redirects": False})]
+    assert client.operations == [operation]
+    assert PATH_BY_OPERATION[operation] in {"/printer/print/pause", "/printer/print/resume", "/printer/print/cancel"}
+
+
+@pytest.mark.parametrize(
+    ("url", "kwargs"),
+    [
+        ("http://192.168.1.44:7125/printer/gcode/script", {"allow_redirects": False}),
+        ("http://192.168.1.44:7125/printer/print/pause?gcode=M112", {"allow_redirects": False}),
+        ("http://192.168.1.44:7125/printer/print/pause", {"allow_redirects": True}),
+        ("http://192.168.1.44:7125/printer/print/pause", {"allow_redirects": False, "json": {"script": "M112"}}),
+    ],
+)
+def test_moonraker_control_simulator_rejects_arbitrary_paths_payloads_and_gcode(
+    url: str, kwargs: dict[str, object]
+) -> None:
+    peer = StrictMoonrakerControlPeer("http://192.168.1.44:7125")
+
+    with pytest.raises(AssertionError):
+        peer.post(url, **kwargs)
+    assert peer.operations == []
 
 
 @pytest.mark.asyncio
