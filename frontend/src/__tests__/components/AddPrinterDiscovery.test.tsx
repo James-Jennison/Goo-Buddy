@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from '../utils';
 import { PrintersPage } from '../../pages/PrintersPage';
@@ -56,34 +56,36 @@ describe('AddPrinterModal Discovery', () => {
     );
   });
 
-  it('offers explicit manual Elegoo setup without running Bambu discovery', async () => {
+  it('offers explicit manual Elegoo setup with only capability-gated controls and no Bambu discovery', async () => {
     render(<PrintersPage />);
     await waitFor(() => expect(screen.getByText('X1 Carbon')).toBeInTheDocument());
 
     await userEvent.click(screen.getByText(/add printer/i));
     await userEvent.selectOptions(screen.getByLabelText('Printer platform'), 'elegoo');
 
-    expect(screen.getByText(/passive SDCP v3 connection/i)).toBeInTheDocument();
+    expect(screen.getByText(/capability- and permission-gated pause, resume, and cancel requests/i)).toBeInTheDocument();
     expect(screen.queryByText(/subnet to scan/i)).not.toBeInTheDocument();
     await userEvent.type(screen.getByLabelText('Display name'), 'Centauri');
     await userEvent.type(screen.getByLabelText('Private IPv4 address'), '192.168.10.20');
-    await userEvent.click(screen.getByLabelText(/I understand this is read-only/i));
-    expect(screen.getByRole('button', { name: /add read-only printer/i })).toBeEnabled();
+    const acknowledgement = screen.getByLabelText(/only supported, capability-gated job controls may be available/i);
+    await userEvent.click(acknowledgement);
+    expect(within(acknowledgement.closest('form')!).getByRole('button', { name: /^add printer$/i })).toBeEnabled();
   });
 
-  it('offers manual Moonraker alpha setup without exposing Bambu discovery', async () => {
+  it('offers manual Moonraker setup with only capability-gated controls and no Bambu discovery', async () => {
     render(<PrintersPage />);
     await waitFor(() => expect(screen.getByText('X1 Carbon')).toBeInTheDocument());
 
     await userEvent.click(screen.getByText(/add printer/i));
     await userEvent.selectOptions(screen.getByLabelText('Printer platform'), 'moonraker');
 
-    expect(screen.getByText(/Moonraker alpha support is manual and read-only/i)).toBeInTheDocument();
+    expect(screen.getByText(/Moonraker support is manual and opt-in/i)).toBeInTheDocument();
     expect(screen.queryByText(/subnet to scan/i)).not.toBeInTheDocument();
     await userEvent.type(screen.getByLabelText('Display name'), 'Synthetic Klipper');
     await userEvent.type(screen.getByLabelText('Private IPv4 address'), '192.168.10.21');
-    await userEvent.click(screen.getByLabelText(/Moonraker support is alpha and read-only/i));
-    expect(screen.getByRole('button', { name: /add read-only printer/i })).toBeEnabled();
+    const acknowledgement = screen.getByLabelText(/only supported, capability-gated job controls may be available/i);
+    await userEvent.click(acknowledgement);
+    expect(within(acknowledgement.closest('form')!).getByRole('button', { name: /^add printer$/i })).toBeEnabled();
   });
 
   it('auto-populates subnet from discovery info in Docker mode', async () => {

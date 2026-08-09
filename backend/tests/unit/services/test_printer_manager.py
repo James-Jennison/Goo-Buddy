@@ -732,15 +732,20 @@ class TestPrinterManager:
             # Another coroutine must keep making progress while disconnect()
             # runs — proves the event loop was not blocked.
             event_loop_alive_ticks = 0
+            heartbeat_started = asyncio.Event()
 
             async def heartbeat():
                 nonlocal event_loop_alive_ticks
+                heartbeat_started.set()
                 while True:
                     await asyncio.sleep(0.05)
                     event_loop_alive_ticks += 1
 
             heartbeat_task = asyncio.create_task(heartbeat())
             try:
+                # Ensure the heartbeat has actually entered its sleep before
+                # the fast-path connection setup reaches the off-loop teardown.
+                await heartbeat_started.wait()
                 await manager.test_connection("192.168.1.100", "00M09A123456789", "12345678")
             finally:
                 heartbeat_task.cancel()

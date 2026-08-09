@@ -78,7 +78,7 @@ in the same change.
 - [x] Add API, driver, simulator, and frontend tests for success, denial,
   disconnect, timeout, duplicate-command, stale-state, and restart recovery
   behaviour.
-- [ ] Pass the complete local validation gate from a disposable Docker test
+- [x] Pass the complete local validation gate from a disposable Docker test
   context: `./test_all.sh`.
 
 ## Hands-on validation checklist
