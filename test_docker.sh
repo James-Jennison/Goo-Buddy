@@ -49,8 +49,7 @@ print_info() {
 
 cleanup() {
     print_info "Cleaning up test containers..."
-    sudo docker compose -f docker-compose.test.yml down -v --remove-orphans 2>/dev/null || true
-    sudo docker compose down -v --remove-orphans 2>/dev/null || true
+    docker compose -f docker-compose.test.yml down -v --remove-orphans 2>/dev/null || true
 }
 
 # Cleanup on exit
@@ -122,6 +121,19 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Docker tests must run with the caller's Docker permissions.  Do not invoke
+# sudo here: it can block unattended runs waiting for an interactive password.
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Docker CLI is required to run this test suite." >&2
+    exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+    echo "Docker daemon is not accessible to the current user." >&2
+    echo "Configure Docker access for this user, then rerun $0." >&2
+    exit 1
+fi
+
 # Set cache flag based on --fresh option
 CACHE_FLAG=""
 if [ "$FRESH_BUILD" = true ]; then
@@ -150,7 +162,7 @@ fi
 
 if [ -n "$IMAGES_TO_BUILD" ]; then
     print_info "Building test images in parallel:$IMAGES_TO_BUILD"
-    if sudo docker compose -f docker-compose.test.yml build --parallel $CACHE_FLAG $IMAGES_TO_BUILD; then
+    if docker compose -f docker-compose.test.yml build --parallel $CACHE_FLAG $IMAGES_TO_BUILD; then
         print_success "Test images built successfully"
     else
         print_failure "Test image build failed"
@@ -165,18 +177,18 @@ if [ "$RUN_BUILD" = true ]; then
     print_header "Test 1: Docker Build (Production)"
     print_info "Building production Docker image..."
 
-    if sudo docker build -t bambuddy:test . $CACHE_FLAG --progress=plain; then
+    if docker build -t bambuddy:test . $CACHE_FLAG --progress=plain; then
         print_success "Production image builds successfully"
 
         # Verify image has expected labels/structure
         print_info "Verifying image structure..."
-        if sudo docker run --rm bambuddy:test python -c "import backend.app.main; print('Backend imports OK')"; then
+        if docker run --rm bambuddy:test python -c "import backend.app.main; print('Backend imports OK')"; then
             print_success "Backend module imports correctly"
         else
             print_failure "Backend module import failed"
         fi
 
-        if sudo docker run --rm bambuddy:test test -d /app/static; then
+        if docker run --rm bambuddy:test test -d /app/static; then
             print_success "Static files directory exists"
         else
             print_failure "Static files directory missing"
@@ -192,7 +204,7 @@ fi
 if [ "$RUN_BACKEND" = true ]; then
     print_header "Test 2: Backend Unit Tests"
     print_info "Running backend tests..."
-    if sudo docker compose -f docker-compose.test.yml run --rm backend-test; then
+    if docker compose -f docker-compose.test.yml run --rm backend-test; then
         print_success "Backend unit tests passed"
     else
         print_failure "Backend unit tests failed"
@@ -205,7 +217,7 @@ fi
 if [ "$RUN_FRONTEND" = true ]; then
     print_header "Test 3: Frontend Unit Tests"
     print_info "Running frontend tests..."
-    if sudo docker compose -f docker-compose.test.yml run --rm frontend-test; then
+    if docker compose -f docker-compose.test.yml run --rm frontend-test; then
         print_success "Frontend unit tests passed"
     else
         print_failure "Frontend unit tests failed"
@@ -220,13 +232,13 @@ if [ "$RUN_INTEGRATION" = true ]; then
     print_info "Starting application container..."
 
     # Start the integration container
-    sudo docker compose -f docker-compose.test.yml up --remove-orphans -d integration
+    docker compose -f docker-compose.test.yml up --remove-orphans -d integration
 
     # Wait for health check
     print_info "Waiting for application to be healthy..."
     RETRIES=30
     while [ $RETRIES -gt 0 ]; do
-        if sudo docker compose -f docker-compose.test.yml ps integration | grep -q "healthy"; then
+        if docker compose -f docker-compose.test.yml ps integration | grep -q "healthy"; then
             break
         fi
         sleep 2
@@ -235,7 +247,7 @@ if [ "$RUN_INTEGRATION" = true ]; then
 
     if [ $RETRIES -eq 0 ]; then
         print_failure "Application failed to become healthy"
-        sudo docker compose -f docker-compose.test.yml logs integration
+        docker compose -f docker-compose.test.yml logs integration
     else
         print_success "Application is healthy"
 
@@ -243,7 +255,7 @@ if [ "$RUN_INTEGRATION" = true ]; then
         print_info "Running integration tests..."
 
         # Test health endpoint
-        HEALTH_RESPONSE=$(sudo docker compose -f docker-compose.test.yml exec -T integration curl -s http://localhost:${PORT}/health)
+        HEALTH_RESPONSE=$(docker compose -f docker-compose.test.yml exec -T integration curl -s http://localhost:${PORT}/health)
         if echo "$HEALTH_RESPONSE" | grep -q "healthy"; then
             print_success "Health endpoint responds correctly"
         else
@@ -251,7 +263,7 @@ if [ "$RUN_INTEGRATION" = true ]; then
         fi
 
         # Test API endpoints
-        API_RESPONSE=$(sudo docker compose -f docker-compose.test.yml exec -T integration curl -s http://localhost:${PORT}/api/v1/settings)
+        API_RESPONSE=$(docker compose -f docker-compose.test.yml exec -T integration curl -s http://localhost:${PORT}/api/v1/settings)
         if echo "$API_RESPONSE" | grep -q "settings"; then
             print_success "Settings API endpoint responds"
         else
@@ -260,7 +272,7 @@ if [ "$RUN_INTEGRATION" = true ]; then
         fi
 
         # Test static files
-        STATIC_RESPONSE=$(sudo docker compose -f docker-compose.test.yml exec -T integration curl -s -o /dev/null -w "%{http_code}" http://localhost:${PORT}/)
+        STATIC_RESPONSE=$(docker compose -f docker-compose.test.yml exec -T integration curl -s -o /dev/null -w "%{http_code}" http://localhost:${PORT}/)
         if [ "$STATIC_RESPONSE" = "200" ]; then
             print_success "Static files served correctly"
         else
@@ -268,7 +280,7 @@ if [ "$RUN_INTEGRATION" = true ]; then
         fi
 
         # Run pytest integration tests if they exist
-        if sudo docker compose -f docker-compose.test.yml run --rm integration-test-runner 2>/dev/null; then
+        if docker compose -f docker-compose.test.yml run --rm integration-test-runner 2>/dev/null; then
             print_success "Integration test suite passed"
         else
             print_info "No Docker-specific integration tests found (this is OK)"
@@ -276,7 +288,7 @@ if [ "$RUN_INTEGRATION" = true ]; then
     fi
 
     # Cleanup integration containers
-    sudo docker compose -f docker-compose.test.yml down -v
+    docker compose -f docker-compose.test.yml down -v
 fi
 
 # ============================================
