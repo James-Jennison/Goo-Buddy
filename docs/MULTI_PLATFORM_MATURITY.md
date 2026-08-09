@@ -71,7 +71,7 @@ in the same change.
 - [x] Implement the closed Moonraker capability adapter and its API/UI paths,
   preserving private-endpoint validation, protected API keys, and no generic
   JSON-RPC or G-code route.
-- [ ] Add Workshop controls that disclose the target, operation, confirmation,
+- [x] Add Workshop controls that disclose the target, operation, confirmation,
   pending state, result, and unavailable-capability explanation accessibly.
 - [ ] Add regression coverage proving non-Bambu sources cannot use Bambu-only
   command, queue, upload, virtual-printer, file, camera, or maintenance paths.

@@ -29,6 +29,7 @@ export interface WorkshopSnapshot {
     elapsed_seconds?: number | null;
     estimated_remaining_seconds?: number | null;
   } | null;
+  capabilities?: string[];
 }
 
 export function WorkshopStatusBadge({ phase, retained = false }: { phase?: WorkshopPhase | null; retained?: boolean }) {
@@ -97,7 +98,7 @@ export function WorkshopReadOnlyPresentation({ platform, snapshot }: { platform:
         </div>
       )}
 
-      <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>Camera, files, console, maintenance, uploads, CANVAS, and controls are unavailable for this read-only source.</span></div>
+      <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>Camera, files, console, maintenance, uploads, and CANVAS are unavailable for this source. Any supported job controls are shown separately.</span></div>
     </section>
   );
 }

@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { Printer } from '../../api/client';
 import { ElegooPrinterCard, MoonrakerPrinterCard } from '../../pages/PrintersPage';
+import { AuthProvider } from '../../contexts/AuthContext';
 import { server } from '../mocks/server';
 
 function readOnlyPrinter(overrides: Partial<Printer>): Printer {
@@ -31,7 +32,7 @@ function readOnlyPrinter(overrides: Partial<Printer>): Printer {
 
 function renderCard(card: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={queryClient}>{card}</QueryClientProvider>);
+  return render(<AuthProvider><QueryClientProvider client={queryClient}>{card}</QueryClientProvider></AuthProvider>);
 }
 
 describe('read-only printer cards', () => {
@@ -46,10 +47,10 @@ describe('read-only printer cards', () => {
     renderCard(<ElegooPrinterCard printer={readOnlyPrinter({ platform: 'elegoo' })} />);
     await waitFor(() => expect(screen.getByText(/retained data — not current/i)).toBeInTheDocument());
     expect(screen.getByText(/Chamber 33°C/i)).toBeInTheDocument();
-    expect(screen.getByText(/camera, files, console, maintenance, and controls are unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/camera, files, console, and maintenance remain unavailable/i)).toBeInTheDocument();
   });
 
-  it('explains Moonraker authorization without exposing configuration and keeps controls unavailable', async () => {
+  it('explains Moonraker authorization without exposing configuration and disables controls', async () => {
     const publicId = -1_000_201;
     server.use(http.get('/api/v1/printers/moonraker/201/status', () => HttpResponse.json({
       phase: 'unauthorized', freshness: 'unavailable', retained: false, last_observation_at: null, error: 'unauthorized',
@@ -59,7 +60,8 @@ describe('read-only printer cards', () => {
     renderCard(<MoonrakerPrinterCard printer={readOnlyPrinter({ id: publicId, platform: 'moonraker', api_key_configured: true })} />);
     await waitFor(() => expect(screen.getByText(/Moonraker authentication needs attention/i)).toBeInTheDocument());
     expect(screen.getByText(/never displays the key/i)).toBeInTheDocument();
-    expect(screen.getByText(/camera, files, console, maintenance, upload, and controls are unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/camera, files, console, maintenance, and upload remain unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/Wait for a fresh, ready printer observation/i)).toBeInTheDocument();
     expect(screen.queryByText(/Synthetic preview only/i)).not.toBeInTheDocument();
   });
 
