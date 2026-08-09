@@ -378,6 +378,7 @@ export interface Printer {
   port?: number;
   scheme?: 'http' | 'https';
   api_key_configured?: boolean;
+  camera_proxy_configured?: boolean;
   firmware?: string | null;
 }
 
@@ -394,6 +395,9 @@ export interface MoonrakerSourceCreate {
   port: number;
   scheme: 'http' | 'https';
   api_key?: string;
+  camera_proxy_port?: number | null;
+  camera_proxy_scheme?: 'http' | 'https' | null;
+  camera_proxy_path?: string | null;
   read_only_acknowledged: boolean;
   is_enabled: boolean;
 }

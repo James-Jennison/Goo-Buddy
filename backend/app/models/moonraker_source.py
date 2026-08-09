@@ -23,6 +23,11 @@ class MoonrakerSource(Base):
     private_ipv4: Mapped[str] = mapped_column(String(15), unique=True)
     port: Mapped[int] = mapped_column(Integer, default=7125)
     scheme: Mapped[str] = mapped_column(String(5), default="http")
+    # Deliberately no proxy-host column: a Mainsail camera proxy can only use
+    # this source's private address.
+    camera_proxy_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    camera_proxy_scheme: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    camera_proxy_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
     _api_key_enc: Mapped[str | None] = mapped_column("api_key", String(2048), nullable=True)
     is_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     read_only_acknowledged: Mapped[bool] = mapped_column(Boolean, default=False)

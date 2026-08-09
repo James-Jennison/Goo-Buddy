@@ -6,7 +6,7 @@ cd backend
 ../venv/bin/ruff check
 ../venv/bin/ruff format --check
 
-TEST_WORKERS="${GOO_BUDDY_PYTEST_WORKERS:-6}"
+TEST_WORKERS="${GOO_BUDDY_PYTEST_WORKERS:-8}"
 case "$TEST_WORKERS" in
     ''|*[!0-9]*|0)
         echo "GOO_BUDDY_PYTEST_WORKERS must be a positive integer" >&2

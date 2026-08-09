@@ -1,5 +1,6 @@
 import ipaddress
 from datetime import datetime
+from urllib.parse import parse_qsl, urlsplit
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -167,11 +168,41 @@ def _moonraker_port(value: int) -> int:
     return value
 
 
+def normalize_mainsail_camera_proxy_path(value: str) -> str:
+    """Accept one narrow Mainsail webcam proxy path and drop cache-busters.
+
+    The source address is intentionally not part of this input.  The caller
+    combines this path only with the saved Moonraker source's private address.
+    """
+    if not isinstance(value, str) or value != value.strip() or len(value) > 512 or "%" in value or "\\" in value:
+        raise ValueError("Invalid Mainsail camera proxy path")
+    parsed = urlsplit(value)
+    if parsed.scheme or parsed.netloc or parsed.fragment or not parsed.path.startswith("/webcam/"):
+        raise ValueError("Invalid Mainsail camera proxy path")
+    if any(segment in {"", ".", ".."} for segment in parsed.path.split("/")[1:-1]):
+        raise ValueError("Invalid Mainsail camera proxy path")
+    try:
+        query = parse_qsl(parsed.query, keep_blank_values=True, strict_parsing=True)
+    except ValueError as exc:
+        raise ValueError("Invalid Mainsail camera proxy path") from exc
+    actions = [value for key, value in query if key == "action"]
+    unsupported = [(key, value) for key, value in query if key not in {"action", "cacheBust"}]
+    if len(actions) != 1 or actions[0] not in {"stream", "snapshot"} or unsupported:
+        raise ValueError("Invalid Mainsail camera proxy path")
+    if any(key == "cacheBust" and (not value or not value.isascii() or not value.isdigit()) for key, value in query):
+        raise ValueError("Invalid Mainsail camera proxy path")
+    # Cache busters have no configuration meaning and must never persist.
+    return f"{parsed.path}?action={actions[0]}"
+
+
 class MoonrakerSourceCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     private_ipv4: str = Field(..., min_length=7, max_length=15)
     port: int = Field(default=7125, strict=True)
     scheme: str = "http"
+    camera_proxy_port: int | None = Field(default=None, strict=True)
+    camera_proxy_scheme: str | None = None
+    camera_proxy_path: str | None = Field(default=None, max_length=512)
     api_key: str | None = Field(default=None, max_length=512)
     read_only_acknowledged: bool
     is_enabled: bool = False
@@ -201,6 +232,23 @@ class MoonrakerSourceCreate(BaseModel):
             raise ValueError("Moonraker transport must be HTTP or HTTPS")
         return value
 
+    @field_validator("camera_proxy_port")
+    @classmethod
+    def validate_camera_proxy_port(cls, value: int | None) -> int | None:
+        return _moonraker_port(value) if value is not None else None
+
+    @field_validator("camera_proxy_scheme")
+    @classmethod
+    def validate_camera_proxy_scheme(cls, value: str | None) -> str | None:
+        if value is not None and value not in {"http", "https"}:
+            raise ValueError("Mainsail camera proxy transport must be HTTP or HTTPS")
+        return value
+
+    @field_validator("camera_proxy_path")
+    @classmethod
+    def validate_camera_proxy_path(cls, value: str | None) -> str | None:
+        return normalize_mainsail_camera_proxy_path(value) if value is not None else None
+
     @field_validator("api_key")
     @classmethod
     def validate_api_key(cls, value: str | None) -> str | None:
@@ -212,6 +260,9 @@ class MoonrakerSourceCreate(BaseModel):
     def require_read_only_acknowledgement(self):
         if not self.read_only_acknowledged:
             raise ValueError("Read-only acknowledgement is required")
+        proxy_values = (self.camera_proxy_port, self.camera_proxy_scheme, self.camera_proxy_path)
+        if any(value is not None for value in proxy_values) and any(value is None for value in proxy_values):
+            raise ValueError("Mainsail camera proxy port, transport, and path must be configured together")
         return self
 
 
@@ -220,6 +271,9 @@ class MoonrakerSourceUpdate(BaseModel):
     private_ipv4: str | None = Field(default=None, min_length=7, max_length=15)
     port: int | None = Field(default=None, strict=True)
     scheme: str | None = None
+    camera_proxy_port: int | None = Field(default=None, strict=True)
+    camera_proxy_scheme: str | None = None
+    camera_proxy_path: str | None = Field(default=None, max_length=512)
     # Omitted preserves a protected secret; empty string explicitly clears it.
     api_key: str | None = Field(default=None, max_length=512)
     read_only_acknowledged: bool | None = None
@@ -252,6 +306,23 @@ class MoonrakerSourceUpdate(BaseModel):
             raise ValueError("Moonraker transport must be HTTP or HTTPS")
         return value
 
+    @field_validator("camera_proxy_port")
+    @classmethod
+    def validate_camera_proxy_port(cls, value: int | None) -> int | None:
+        return _moonraker_port(value) if value is not None else None
+
+    @field_validator("camera_proxy_scheme")
+    @classmethod
+    def validate_camera_proxy_scheme(cls, value: str | None) -> str | None:
+        if value is not None and value not in {"http", "https"}:
+            raise ValueError("Mainsail camera proxy transport must be HTTP or HTTPS")
+        return value
+
+    @field_validator("camera_proxy_path")
+    @classmethod
+    def validate_camera_proxy_path(cls, value: str | None) -> str | None:
+        return normalize_mainsail_camera_proxy_path(value) if value is not None else None
+
     @field_validator("api_key")
     @classmethod
     def validate_api_key(cls, value: str | None) -> str | None:
@@ -272,6 +343,7 @@ class MoonrakerSourceResponse(BaseModel):
     port: int
     scheme: str
     api_key_configured: bool = False
+    camera_proxy_configured: bool = False
     model: str | None = None
     firmware: str | None = None
     created_at: datetime

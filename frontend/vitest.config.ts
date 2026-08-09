@@ -10,7 +10,7 @@ const maxWorkers = configuredWorkers
   ? Number(configuredWorkers)
   : process.env.CI
     ? undefined
-    : 4;
+    : 6;
 
 export default defineConfig({
   plugins: [react()],

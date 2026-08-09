@@ -44,10 +44,18 @@ reported in `print_stats.info`, elapsed duration, and a progress-derived
 remaining estimate when both input values are present. It labels retained
 data separately from current data. When Moonraker reports an enabled webcam
 with a same-origin relative JPEG snapshot path, Goo Buddy may expose one
-bounded, token-protected snapshot preview. The camera URL itself is never
-returned to the browser, redirects and external authorities are rejected, and
-the preview does not imply streaming, camera control, files, console, uploads,
-or maintenance support. Every other camera shape remains unavailable.
+bounded, token-protected snapshot preview. If that endpoint fails, it may
+extract one bounded JPEG frame from the webcam's same-origin MJPEG stream.
+For Mainsail installations that place the webcam on a separate local proxy,
+the owner may explicitly configure its HTTP(S) port and a narrow `/webcam/`
+stream or snapshot path. The proxy host is never configurable or returned:
+Goo Buddy always derives it from the saved private printer address, discards
+cache-busting query values, follows no redirects, and never forwards the
+Moonraker API key to the camera proxy.
+The camera URL itself is never returned to the browser, redirects and external
+authorities are rejected, and the preview does not imply streaming, camera
+control, files, console, uploads, or maintenance support. Every other camera
+shape remains unavailable.
 
 Moonraker API reference: [Server administration](https://moonraker.readthedocs.io/en/latest/external_api/server/), [Printer objects](https://moonraker.readthedocs.io/en/latest/printer_objects/), and [WebSocket/API overview](https://moonraker.readthedocs.io/en/latest/external_api/introduction/).
 

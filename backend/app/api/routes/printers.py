@@ -380,6 +380,7 @@ def _serialize_moonraker_source(source: MoonrakerSource) -> dict:
         port=source.port,
         scheme=source.scheme,
         api_key_configured=bool(source._api_key_enc),
+        camera_proxy_configured=source.camera_proxy_path is not None,
         model=snapshot.identity.model if snapshot else None,
         firmware=snapshot.identity.firmware if snapshot else None,
         created_at=source.created_at,
@@ -857,6 +858,9 @@ async def create_moonraker_source(
         private_ipv4=source_data.private_ipv4,
         port=source_data.port,
         scheme=source_data.scheme,
+        camera_proxy_port=source_data.camera_proxy_port,
+        camera_proxy_scheme=source_data.camera_proxy_scheme,
+        camera_proxy_path=source_data.camera_proxy_path,
         api_key=source_data.api_key,
         read_only_acknowledged=True,
         is_enabled=source_data.is_enabled,
@@ -877,6 +881,9 @@ async def create_moonraker_source(
             source.scheme,
             source.api_key,
             source.configuration_revision,
+            source.camera_proxy_port,
+            source.camera_proxy_scheme,
+            source.camera_proxy_path,
         )
     return _serialize_moonraker_source(source)
 
@@ -905,6 +912,7 @@ async def update_moonraker_source(
     assert isinstance(source_data, MoonrakerSourceUpdate)
     changes = source_data.model_dump(exclude_unset=True)
     transport_fields = {"private_ipv4", "port", "scheme", "api_key"}
+    camera_proxy_fields = {"camera_proxy_port", "camera_proxy_scheme", "camera_proxy_path"}
     transport_changed = any(
         field in changes and getattr(source, field) != changes[field]
         for field in transport_fields
@@ -914,6 +922,14 @@ async def update_moonraker_source(
         # A supplied empty string means clear; the decrypted value is only used
         # for equality inside this privileged handler and never reflected.
         transport_changed = transport_changed or source.api_key != (changes["api_key"] or None)
+    if camera_proxy_fields.intersection(changes):
+        proxy_values = {field: changes.get(field, getattr(source, field)) for field in camera_proxy_fields}
+        if any(value is not None for value in proxy_values.values()) and any(
+            value is None for value in proxy_values.values()
+        ):
+            raise HTTPException(422, "Mainsail camera proxy port, transport, and path must be configured together")
+        for field in camera_proxy_fields.intersection(changes):
+            setattr(source, field, changes.pop(field))
     transport_cancelled = False
     if transport_changed:
         await moonraker_manager.disable(source.id)
@@ -941,6 +957,9 @@ async def update_moonraker_source(
             source.scheme,
             source.api_key,
             source.configuration_revision,
+            source.camera_proxy_port,
+            source.camera_proxy_scheme,
+            source.camera_proxy_path,
         )
     elif not transport_cancelled:
         await moonraker_manager.disable(source.id)

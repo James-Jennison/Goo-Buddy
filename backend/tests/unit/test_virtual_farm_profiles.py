@@ -7,6 +7,28 @@ from aiohttp.test_utils import make_mocked_request
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def test_virtual_farm_matrix_is_complete_and_uniform():
+    data = json.loads((ROOT / "virtual_farm/profiles.v1.json").read_text())
+    assert data["version"] == 1
+    required = {
+        "Bambu Lab",
+        "Elegoo SDCP v3",
+        "Klipper via Moonraker",
+        "RepRapFirmware / Duet 2 and Duet 3",
+        "Direct serial G-code",
+        "Repetier-Server-hosted printers",
+        "Klipper/Moonraker derivatives",
+        "FlashForge",
+        "Raise3D",
+        "Anycubic",
+        "Snapmaker",
+        "Creality",
+        "PrusaLink",
+    }
+    assert {item["family"] for item in data["profiles"]} == required
+    assert all(item["status"] in data["statuses"] and item["evidence"] for item in data["profiles"])
+
+
 def test_virtual_farm_compose_is_localhost_only():
     compose = (ROOT / "docker-compose.virtual-farm.yml").read_text()
     assert "127.0.0.1:17125:17125" in compose and "profiles: [virtual-farm]" in compose
@@ -119,3 +141,4 @@ async def test_v4l2_source_uses_injected_capture_seam():
 
     source = V4L2FrameSource("/dev/video7", capture=capture)
     assert await source.frame() == FIXTURE_JPEG
+    assert devices == ["/dev/video7"]

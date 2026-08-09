@@ -60,7 +60,7 @@ describe('read-only printer cards', () => {
     renderCard(<MoonrakerPrinterCard printer={readOnlyPrinter({ id: publicId, platform: 'moonraker', api_key_configured: true })} />);
     await waitFor(() => expect(screen.getByText(/Moonraker authentication needs attention/i)).toBeInTheDocument());
     expect(screen.getByText(/never displays the key/i)).toBeInTheDocument();
-    expect(screen.getByText(/camera, files, console, maintenance, and upload remain unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/camera proxy, files, console, maintenance, and upload remain unavailable/i)).toBeInTheDocument();
     expect(screen.getByText(/Wait for a fresh, ready printer observation/i)).toBeInTheDocument();
     expect(screen.queryByText(/Synthetic preview only/i)).not.toBeInTheDocument();
   });

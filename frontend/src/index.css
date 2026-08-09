@@ -391,16 +391,6 @@ html {
   background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
 }
 
-/* The first card becomes the visual workstation when the data order itself
-   selects it (the synthetic preview intentionally puts Bambu first). This is
-   layout-only; it does not select, mutate, or infer a printer's capabilities. */
-@media (min-width: 1180px) {
-  .workshop-fleet-grid > :first-child {
-    grid-column: span 2;
-  }
-  .workshop-fleet-grid > :first-child .workshop-printer-name { font-size: 1.25rem; }
-}
-
 @media (max-width: 720px) {
   .workshop-page-header { align-items: stretch; flex-direction: column; }
   .workshop-printer-summary__identity { align-items: flex-start; flex-direction: column; }
@@ -814,6 +804,23 @@ input:hover, select:hover, textarea:hover { border-color: color-mix(in srgb, var
 .nocturne-fleet-band__live { position: relative; z-index: 1; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); color: color-mix(in srgb, var(--color-text) 84%, transparent); font-size: .78rem; }
 .nocturne-live-dot { display: inline-block; width: 7px; height: 7px; border: 1px solid var(--color-accent-100); border-radius: 50%; background: var(--color-accent-200); animation: nocturne-pulse 1.7s ease-in-out infinite; }
 .nocturne-fleet-band__next { padding-left: var(--space-4); color: color-mix(in srgb, var(--color-text) 72%, transparent); }
+.nocturne-dashboard-panel { margin-top: var(--space-6); padding: var(--space-6); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-sm); }
+.nocturne-dashboard-panel__heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+.nocturne-dashboard-panel__heading h2 { margin: var(--space-1) 0 0; color: var(--color-text); font-family: var(--font-heading); font-size: 1.1rem; font-weight: 500; }
+.nocturne-text-link { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-accent-2); font-size: .8rem; transition: color 160ms ease; }
+.nocturne-text-link:hover { color: var(--color-text); }
+.nocturne-dashboard-empty { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); min-height: 7rem; color: color-mix(in srgb, var(--color-text) 65%, transparent); }
+.nocturne-dashboard-printer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+.nocturne-dashboard-printer { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-3); min-height: 5.2rem; padding: var(--space-4); border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-bg) 34%, transparent); color: var(--color-text); transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; }
+.nocturne-dashboard-printer:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--color-accent) 58%, var(--color-divider)); background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface)); }
+.nocturne-dashboard-printer:focus-visible, .nocturne-text-link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.nocturne-dashboard-printer__dot { width: .5rem; height: .5rem; border: 1px solid var(--color-accent-2); border-radius: 50%; opacity: .52; }
+.nocturne-dashboard-printer__dot.is-live { background: var(--color-accent-2); opacity: 1; animation: nocturne-live-pulse 1.7s ease-in-out infinite; }
+.nocturne-dashboard-printer__identity { display: grid; gap: var(--space-1); min-width: 0; }
+.nocturne-dashboard-printer__identity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.nocturne-dashboard-printer__identity small, .nocturne-dashboard-printer__state { color: color-mix(in srgb, var(--color-text) 62%, transparent); font-size: .74rem; }
+.nocturne-dashboard-printer__state { display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; }
+.nocturne-dashboard-printer__progress { color: var(--color-accent-2); font-size: .8rem; font-variant-numeric: tabular-nums; }
 @keyframes nocturne-pulse { 50% { opacity: .35; transform: scale(.72); } }
 
 .workshop-status, .workshop-bambu-signal { border-color: color-mix(in srgb, var(--color-accent) 48%, transparent) !important; color: var(--color-accent-2) !important; background: color-mix(in srgb, var(--color-accent) 8%, transparent) !important; }

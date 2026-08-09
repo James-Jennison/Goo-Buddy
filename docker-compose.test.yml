@@ -11,7 +11,7 @@ services:
     environment:
       - TESTING=1
       - PYTHONUNBUFFERED=1
-      - GOO_BUDDY_PYTEST_WORKERS=${GOO_BUDDY_PYTEST_WORKERS:-6}
+      - GOO_BUDDY_PYTEST_WORKERS=${GOO_BUDDY_PYTEST_WORKERS:-8}
 
   # Frontend unit tests
   frontend-test:
@@ -21,7 +21,7 @@ services:
       target: frontend-test
     container_name: bambuddy-frontend-test
     environment:
-      - GOO_BUDDY_VITEST_MAX_WORKERS=${GOO_BUDDY_VITEST_MAX_WORKERS:-4}
+      - GOO_BUDDY_VITEST_MAX_WORKERS=${GOO_BUDDY_VITEST_MAX_WORKERS:-6}
     volumes:
       - ./frontend/src:/app/frontend/src:ro
       - ./frontend/tests:/app/frontend/tests:ro
@@ -59,9 +59,9 @@ services:
     environment:
       - BAMBUDDY_TEST_URL=http://integration:8000
       - TESTING=1
-      - GOO_BUDDY_PYTEST_WORKERS=${GOO_BUDDY_PYTEST_WORKERS:-6}
-    # Use the same conservative, explicitly overridable worker cap as the
-    # backend-test image so local validation leaves desktop CPU headroom.
+      - GOO_BUDDY_PYTEST_WORKERS=${GOO_BUDDY_PYTEST_WORKERS:-8}
+    # Use the same balanced, explicitly overridable worker cap as the
+    # backend-test image so local validation retains desktop CPU headroom.
     command: ["sh", "-ec", "exec pytest backend/tests/integration/ --tb=short -p no:cacheprovider -n \"$${GOO_BUDDY_PYTEST_WORKERS}\""]
     volumes:
       - ./backend:/app/backend:ro

@@ -361,7 +361,7 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
     exit 0
 fi
 
-echo -e "${BOLD}Bambuddy Security Scanner${NC}"
+echo -e "${BOLD}Goo Buddy Security Scanner${NC}"
 echo -e "${DIM}$(date '+%Y-%m-%d %H:%M:%S')  •  $(nproc) CPU cores available${NC}"
 echo ""
 

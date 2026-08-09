@@ -192,7 +192,11 @@ describe('SettingsPage', () => {
       await screen.findAllByText('Visible in sidebar');
 
       vi.mocked(localStorage.setItem).mockClear();
-      await user.click((await screen.findAllByLabelText('Hide page'))[0]);
+      const printersRow = screen.getAllByText('Printers')
+        .find(element => element.closest('[draggable="true"]'))
+        ?.closest('[draggable="true"]');
+      expect(printersRow).not.toBeNull();
+      await user.click(within(printersRow as HTMLElement).getByLabelText('Hide page'));
 
       expect(localStorage.setItem).toHaveBeenCalledWith(SIDEBAR_HIDDEN_SYSTEM_ITEMS_KEY, JSON.stringify(['printers']));
       expect(screen.getByText('Hidden from sidebar')).toBeInTheDocument();
@@ -303,7 +307,7 @@ describe('SettingsPage', () => {
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         SIDEBAR_ORDER_KEY,
-        JSON.stringify(['ext-7', 'printers', 'inventory', 'archives', 'queue', 'projects', 'files', 'makerworld', 'profiles', 'maintenance', 'stats', 'notifications', 'settings']),
+        JSON.stringify(['dashboard', 'ext-7', 'printers', 'inventory', 'archives', 'queue', 'projects', 'files', 'makerworld', 'profiles', 'maintenance', 'stats', 'notifications', 'settings']),
       );
     });
 
@@ -345,7 +349,7 @@ describe('SettingsPage', () => {
       expect(localStorage.setItem).toHaveBeenCalledWith(SIDEBAR_HIDDEN_SYSTEM_ITEMS_KEY, JSON.stringify([]));
       expect(localStorage.setItem).toHaveBeenCalledWith(
         SIDEBAR_ORDER_KEY,
-        JSON.stringify(['printers', 'inventory', 'archives', 'queue', 'projects', 'files', 'makerworld', 'profiles', 'maintenance', 'stats', 'notifications', 'settings', 'ext-7']),
+        JSON.stringify(['dashboard', 'printers', 'inventory', 'archives', 'queue', 'projects', 'files', 'makerworld', 'profiles', 'maintenance', 'stats', 'notifications', 'settings', 'ext-7']),
       );
 
       const settingsRow = screen.getAllByText('Settings')
@@ -406,6 +410,7 @@ describe('SettingsPage', () => {
       });
       expect(JSON.parse(defaultSidebarOrderPayload!)).toEqual({
         order: [
+          'dashboard',
           'printers',
           'inventory',
           'archives',

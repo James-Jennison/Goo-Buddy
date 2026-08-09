@@ -87,6 +87,34 @@ def test_webcam_snapshot_path_is_same_origin_and_never_exposes_full_urls():
         )
 
 
+def test_webcam_stream_path_is_same_origin_and_a_mjpeg_frame_is_bounded():
+    from backend.app.services.moonraker_manager import MoonrakerManager
+
+    payload = {"result": {"webcams": [{"enabled": True, "stream_url": "/webcam/?action=stream"}]}}
+    assert MoonrakerManager._validated_camera_path(payload, "stream_url") == "/webcam/?action=stream"
+    boundary = MoonrakerManager._multipart_boundary("multipart/x-mixed-replace; boundary=frame")
+    assert boundary == b"frame"
+    frame = b"\xff\xd8synthetic-jpeg"
+    stream = b"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: 16\r\n\r\n" + frame + b"\r\n--frame--\r\n"
+    assert MoonrakerManager._extract_mjpeg_frame(stream, boundary) == frame
+    assert MoonrakerManager._extract_mjpeg_frame(stream.replace(b"image/jpeg", b"text/plain"), boundary) is None
+
+
+def test_mainsail_camera_proxy_path_drops_cache_busters_and_rejects_other_urls():
+    from backend.app.schemas.printer import normalize_mainsail_camera_proxy_path
+
+    assert normalize_mainsail_camera_proxy_path("/webcam/?action=stream&cacheBust=12345") == "/webcam/?action=stream"
+    for candidate in (
+        "http://camera/webcam/?action=stream",
+        "//camera/webcam/?action=stream",
+        "/server/files/?action=stream",
+        "/webcam/?action=stream&token=opaque",
+        "/webcam/?action=stream&cacheBust=not-a-number",
+    ):
+        with pytest.raises(ValueError, match="Invalid Mainsail camera proxy path"):
+            normalize_mainsail_camera_proxy_path(candidate)
+
+
 class _FixtureMoonrakerSocket:
     """Deterministic in-memory Moonraker peer with no control vocabulary."""
 

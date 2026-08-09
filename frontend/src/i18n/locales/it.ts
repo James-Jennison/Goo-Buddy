@@ -1,6 +1,7 @@
 export default {
   // Navigation
   nav: {
+    dashboard: 'Dashboard',
     printers: 'Stampanti',
     archives: 'Archivi',
     queue: 'Coda di stampa',

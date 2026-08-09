@@ -523,10 +523,17 @@ async def _migrate_moonraker_sources(conn) -> None:
         f"id {source_id_column}, "
         "display_name VARCHAR(100) NOT NULL, private_ipv4 VARCHAR(15) NOT NULL UNIQUE, "
         "port INTEGER NOT NULL DEFAULT 7125, scheme VARCHAR(5) NOT NULL DEFAULT 'http', "
+        "camera_proxy_port INTEGER, camera_proxy_scheme VARCHAR(5), camera_proxy_path VARCHAR(512), "
         "api_key VARCHAR(2048), is_enabled BOOLEAN NOT NULL DEFAULT FALSE, "
         "read_only_acknowledged BOOLEAN NOT NULL DEFAULT FALSE, configuration_revision INTEGER NOT NULL DEFAULT 1, "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
     )
+    # A Mainsail webcam proxy may be on a different local port than Moonraker.
+    # These additive fields deliberately contain no host: the only possible
+    # host remains the source's protected RFC1918 address.
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_port INTEGER")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_scheme VARCHAR(5)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_path VARCHAR(512)")
 
 
 async def _migrate_platform_control_commands(conn) -> None:

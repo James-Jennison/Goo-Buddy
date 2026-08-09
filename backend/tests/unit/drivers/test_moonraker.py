@@ -49,6 +49,18 @@ def test_normalizer_withholds_job_control_when_no_active_job_can_be_observed():
     assert Capability.JOB_CONTROL not in snapshot.capabilities
 
 
+def test_normalizer_advertises_camera_only_after_the_manager_validates_a_source():
+    snapshot = normalize_moonraker_observation(
+        local_id="moon-1",
+        display_name="Synthetic Klipper",
+        observed_at=NOW,
+        status=_status(),
+        server=_server(),
+        camera_available=True,
+    )
+    assert Capability.CAMERA in snapshot.capabilities
+
+
 def test_driver_labels_stale_and_disconnected_data_as_retained():
     driver = MoonrakerDriver("moon-1", "Synthetic", stale_after=timedelta(seconds=30))
     driver.start_session("a")

@@ -6476,6 +6476,9 @@ async def lifespan(app: FastAPI):
                 source.scheme,
                 source.api_key,
                 source.configuration_revision,
+                source.camera_proxy_port,
+                source.camera_proxy_scheme,
+                source.camera_proxy_path,
             )
 
     # Auto-connect to Spoolman if enabled

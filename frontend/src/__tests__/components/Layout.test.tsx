@@ -123,7 +123,8 @@ describe('Layout', () => {
         expect(sidebar?.querySelector('a[href="/inventory"]')).toBeInTheDocument();
       });
 
-      expect(document.querySelector('aside a[href="/"]')).toBeNull();
+      expect(document.querySelector('aside a[href="/printers"]')).toBeNull();
+      expect(document.querySelector('aside a[href="/"]')).toBeInTheDocument();
     });
 
     it('applies admin default sidebar hidden state with the default order', async () => {
@@ -152,7 +153,8 @@ describe('Layout', () => {
       });
 
       await waitFor(() => {
-        expect(document.querySelector('aside a[href="/"]')).toBeNull();
+        expect(document.querySelector('aside a[href="/printers"]')).toBeNull();
+        expect(document.querySelector('aside a[href="/"]')).toBeInTheDocument();
         expect(localStorage.setItem).toHaveBeenCalledWith(SIDEBAR_ORDER_KEY, JSON.stringify(['inventory', 'printers', 'settings']));
         expect(localStorage.setItem).toHaveBeenCalledWith(SIDEBAR_HIDDEN_SYSTEM_ITEMS_KEY, JSON.stringify(['printers']));
       });

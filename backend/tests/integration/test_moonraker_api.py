@@ -59,6 +59,31 @@ async def test_moonraker_endpoint_or_key_edit_cancels_and_requires_explicit_reen
 
 @pytest.mark.asyncio
 @pytest.mark.integration
+async def test_moonraker_camera_proxy_is_hostless_and_drops_cache_busters(async_client: AsyncClient):
+    created = await async_client.post(
+        "/api/v1/printers/moonraker",
+        json={
+            "name": "Synthetic camera proxy",
+            "private_ipv4": "10.0.0.55",
+            "camera_proxy_scheme": "http",
+            "camera_proxy_port": 80,
+            "camera_proxy_path": "/webcam/?action=stream&cacheBust=12345",
+            "read_only_acknowledged": True,
+        },
+    )
+    assert created.status_code == 200
+    payload = created.json()
+    assert payload["camera_proxy_configured"] is True
+    assert "10.0.0.55" not in created.text
+    assert "webcam" not in created.text
+
+    public_id = -1_000_000 - payload["id"]
+    incomplete = await async_client.patch(f"/api/v1/printers/moonraker/{public_id}", json={"camera_proxy_path": None})
+    assert incomplete.status_code == 422
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
 async def test_moonraker_camera_snapshot_is_backend_proxied_and_bounded_to_the_source(
     async_client: AsyncClient, db_session
 ):
