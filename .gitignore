@@ -79,6 +79,10 @@ spoolbuddy/ssh/
 # Security scan output
 *.sarif
 
+# Local output from the multi-platform delivery supervisor.  It contains
+# ephemeral readiness reports and a process lock, never product evidence.
+.multi-platform-supervisor/
+
 debug_logs/
 db_backup/
 support-packages/

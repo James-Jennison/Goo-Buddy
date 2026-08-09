@@ -529,6 +529,38 @@ async def _migrate_moonraker_sources(conn) -> None:
     )
 
 
+async def _migrate_platform_control_commands(conn) -> None:
+    """Add a closed, additive audit ledger for non-Bambu control commands.
+
+    Source identity remains a ``driver`` / ``source_id`` pair rather than an
+    FK because the two source tables deliberately have independent ID spaces.
+    The database constraints mirror the Python control contract and leave no
+    column for a raw protocol payload or caller-provided endpoint.
+    """
+
+    command_id_column = "INTEGER PRIMARY KEY" if is_sqlite() else "SERIAL PRIMARY KEY"
+    await _safe_execute(
+        conn,
+        "CREATE TABLE platform_control_commands ("
+        f"id {command_id_column}, "
+        "driver VARCHAR(32) NOT NULL CHECK (driver IN ('elegoo.sdcp-v3', 'moonraker')), "
+        "source_id INTEGER NOT NULL CHECK (source_id > 0), "
+        "configuration_revision INTEGER NOT NULL CHECK (configuration_revision > 0), "
+        "operation VARCHAR(32) NOT NULL CHECK (operation IN ('pause_job', 'resume_job', 'cancel_job')), "
+        "status VARCHAR(16) NOT NULL DEFAULT 'queued' "
+        "CHECK (status IN ('queued', 'dispatching', 'acknowledged', 'failed', 'cancelled')), "
+        "idempotency_key VARCHAR(32) NOT NULL UNIQUE, requested_by INTEGER REFERENCES users(id) ON DELETE SET NULL, "
+        "requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, dispatched_at TIMESTAMP, completed_at TIMESTAMP, "
+        "error_code VARCHAR(64)"
+        ")",
+    )
+    await _safe_execute(
+        conn,
+        "CREATE INDEX IF NOT EXISTS ix_platform_control_commands_source_requested "
+        "ON platform_control_commands (driver, source_id, requested_at)",
+    )
+
+
 async def _api_keys_column_exists(conn, column_name: str) -> bool:
     """Return True if the named column exists on ``api_keys``.
 
@@ -975,6 +1007,7 @@ async def run_migrations(conn):
     # leaves an unused table and never changes Bambu configuration rows.
     await _migrate_elegoo_sdcp_sources(conn)
     await _migrate_moonraker_sources(conn)
+    await _migrate_platform_control_commands(conn)
 
     # Migration: Add parent_run_id column to pipeline_runs (#1425 PR C).
     # Links a retry-failed run back to its parent so the dashboard can show

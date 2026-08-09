@@ -21,6 +21,7 @@ from backend.app.models.oidc_provider import OIDCProvider, UserOIDCLink
 from backend.app.models.orca_base_cache import OrcaBaseProfile
 from backend.app.models.pending_upload import PendingUpload
 from backend.app.models.pipeline_run import PipelineJob, PipelineRun
+from backend.app.models.platform_control_command import PlatformControlCommand
 from backend.app.models.print_batch import PrintBatch
 from backend.app.models.printer import Printer
 from backend.app.models.printer_sensor_history import PrinterSensorHistory
@@ -75,6 +76,7 @@ __all__ = [
     "OrcaBaseProfile",
     "PipelineJob",
     "PipelineRun",
+    "PlatformControlCommand",
     "SlicerPipeline",
     "Spool",
     "SpoolKProfile",

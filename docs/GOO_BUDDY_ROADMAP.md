@@ -29,6 +29,12 @@ release, deployment, image publication, printer contact, or upstream sync.
    — first independently published alpha distribution **complete** at
    `0.3.0-alpha.5`. Continued validation and a future generally recommended
    stable release remain separate work.
+5. **Mature capability-driven Elegoo and Moonraker support** — **active**.
+   Goo Buddy will progress the currently read-only Elegoo SDCP v3 and
+   Moonraker sources to evidence-backed, capability-gated operation support.
+   The approved scope, safety contract, automated delivery gate, and required
+   supervised hardware validation are recorded in
+   [the multi-platform control maturity gate](MULTI_PLATFORM_MATURITY.md).
 
 ## Approved design direction: Goo Buddy Workshop
 
