@@ -18,9 +18,11 @@ from datetime import datetime, timezone
 
 import aiohttp
 
-from backend.app.drivers.contract import ConnectionPhase, DriverObservation
+from backend.app.control.contract import PlatformControlCommand
+from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.moonraker import MoonrakerDriver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4
+from backend.app.services.moonraker_control import request_for_control_operation
 from backend.app.services.moonraker_read_only import (
     MoonrakerReadOnlyMethod,
     select_monitored_objects,
@@ -43,6 +45,7 @@ class _LiveMoonraker:
     scheme: str
     api_key: str | None
     driver: MoonrakerDriver
+    configuration_revision: int = 1
     stop: asyncio.Event = field(default_factory=asyncio.Event)
     task: asyncio.Task[None] | None = None
     connected: bool = False
@@ -50,6 +53,8 @@ class _LiveMoonraker:
     error: str | None = None
     server: dict[str, object] | None = None
     last_liveness: float | None = None
+    client: aiohttp.ClientSession | None = None
+    control_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 class MoonrakerManager:
@@ -57,11 +62,20 @@ class MoonrakerManager:
         self._sources: dict[int, _LiveMoonraker] = {}
 
     async def enable(
-        self, source_id: int, display_name: str, private_ipv4: str, port: int, scheme: str, api_key: str | None
+        self,
+        source_id: int,
+        display_name: str,
+        private_ipv4: str,
+        port: int,
+        scheme: str,
+        api_key: str | None,
+        configuration_revision: int = 1,
     ) -> None:
         private_ipv4 = canonical_rfc1918_ipv4(private_ipv4)
         if type(port) is not int or isinstance(port, bool) or not 1 <= port <= 65535 or scheme not in {"http", "https"}:
             raise ValueError("invalid Moonraker transport")
+        if type(configuration_revision) is not int or configuration_revision < 1:
+            raise ValueError("invalid platform control configuration revision")
         await self.disable(source_id)
         live = _LiveMoonraker(
             source_id,
@@ -71,6 +85,7 @@ class MoonrakerManager:
             scheme,
             api_key,
             MoonrakerDriver(f"moonraker-{source_id}", display_name),
+            configuration_revision,
         )
         self._sources[source_id] = live
         live.task = asyncio.create_task(self._run(live), name=f"moonraker-{source_id}")
@@ -120,6 +135,30 @@ class MoonrakerManager:
             )
         return observed
 
+    async def dispatch_command(self, command: object) -> bool:
+        """Send one bodyless, fixed Moonraker job-control endpoint request.
+
+        The operation-only command contract and the private adapter together
+        leave no call path for JSON-RPC methods, G-code, HTTP paths, or bodies.
+        """
+
+        if type(command) is not PlatformControlCommand or command.driver is not DriverKind.MOONRAKER:
+            raise ValueError("unsupported Moonraker control command")
+        live = self._sources.get(command.source_id)
+        if live is None or command.configuration_revision != live.configuration_revision:
+            return False
+        observation = self.observation(command.source_id)
+        if observation.phase is not ConnectionPhase.READY or Capability.JOB_CONTROL not in observation.capabilities:
+            return False
+        if live.client is None or live.stop.is_set():
+            return False
+        request = request_for_control_operation(command.operation)
+        async with live.control_lock:
+            if live.client is None or live.stop.is_set():
+                return False
+            async with live.client.post(f"{self._base_url(live)}{request.path}", allow_redirects=False) as response:
+                return 200 <= response.status < 300
+
     @staticmethod
     def _base_url(live: _LiveMoonraker) -> str:
         return f"{live.scheme}://{live.private_ipv4}:{live.port}"
@@ -145,16 +184,21 @@ class MoonrakerManager:
                 async with aiohttp.ClientSession(
                     timeout=timeout, connector=connector, headers=self._headers(live)
                 ) as client:
-                    live.server, available = await self._discover(client, live)
-                    objects = select_monitored_objects(available)
-                    if not objects:
-                        live.error = "no_supported_objects"
-                        return
-                    async with client.ws_connect(
-                        self._websocket_url(live), autoping=True, heartbeat=None, max_msg_size=MAX_FRAME_BYTES
-                    ) as websocket:
-                        live.connected, live.reconnecting, live.error = True, False, None
-                        await self._serve(websocket, live, session_id, objects)
+                    live.client = client
+                    try:
+                        live.server, available = await self._discover(client, live)
+                        objects = select_monitored_objects(available)
+                        if not objects:
+                            live.error = "no_supported_objects"
+                            return
+                        async with client.ws_connect(
+                            self._websocket_url(live), autoping=True, heartbeat=None, max_msg_size=MAX_FRAME_BYTES
+                        ) as websocket:
+                            live.connected, live.reconnecting, live.error = True, False, None
+                            await self._serve(websocket, live, session_id, objects)
+                    finally:
+                        if live.client is client:
+                            live.client = None
             except asyncio.CancelledError:
                 live.driver.disconnect(session_id)
                 raise

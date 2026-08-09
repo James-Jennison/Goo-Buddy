@@ -19,9 +19,11 @@ from datetime import datetime, timedelta, timezone
 
 import aiohttp
 
-from backend.app.drivers.contract import ConnectionPhase, DriverObservation
+from backend.app.control.contract import PlatformControlCommand
+from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4
+from backend.app.services.elegoo_sdcp_control import serialize_control_request
 from backend.app.services.elegoo_sdcp_read_only import (
     ReadOnlyInformationOperation,
     mainboard_id_from_discovery,
@@ -47,6 +49,7 @@ class _LiveSource:
     source_id: int
     private_ipv4: str
     driver: SyntheticElegooSdcpV3Driver
+    configuration_revision: int = 1
     task: asyncio.Task[None] | None = None
     stop: asyncio.Event = field(default_factory=asyncio.Event)
     connected: bool = False
@@ -58,6 +61,8 @@ class _LiveSource:
     pong_received: asyncio.Event = field(default_factory=asyncio.Event)
     liveness_received: asyncio.Event = field(default_factory=asyncio.Event)
     last_liveness_at: float | None = None
+    websocket: aiohttp.ClientWebSocketResponse | None = None
+    control_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     _payload_hashes: dict[str, str] = field(default_factory=dict)
 
 
@@ -67,16 +72,19 @@ class ElegooSDCPManager:
     def __init__(self) -> None:
         self._sources: dict[int, _LiveSource] = {}
 
-    async def enable(self, source_id: int, private_ipv4: str) -> None:
+    async def enable(self, source_id: int, private_ipv4: str, configuration_revision: int = 1) -> None:
         # This is intentionally repeated at the I/O boundary. Callers outside
         # the API (including boot restoration) must not be able to direct the
         # transport to a hostname, public address, URL, or alternate endpoint.
         private_ipv4 = canonical_rfc1918_ipv4(private_ipv4)
+        if type(configuration_revision) is not int or configuration_revision < 1:
+            raise ValueError("invalid platform control configuration revision")
         await self.disable(source_id)
         live = _LiveSource(
             source_id=source_id,
             private_ipv4=private_ipv4,
             driver=SyntheticElegooSdcpV3Driver(f"elegoo-{source_id}", stale_after=STALE_AFTER),
+            configuration_revision=configuration_revision,
         )
         self._sources[source_id] = live
         live.task = asyncio.create_task(self._run(live), name=f"elegoo-sdcp-{source_id}")
@@ -124,6 +132,30 @@ class ElegooSDCPManager:
                 session_id=observation.session_id,
             )
         return observation
+
+    async def dispatch_command(self, command: object) -> bool:
+        """Send one capability-gated SDCP job command through the active session.
+
+        The only caller input accepted here is the persisted, operation-only
+        contract.  This manager has no way to receive a raw SDCP envelope,
+        command number, topic, payload, or G-code string.
+        """
+
+        if type(command) is not PlatformControlCommand or command.driver is not DriverKind.ELEGOO_SDCP_V3:
+            raise ValueError("unsupported Elegoo control command")
+        live = self._sources.get(command.source_id)
+        if live is None or command.configuration_revision != live.configuration_revision:
+            return False
+        observation = self.observation(command.source_id)
+        if observation.phase is not ConnectionPhase.READY or Capability.JOB_CONTROL not in observation.capabilities:
+            return False
+        if live.mainboard_id is None or live.websocket is None or live.stop.is_set():
+            return False
+        async with live.control_lock:
+            if live.websocket is None or live.stop.is_set():
+                return False
+            await live.websocket.send_str(serialize_control_request(command.operation, live.mainboard_id))
+        return True
 
     async def _run(self, live: _LiveSource) -> None:
         # The documented identity lookup precedes the WebSocket session. It is
@@ -196,6 +228,7 @@ class ElegooSDCPManager:
     ) -> None:
         """Run one session; no request can be emitted outside this method."""
 
+        live.websocket = websocket
         consume_task = asyncio.create_task(self._consume(websocket, live, session_id))
         try:
             # Start the documented liveness exchange immediately, but do not
@@ -233,6 +266,8 @@ class ElegooSDCPManager:
                 return
             await self._wait_for_inbound_traffic(websocket, live, consume_task)
         finally:
+            if live.websocket is websocket:
+                live.websocket = None
             if not consume_task.done():
                 consume_task.cancel()
                 try:

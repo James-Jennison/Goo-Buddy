@@ -394,7 +394,7 @@ def test_manager_has_no_generic_or_raw_command_send_escape_hatch():
             self.generic_visit(node)
 
     Visitor().visit(tree)
-    assert send_parents == ["_send_heartbeat", "_send_information_request"]
+    assert send_parents == ["dispatch_command", "_send_heartbeat", "_send_information_request"]
     source = inspect.getsource(manager_module)
     assert "def send(" not in source
     assert "def request(" not in source

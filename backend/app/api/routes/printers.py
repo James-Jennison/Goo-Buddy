@@ -543,7 +543,7 @@ async def create_elegoo_source(
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
-        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4)
+        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4, source.configuration_revision)
     return _serialize_elegoo_source(source)
 
 
@@ -596,7 +596,7 @@ async def update_elegoo_source(
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
-        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4)
+        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4, source.configuration_revision)
     else:
         await elegoo_sdcp_manager.disable(source.id)
     return _serialize_elegoo_source(source)
@@ -656,7 +656,13 @@ async def create_moonraker_source(
     await db.refresh(source)
     if source.is_enabled:
         await moonraker_manager.enable(
-            source.id, source.display_name, source.private_ipv4, source.port, source.scheme, source.api_key
+            source.id,
+            source.display_name,
+            source.private_ipv4,
+            source.port,
+            source.scheme,
+            source.api_key,
+            source.configuration_revision,
         )
     return _serialize_moonraker_source(source)
 
@@ -714,7 +720,13 @@ async def update_moonraker_source(
     await db.refresh(source)
     if source.is_enabled:
         await moonraker_manager.enable(
-            source.id, source.display_name, source.private_ipv4, source.port, source.scheme, source.api_key
+            source.id,
+            source.display_name,
+            source.private_ipv4,
+            source.port,
+            source.scheme,
+            source.api_key,
+            source.configuration_revision,
         )
     elif not transport_cancelled:
         await moonraker_manager.disable(source.id)
