@@ -57,7 +57,7 @@ The supervisor treats every unchecked item in this section as an implementation
 blocker. Mark an item complete only with its code, tests, and review evidence
 in the same change.
 
-- [ ] Define a shared, persisted command and capability model that cannot
+- [x] Define a shared, persisted command and capability model that cannot
   represent an arbitrary transport request.
 - [ ] Add role/permission checks and an auditable command lifecycle for
   non-Bambu sources, with idempotency, cancellation, timeout, and reconciliation
