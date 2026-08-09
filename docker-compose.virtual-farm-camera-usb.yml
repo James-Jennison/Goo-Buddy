@@ -1,0 +1,14 @@
+services:
+  moonraker-camera-usb:
+    build:
+      context: .
+      dockerfile: virtual_farm/Dockerfile
+    image: goo-buddy-virtual-farm:local
+    profiles: [virtual-farm-camera-usb]
+    working_dir: /farm
+    # Explicit mapping only; Compose fails before startup when unset.
+    devices: ["${VIRTUAL_FARM_VIDEO_DEVICE:?set explicit /dev/videoN}:${VIRTUAL_FARM_VIDEO_DEVICE:?set explicit /dev/videoN}"]
+    command: ["python", "simulator.py", "--port", "17127", "--camera-mode", "v4l2", "--camera-device", "${VIRTUAL_FARM_VIDEO_DEVICE:?set explicit /dev/videoN}"]
+    volumes: ["./virtual_farm:/farm:ro"]
+    ports: ["127.0.0.1:17127:17127"]
+    restart: "no"

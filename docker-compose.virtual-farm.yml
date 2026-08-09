@@ -1,0 +1,23 @@
+services:
+  moonraker:
+    build:
+      context: .
+      dockerfile: virtual_farm/Dockerfile
+    image: goo-buddy-virtual-farm:local
+    profiles: [virtual-farm]
+    working_dir: /farm
+    command: ["python", "simulator.py", "--port", "17125"]
+    volumes: ["./virtual_farm:/farm:ro"]
+    ports: ["127.0.0.1:17125:17125"]
+    restart: "no"
+  moonraker-camera-fixture:
+    build:
+      context: .
+      dockerfile: virtual_farm/Dockerfile
+    image: goo-buddy-virtual-farm:local
+    profiles: [virtual-farm-camera]
+    working_dir: /farm
+    command: ["python", "simulator.py", "--port", "17126", "--camera-mode", "fixture"]
+    volumes: ["./virtual_farm:/farm:ro"]
+    ports: ["127.0.0.1:17126:17126"]
+    restart: "no"
