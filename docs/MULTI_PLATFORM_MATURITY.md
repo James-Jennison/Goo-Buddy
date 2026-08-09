@@ -68,7 +68,7 @@ in the same change.
   preserving manual activation, endpoint validation, and secret redaction.
 - [x] Add deterministic Moonraker control simulators and redacted fixtures for
   each operation considered for support.
-- [ ] Implement the closed Moonraker capability adapter and its API/UI paths,
+- [x] Implement the closed Moonraker capability adapter and its API/UI paths,
   preserving private-endpoint validation, protected API keys, and no generic
   JSON-RPC or G-code route.
 - [ ] Add Workshop controls that disclose the target, operation, confirmation,
