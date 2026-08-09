@@ -141,6 +141,7 @@ class PlatformControlCommandResponse(BaseModel):
     id: int
     operation: str
     status: str
+    error_code: str | None = None
 
 
 class ElegooSDCPSourceResponse(BaseModel):

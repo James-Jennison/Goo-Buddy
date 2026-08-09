@@ -14,15 +14,15 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bambu-dark disabled:opacity-50 disabled:cursor-not-allowed';
+    'nocturne-button inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variants = {
-    primary: 'bg-bambu-green hover:bg-bambu-green-light text-white focus:ring-bambu-green',
+    primary: 'border border-bambu-green bg-transparent text-bambu-green hover:bg-bambu-green/10',
     secondary:
-      'bg-bambu-dark-tertiary hover:bg-bambu-gray-dark text-white focus:ring-bambu-gray',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
+      'border border-bambu-dark-tertiary bg-transparent text-bambu-gray-light hover:border-bambu-green hover:text-bambu-green hover:bg-bambu-green/10',
+    danger: 'border border-bambu-green bg-transparent text-bambu-green hover:bg-bambu-green/10',
     ghost:
-      'bg-transparent hover:bg-bambu-dark-tertiary text-bambu-gray-light hover:text-white',
+      'border border-transparent bg-transparent text-bambu-gray-light hover:border-bambu-dark-tertiary hover:text-bambu-green',
   };
 
   const sizes = {

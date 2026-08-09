@@ -418,6 +418,7 @@ export interface PlatformControlCommandResponse {
   id: number;
   operation: 'pause_job' | 'resume_job' | 'cancel_job';
   status: 'acknowledged' | 'failed';
+  error_code?: 'unconfirmed' | 'unavailable' | 'dispatch_timeout' | 'dispatch_failed' | null;
 }
 
 function platformControlRequestOptions(): RequestInit {

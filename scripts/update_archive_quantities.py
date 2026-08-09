@@ -11,7 +11,7 @@ Usage:
     python scripts/update_archive_quantities.py
 
     # Or with docker:
-    docker exec -it bambuddy python scripts/update_archive_quantities.py
+    docker exec -it goo-buddy python scripts/update_archive_quantities.py
 
     # Dry run (show what would be updated without changing anything):
     python scripts/update_archive_quantities.py --dry-run

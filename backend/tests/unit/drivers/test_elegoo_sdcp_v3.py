@@ -60,6 +60,10 @@ def test_normalizer_withholds_job_control_when_no_active_job_can_be_observed():
     )
 
     assert Capability.JOB_CONTROL not in idle.capabilities
+    assert idle.job is None
+    assert Capability.JOB_STATUS not in idle.capabilities
+    assert Capability.JOB_PROGRESS not in idle.capabilities
+    assert Capability.LAYERS not in idle.capabilities
 
 
 def test_normalizer_marks_ambiguous_state_as_error_and_rejects_incomplete_identity():

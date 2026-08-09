@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Card, CardContent } from './Card';
@@ -48,44 +48,58 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const { t } = useTranslation();
   const resolvedConfirmText = confirmText ?? t('common.confirm');
   const resolvedCancelText = cancelText ?? t('common.cancel');
   const resolvedLoadingText = loadingText ?? t('common.loading');
-  // Close on Escape key (but not while loading)
+  // Native dialogs keep focus inside the confirmation and supply a real
+  // backdrop.  The close request is still owned by the caller so mutations
+  // cannot be dismissed while pending.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isLoading) onCancel();
+    const dialog = dialogRef.current;
+    if (!dialog || dialog.open) return;
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    // JSDOM does not implement showModal; retaining the open attribute keeps
+    // the semantic dialog testable without changing browser behaviour.
+    else dialog.setAttribute('open', '');
+    return () => {
+      if (dialog.open) dialog.close?.();
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onCancel, isLoading]);
+  }, []);
 
   const variantStyles = {
     danger: {
-      icon: 'text-red-600 dark:text-red-400',
-      button: 'bg-red-500 hover:bg-red-600',
+      icon: 'text-bambu-green',
+      button: '',
     },
     warning: {
-      icon: 'text-yellow-600 dark:text-yellow-400',
-      button: 'bg-yellow-500 hover:bg-yellow-600 text-black',
+      icon: 'text-bambu-green',
+      button: '',
     },
     default: {
       icon: 'text-bambu-green',
-      button: 'bg-bambu-green hover:bg-bambu-green-dark',
+      button: '',
     },
   };
 
   const styles = variantStyles[variant];
 
   return (
-    <div
-      className={`fixed inset-0 bg-black/50 flex items-center justify-center p-4 ${overlayZIndex ?? 'z-50'}`}
-      onClick={isLoading ? undefined : onCancel}
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="confirmation-title"
+      className={`nocturne-confirm-dialog w-full max-w-md ${overlayZIndex ?? ''}`}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!isLoading) onCancel();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !isLoading) onCancel();
+      }}
     >
       <Card
         className={`w-full max-w-md ${cardClassName ?? ''}`}
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
@@ -93,7 +107,7 @@ export function ConfirmModal({
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+              <h3 id="confirmation-title" className="text-lg font-medium text-white mb-2">{title}</h3>
               <p className="text-bambu-gray text-sm whitespace-pre-line">{message}</p>
               {children && <div className="mt-4">{children}</div>}
             </div>
@@ -124,6 +138,6 @@ export function ConfirmModal({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </dialog>
   );
 }

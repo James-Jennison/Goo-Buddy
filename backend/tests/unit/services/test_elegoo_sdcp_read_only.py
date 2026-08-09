@@ -40,7 +40,6 @@ class _FixtureServerSocket:
         self._response_only = response_only
         self._emit_information = emit_information
         self._incoming: asyncio.Queue[object] = asyncio.Queue()
-        self._information_messages = 0
 
     async def send_str(self, text: str) -> None:
         self.sent.append(text)
@@ -50,8 +49,8 @@ class _FixtureServerSocket:
             return
         envelope = json.loads(text)
         assert envelope["Data"]["Cmd"] in (0, 1)
-        self._information_messages += 1
-        if self._information_messages == 2 and self._emit_information:
+        if self._emit_information:
+            command = envelope["Data"]["Cmd"]
             if self._response_only:
                 await self._incoming.put(
                     type(
@@ -62,23 +61,27 @@ class _FixtureServerSocket:
                             "data": json.dumps(
                                 {
                                     "Topic": f"sdcp/response/{_FIXTURE_MAINBOARD_ID}",
-                                    "Data": {"Cmd": 0, "Data": {"Ack": 0}},
+                                    "Data": {"Cmd": command, "Data": {"Ack": 0}},
                                 }
                             ),
                         },
                     )()
                 )
                 return
-            await self._incoming.put(
-                type(
-                    "Message",
-                    (),
-                    {
-                        "type": WSMsgType.TEXT,
-                        "data": json.dumps({"Topic": f"sdcp/attributes/{_FIXTURE_MAINBOARD_ID}", "Data": attributes()}),
-                    },
-                )()
-            )
+            if command == 1:
+                await self._incoming.put(
+                    type(
+                        "Message",
+                        (),
+                        {
+                            "type": WSMsgType.TEXT,
+                            "data": json.dumps(
+                                {"Topic": f"sdcp/attributes/{_FIXTURE_MAINBOARD_ID}", "Data": attributes()}
+                            ),
+                        },
+                    )()
+                )
+                return
             await self._incoming.put(
                 type(
                     "Message",
@@ -254,7 +257,7 @@ async def test_valid_allowlisted_response_establishes_liveness_without_any_pong(
         await asyncio.sleep(0.01)
     await asyncio.sleep(0)
     assert task.done() is False
-    assert live.liveness_received.is_set() is False
+    assert live.last_liveness_at is not None
     assert live.error is None
     await websocket.close()
     await task
@@ -289,6 +292,26 @@ async def test_valid_liveness_at_the_idle_window_boundary_restarts_the_full_wind
     consume_task.cancel()
     with pytest.raises(asyncio.CancelledError):
         await consume_task
+
+
+@pytest.mark.asyncio
+async def test_periodic_information_pair_keeps_a_session_fresh_with_unchanged_valid_observations(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    manager, live, session_id = _live()
+    websocket = _FixtureServerSocket()
+    monkeypatch.setattr(manager_module, "INFORMATION_REFRESH_INTERVAL_SECONDS", 0.01)
+    task = asyncio.create_task(manager._serve_connection(websocket, live, session_id))
+    for _ in range(100):
+        if len(websocket.sent) >= 5:
+            break
+        await asyncio.sleep(0.002)
+    assert task.done() is False
+    assert websocket.sent[0] == "ping"
+    assert [json.loads(message)["Data"]["Cmd"] for message in websocket.sent[1:]] == [0, 1, 0, 1]
+    assert manager.observation(1, datetime.now(timezone.utc)).phase is ConnectionPhase.READY
+    await websocket.close()
+    await task
 
 
 def test_invalid_or_unrelated_inbound_frames_never_reset_liveness():

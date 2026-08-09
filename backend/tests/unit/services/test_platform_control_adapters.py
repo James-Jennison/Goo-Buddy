@@ -5,6 +5,7 @@ from __future__ import annotations
 import inspect
 import json
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -20,7 +21,8 @@ from backend.app.drivers.contract import (
 )
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.drivers.moonraker import MoonrakerDriver
-from backend.app.services.elegoo_sdcp_manager import ElegooSDCPManager, _LiveSource
+from backend.app.services import elegoo_sdcp_manager as elegoo_manager_module
+from backend.app.services.elegoo_sdcp_manager import ElegooControlUnconfirmed, ElegooSDCPManager, _LiveSource
 from backend.app.services.moonraker_manager import MoonrakerManager, _LiveMoonraker
 from backend.tests._fixtures.elegoo_sdcp_v3_control import (
     COMMAND_BY_OPERATION,
@@ -60,16 +62,51 @@ async def test_elegoo_dispatch_uses_only_the_closed_sdcp_operation_map(
     monkeypatch: pytest.MonkeyPatch, operation: PlatformControlOperation, protocol_command: int
 ) -> None:
     manager = ElegooSDCPManager()
-    socket = StrictSdcpControlPeer()
+
+    class RecordingSocket:
+        def __init__(self) -> None:
+            self.sent: list[str] = []
+
+        async def send_str(self, payload: str) -> None:
+            self.sent.append(payload)
+
+    socket = RecordingSocket()
     live = _LiveSource(7, "192.168.1.40", SyntheticElegooSdcpV3Driver("elegoo-7"), configuration_revision=3)
     live.mainboard_id = MAINBOARD_ID
     live.websocket = socket  # type: ignore[assignment]
     manager._sources[7] = live
     monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation(operation))
+    confirmation = AsyncMock(return_value=True)
+    monkeypatch.setattr(manager, "_await_control_confirmation", confirmation)
 
     assert await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, operation)) is True
-    assert socket.operations == [operation]
+    control_request, status_request = map(json.loads, socket.sent)
+    assert control_request["Data"]["Cmd"] == protocol_command
+    assert status_request["Data"]["Cmd"] == 0
+    confirmation.assert_awaited_once_with(live, operation)
     assert protocol_command == COMMAND_BY_OPERATION[operation]
+
+
+@pytest.mark.asyncio
+async def test_elegoo_dispatch_never_reports_success_without_a_fresh_expected_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class RecordingSocket:
+        async def send_str(self, _payload: str) -> None:
+            return None
+
+    manager = ElegooSDCPManager()
+    live = _LiveSource(7, "192.168.1.40", SyntheticElegooSdcpV3Driver("elegoo-7"), configuration_revision=3)
+    live.mainboard_id = MAINBOARD_ID
+    live.websocket = RecordingSocket()  # type: ignore[assignment]
+    manager._sources[7] = live
+    monkeypatch.setattr(
+        manager, "observation", lambda _source_id: _ready_observation(PlatformControlOperation.PAUSE_JOB)
+    )
+    monkeypatch.setattr(elegoo_manager_module, "CONTROL_CONFIRMATION_TIMEOUT_SECONDS", 0.001)
+
+    with pytest.raises(ElegooControlUnconfirmed):
+        await manager.dispatch_command(_command(DriverKind.ELEGOO_SDCP_V3, PlatformControlOperation.PAUSE_JOB))
 
 
 @pytest.mark.asyncio

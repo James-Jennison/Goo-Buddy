@@ -5,7 +5,9 @@ services:
     # Usage:
     #   docker compose up -d --build  → builds the local Goo Buddy source
     # No Goo Buddy image is published by this foundation.
-    container_name: bambuddy
+    # This is the user-facing Compose identity. Keep the legacy volume names
+    # below unchanged so existing Bambuddy installs retain their data.
+    container_name: goo-buddy
     # File ownership inside the data and logs volumes is normalised by the
     # entrypoint at startup (chowns to PUID:PGID and drops privileges via
     # gosu before running the app). Override PUID / PGID below to match

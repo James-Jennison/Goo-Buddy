@@ -89,9 +89,9 @@ export function Layout() {
   const [changePasswordLoading, setChangePasswordLoading] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(() => {
     const stored = localStorage.getItem('sidebarExpanded');
-    // Workshop starts as an accessible icon rail; people who prefer labels can
-    // expand it and that preference remains local to their browser.
-    return stored === 'true';
+    // Nocturne starts with labelled navigation; the compact rail remains a
+    // deliberate per-browser preference.
+    return stored !== 'false';
   });
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -491,11 +491,9 @@ export function Layout() {
           >
             <Menu className="w-6 h-6 text-white" />
           </button>
-          <img
-            src="/img/goo_buddy_logo.png"
-            alt="Goo Buddy"
-            className="h-8 ml-3"
-          />
+          <div className="workshop-brand workshop-brand--mobile ml-3">
+            <img src="/img/goo_buddy_logo.png" alt="Goo Buddy" className="workshop-brand__image" />
+          </div>
         </header>
       )}
 
@@ -516,12 +514,10 @@ export function Layout() {
         }`}
       >
         {/* Logo */}
-        <div className={`border-b border-bambu-dark-tertiary flex items-center justify-center ${isSidebarCompact || sidebarExpanded ? 'p-4' : 'p-2'}`}>
-          <img
-            src="/img/goo_buddy_logo.png"
-            alt="Goo Buddy"
-            className={isSidebarCompact || sidebarExpanded ? 'h-16 w-auto' : 'h-8 w-8 object-cover object-left'}
-          />
+        <div className={`border-b border-bambu-dark-tertiary flex items-center justify-center ${isSidebarCompact || sidebarExpanded ? 'p-3' : 'p-2'}`}>
+          <div className={`workshop-brand ${isSidebarCompact || sidebarExpanded ? 'workshop-brand--expanded' : 'workshop-brand--rail'}`}>
+            <img src="/img/goo_buddy_logo.png" alt="Goo Buddy" className="workshop-brand__image" />
+          </div>
         </div>
 
         {/* Navigation */}

@@ -12,6 +12,7 @@ from sqlalchemy import select
 from backend.app.control.contract import PlatformControlOperation
 from backend.app.drivers.contract import DriverKind
 from backend.app.models.platform_control_command import PlatformControlCommand as PlatformControlCommandRecord
+from backend.app.services.elegoo_sdcp_manager import ElegooControlUnconfirmed
 
 
 def _control_headers(key: str = "0123456789abcdef0123456789abcdef") -> dict[str, str]:
@@ -173,6 +174,26 @@ async def test_control_routes_record_disconnects_without_exposing_transport_deta
     assert "private transport" not in response.text
     record = (await db_session.execute(select(PlatformControlCommandRecord))).scalar_one()
     assert (record.status, record.error_code) == ("failed", "dispatch_failed")
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_elegoo_control_reports_a_missing_state_confirmation_without_acknowledging_it(
+    async_client: AsyncClient, db_session
+) -> None:
+    source_id = await _create_source(async_client, "elegoo")
+    dispatch = AsyncMock(side_effect=ElegooControlUnconfirmed)
+
+    with patch("backend.app.api.routes.printers.elegoo_sdcp_manager.dispatch_command", dispatch):
+        response = await async_client.post(
+            f"/api/v1/printers/elegoo/{source_id}/control/pause", headers=_control_headers()
+        )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "failed"
+    assert response.json()["error_code"] == "unconfirmed"
+    record = (await db_session.execute(select(PlatformControlCommandRecord))).scalar_one()
+    assert (record.status, record.error_code) == ("failed", "unconfirmed")
 
 
 @pytest.mark.asyncio

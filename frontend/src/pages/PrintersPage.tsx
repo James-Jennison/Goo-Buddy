@@ -970,6 +970,23 @@ interface PrinterMaintenanceInfo {
 function StatusSummaryBar({ printers }: { printers: Printer[] | undefined }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const sevenDaysAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  // The band uses only persisted archive statistics plus live printer
+  // observations. It deliberately leaves values loading rather than making up
+  // fleet history when the archive query has not returned yet.
+  const { data: todayStats } = useQuery({
+    queryKey: ['archiveStats', 'nocturne-today', today],
+    queryFn: () => api.getArchiveStats({ dateFrom: today, dateTo: today }),
+    enabled: Boolean(printers?.length),
+    staleTime: 60_000,
+  });
+  const { data: weekStats } = useQuery({
+    queryKey: ['archiveStats', 'nocturne-week', sevenDaysAgo, today],
+    queryFn: () => api.getArchiveStats({ dateFrom: sevenDaysAgo, dateTo: today }),
+    enabled: Boolean(printers?.length),
+    staleTime: 60_000,
+  });
 
   // Subscribe to query cache changes to re-render when status updates
   // Throttled to prevent rapid re-renders from causing tab crashes
@@ -1059,47 +1076,32 @@ function StatusSummaryBar({ printers }: { printers: Printer[] | undefined }) {
 
   if (!printers?.length) return null;
 
-  const badges: { count: number; dot: string; label: string }[] = [
-    { count: counts.printing, dot: 'bg-bambu-green animate-pulse', label: t('printers.status.printing').toLowerCase() },
-    { count: counts.paused, dot: 'bg-status-warning', label: t('printers.status.paused', 'paused').toLowerCase() },
-    { count: counts.finished, dot: 'bg-blue-400', label: t('printers.status.finished', 'finished').toLowerCase() },
-    { count: counts.idle, dot: counts.idle > 0 ? 'bg-bambu-green' : 'bg-gray-500', label: t('printers.status.available').toLowerCase() },
-    { count: counts.error, dot: 'bg-status-error', label: t('printers.status.problem').toLowerCase() },
-    { count: counts.offline, dot: 'bg-gray-400', label: t('printers.status.offline').toLowerCase() },
+  const online = Math.max(0, counts.total - counts.offline - counts.loading);
+  const uptime = counts.total ? Math.round((online / counts.total) * 100) : null;
+  const statItems = [
+    { label: 'Printers online', value: `${online} / ${counts.total}`, detail: `${counts.printing + counts.paused} active` },
+    { label: 'Jobs today', value: todayStats ? String(todayStats.total_prints) : '—', detail: todayStats ? 'archived prints' : 'Loading archive data' },
+    { label: 'Filament used · 7d', value: weekStats ? `${Math.round(weekStats.total_filament_grams)} g` : '—', detail: weekStats ? 'recorded usage' : 'Loading archive data' },
+    { label: 'Fleet uptime', value: uptime == null ? '—' : `${uptime}%`, detail: `${counts.offline} offline · ${counts.error} attention` },
   ];
 
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-4 gap-y-2 text-bambu-gray">
-      {badges.map(({ count, dot, label }) => count > 0 && (
-        <div key={label} className="flex items-center gap-1.5">
-          <div className={`w-2 h-2 rounded-full ${dot}`} />
-          <span className="text-bambu-gray">
-            <span className="text-white font-medium">{count}</span> {label}
-          </span>
-        </div>
-      ))}
-      {nextFinish && (
-        <>
-          <div className="w-px h-4 bg-bambu-dark-tertiary" />
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-bambu-green font-medium">{t('printers.nextAvailable')}:</span>
-              <span className="text-white font-medium">{nextFinish.name}</span>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="w-full sm:w-16 bg-bambu-dark-tertiary rounded-full h-1.5">
-                <div
-                  className="bg-bambu-green h-1.5 rounded-full transition-all"
-                  style={{ width: `${nextFinish.progress}%` }}
-                />
-              </div>
-              <span className="text-white font-medium">{Math.round(nextFinish.progress)}%</span>
-              <span className="text-bambu-gray">({formatDuration(nextFinish.remainingMin * 60)})</span>
-            </div>
+    <section className="nocturne-fleet-band" aria-label="Fleet statistics">
+      <div className="nocturne-fleet-band__stats">
+        {statItems.map((item) => (
+          <div className="nocturne-fleet-stat" key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <small>{item.detail}</small>
           </div>
-        </>
-      )}
-    </div>
+        ))}
+      </div>
+      <div className="nocturne-fleet-band__live" aria-live="polite">
+        <span className="nocturne-live-dot" aria-hidden="true" />
+        <span>{counts.printing ? `${counts.printing} print${counts.printing === 1 ? '' : 's'} live` : t('printers.status.available')}</span>
+        {nextFinish && <span className="nocturne-fleet-band__next">{nextFinish.name} · {Math.round(nextFinish.progress)}% · {formatDuration(nextFinish.remainingMin * 60)}</span>}
+      </div>
+    </section>
   );
 }
 
@@ -6690,6 +6692,28 @@ function PrinterCard(props: Parameters<typeof BambuPrinterCard>[0]) {
   return <BambuPrinterCard {...props} />;
 }
 
+function NativePrinterDialog({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog || dialog.open) return;
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+    return () => { if (dialog.open) dialog.close?.(); };
+  }, []);
+  return (
+    <dialog
+      ref={dialogRef}
+      className="nocturne-add-printer-dialog w-full max-w-md"
+      aria-labelledby="add-printer-title"
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      {children}
+    </dialog>
+  );
+}
+
 export function AddPrinterModal({
   onClose,
   onAdd,
@@ -6911,10 +6935,10 @@ export function AddPrinterModal({
   if (platform === 'elegoo') {
     const validPrivateIPv4 = isCanonicalRfc1918Ipv4(elegooAddress);
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
-        <Card className="w-full max-w-md my-auto" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+      <NativePrinterDialog onClose={onClose}>
+        <Card className="w-full max-w-md">
           <CardContent>
-            <h2 className="text-xl font-semibold mb-4">Add printer</h2>
+            <h2 id="add-printer-title" className="text-xl font-medium mb-4">Add printer</h2>
             <div className="mb-4">
               <label htmlFor="elegoo-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label>
               <select id="elegoo-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo' | 'moonraker')}>
@@ -6933,7 +6957,7 @@ export function AddPrinterModal({
             </form>
           </CardContent>
         </Card>
-      </div>
+      </NativePrinterDialog>
     );
   }
 
@@ -6945,13 +6969,10 @@ export function AddPrinterModal({
 
   return (
     <>
-    <div
-      className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <Card className="w-full max-w-md my-auto max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+    <NativePrinterDialog onClose={onClose}>
+      <Card className="w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto">
         <CardContent>
-          <h2 className="text-xl font-semibold mb-4">{t('printers.addPrinter')}</h2>
+          <h2 id="add-printer-title" className="text-xl font-medium mb-4">{t('printers.addPrinter')}</h2>
           <div className="mb-4"><label htmlFor="printer-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label><select id="printer-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo' | 'moonraker')}><option value="bambu">Bambu Lab</option><option value="elegoo">Elegoo SDCP v3 (read-only)</option><option value="moonraker">Klipper via Moonraker (alpha read-only)</option></select></div>
 
           {/* Discovery Section */}
@@ -7229,7 +7250,7 @@ export function AddPrinterModal({
           </form>
         </CardContent>
       </Card>
-    </div>
+    </NativePrinterDialog>
     {showDiagnostic && (
       <ConnectionDiagnosticModal
         connection={{
@@ -8807,14 +8828,16 @@ export function PrintersPage() {
     <div className="workshop-page p-4 md:p-8">
       <div className="space-y-3 mb-6">
         <div className="workshop-page-header">
-          <div>
-          <h1 className="workshop-page-title text-2xl font-bold text-white flex items-center gap-3">
-            <PrinterIcon className="w-7 h-7 text-bambu-green" />
-            {t('printers.title')}
-          </h1>
-          <StatusSummaryBar printers={printers} />
+          <div className="nocturne-page-heading">
+          <div className="nocturne-icon-chip"><PrinterIcon className="w-5 h-5" /></div>
+          <div><h1 className="workshop-page-title text-2xl font-medium text-white">{t('printers.title')}</h1>
+          <p>Live fleet monitoring and capability-aware job control.</p></div>
           </div>
-          <p className="max-w-sm text-sm leading-5 text-bambu-gray">A capability-driven workspace. Read-only sources display only validated observations.</p>
+          <Button onClick={() => setShowAddModal(true)} disabled={!hasPermission('printers:create')} title={!hasPermission('printers:create') ? t('printers.permission.noAdd') : undefined}>
+            <Plus className="w-4 h-4" />
+            {t('printers.addPrinter')}
+          </Button>
+          <StatusSummaryBar printers={printers} />
         </div>
         <div ref={toolbarRef} className="workshop-toolbar relative flex items-center gap-2">
           {/* Only show search bar when printers exist */}

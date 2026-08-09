@@ -72,7 +72,7 @@ from backend.app.services.bambu_ftp import (
     get_storage_info_async,
     list_files_async,
 )
-from backend.app.services.elegoo_sdcp_manager import elegoo_sdcp_manager
+from backend.app.services.elegoo_sdcp_manager import ElegooControlUnconfirmed, elegoo_sdcp_manager
 from backend.app.services.moonraker_manager import moonraker_manager
 from backend.app.services.printer_diagnostic import run_connection_diagnostic
 from backend.app.services.printer_manager import (
@@ -96,7 +96,9 @@ router = APIRouter(prefix="/printers", tags=["printers"])
 # confirming the command landed before reporting 502 to the UI. Module-level
 # so tests can monkeypatch a near-zero value instead of mocking asyncio.sleep.
 HMS_ACTION_ACK_WAIT_SECONDS = 2.5
-PLATFORM_CONTROL_DISPATCH_TIMEOUT_SECONDS = 10
+# Elegoo confirms a fixed job operation from a following fresh status read.
+# Keep the API deadline above that bounded confirmation wait.
+PLATFORM_CONTROL_DISPATCH_TIMEOUT_SECONDS = 25
 _PLATFORM_CONTROL_IDEMPOTENCY_KEY = re.compile(r"^[a-f0-9]{32}$")
 
 
@@ -177,7 +179,12 @@ def _platform_control_idempotency_key(request: Request) -> str:
 
 
 def _platform_control_response(record: PlatformControlCommandRecord) -> PlatformControlCommandResponse:
-    return PlatformControlCommandResponse(id=record.id, operation=record.operation, status=record.status)
+    return PlatformControlCommandResponse(
+        id=record.id,
+        operation=record.operation,
+        status=record.status,
+        error_code=record.error_code,
+    )
 
 
 def _same_platform_control_request(
@@ -267,6 +274,9 @@ async def _dispatch_platform_control(
     except asyncio.TimeoutError:
         record.status = PlatformControlState.FAILED.value
         record.error_code = "dispatch_timeout"
+    except ElegooControlUnconfirmed:
+        record.status = PlatformControlState.FAILED.value
+        record.error_code = "unconfirmed"
     except Exception:
         # Do not expose adapter or transport exceptions: they can carry a
         # configured private endpoint or protocol data.

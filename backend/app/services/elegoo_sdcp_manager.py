@@ -8,7 +8,6 @@ commands, issue G-code, discover a subnet, or use an alternate endpoint.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import random
 import socket
@@ -19,7 +18,11 @@ from datetime import datetime, timedelta, timezone
 
 import aiohttp
 
-from backend.app.control.contract import PlatformControlCommand, control_operation_is_available
+from backend.app.control.contract import (
+    PlatformControlCommand,
+    PlatformControlOperation,
+    control_operation_is_available,
+)
 from backend.app.drivers.contract import ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4
@@ -41,7 +44,16 @@ PASSIVE_IDENTITY_WAIT_SECONDS = 1
 IDENTITY_DISCOVERY_TIMEOUT_SECONDS = 2
 PONG_TIMEOUT_SECONDS = 5
 NO_INBOUND_TRAFFIC_TIMEOUT_SECONDS = 45
+# SDCP status and attributes are explicitly requested through the documented
+# Cmd 0/1 allowlist. Refresh before the inbound deadline so a printer which
+# only answers requests can keep one session fresh without a reconnect loop.
+INFORMATION_REFRESH_INTERVAL_SECONDS = 15
+CONTROL_CONFIRMATION_TIMEOUT_SECONDS = 20
 _IDENTITY_DISCOVERY_MESSAGE = b"M99999"
+
+
+class ElegooControlUnconfirmed(Exception):
+    """A closed control request was written but no fresh expected state arrived."""
 
 
 @dataclass
@@ -60,10 +72,10 @@ class _LiveSource:
     identity_ready: asyncio.Event = field(default_factory=asyncio.Event)
     pong_received: asyncio.Event = field(default_factory=asyncio.Event)
     liveness_received: asyncio.Event = field(default_factory=asyncio.Event)
+    status_received: asyncio.Event = field(default_factory=asyncio.Event)
     last_liveness_at: float | None = None
     websocket: aiohttp.ClientWebSocketResponse | None = None
     control_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
-    _payload_hashes: dict[str, str] = field(default_factory=dict)
 
 
 class ElegooSDCPManager:
@@ -152,10 +164,21 @@ class ElegooSDCPManager:
         if live.mainboard_id is None or live.websocket is None or live.stop.is_set():
             return False
         async with live.control_lock:
-            if live.websocket is None or live.stop.is_set():
+            websocket = live.websocket
+            mainboard_id = live.mainboard_id
+            if websocket is None or mainboard_id is None or live.stop.is_set():
                 return False
-            await live.websocket.send_str(serialize_control_request(command.operation, live.mainboard_id))
-        return True
+            # A status received before this point cannot confirm this command.
+            live.status_received.clear()
+            await websocket.send_str(serialize_control_request(command.operation, mainboard_id))
+            # Ask for the one already-allowlisted state record immediately;
+            # do not infer a response schema for the control command itself.
+            await self._send_information_request(
+                websocket, live, ReadOnlyInformationOperation.STATUS_REFRESH, mainboard_id
+            )
+        if await self._await_control_confirmation(live, command.operation):
+            return True
+        raise ElegooControlUnconfirmed
 
     async def _run(self, live: _LiveSource) -> None:
         # The documented identity lookup precedes the WebSocket session. It is
@@ -169,6 +192,7 @@ class ElegooSDCPManager:
             live.reconnecting = attempt > 0
             live.pong_received.clear()
             live.liveness_received.clear()
+            live.status_received.clear()
             live.last_liveness_at = None
             try:
                 timeout = aiohttp.ClientTimeout(total=HANDSHAKE_TIMEOUT_SECONDS, sock_connect=CONNECT_TIMEOUT_SECONDS)
@@ -304,6 +328,7 @@ class ElegooSDCPManager:
         """Keep an established session only while validated inbound traffic remains fresh."""
 
         loop = asyncio.get_running_loop()
+        next_refresh_at = loop.time() + INFORMATION_REFRESH_INTERVAL_SECONDS
         while not consume_task.done() and not live.stop.is_set():
             last_liveness_at = live.last_liveness_at or loop.time()
             remaining = NO_INBOUND_TRAFFIC_TIMEOUT_SECONDS - (loop.time() - last_liveness_at)
@@ -313,7 +338,9 @@ class ElegooSDCPManager:
                 return
             update_wait = asyncio.create_task(live.liveness_received.wait())
             done, _pending = await asyncio.wait(
-                {consume_task, update_wait}, timeout=remaining, return_when=asyncio.FIRST_COMPLETED
+                {consume_task, update_wait},
+                timeout=min(remaining, max(0, next_refresh_at - loop.time())),
+                return_when=asyncio.FIRST_COMPLETED,
             )
             if update_wait in done:
                 live.liveness_received.clear()
@@ -326,9 +353,46 @@ class ElegooSDCPManager:
                     pass
             if consume_task in done:
                 return
+            if loop.time() >= next_refresh_at:
+                mainboard_id = live.mainboard_id
+                if mainboard_id is not None:
+                    await self._send_information_request(
+                        websocket, live, ReadOnlyInformationOperation.STATUS_REFRESH, mainboard_id
+                    )
+                    await self._send_information_request(
+                        websocket, live, ReadOnlyInformationOperation.ATTRIBUTES, mainboard_id
+                    )
+                next_refresh_at = loop.time() + INFORMATION_REFRESH_INTERVAL_SECONDS
+                continue
             live.error = "inbound_timeout"
             await websocket.close()
             return
+
+    async def _await_control_confirmation(self, live: _LiveSource, operation: PlatformControlOperation) -> bool:
+        """Require a post-dispatch, fresh state transition before reporting success."""
+
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + CONTROL_CONFIRMATION_TIMEOUT_SECONDS
+        while not live.stop.is_set() and live.websocket is not None:
+            if self._control_state_matches(operation, self.observation(live.source_id)):
+                return True
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                return False
+            status_wait = asyncio.create_task(live.status_received.wait())
+            try:
+                await asyncio.wait_for(status_wait, timeout=remaining)
+            except asyncio.TimeoutError:
+                return False
+            finally:
+                if not status_wait.done():
+                    status_wait.cancel()
+                    try:
+                        await status_wait
+                    except asyncio.CancelledError:
+                        pass
+            live.status_received.clear()
+        return False
 
     async def _send_heartbeat(self, websocket: aiohttp.ClientWebSocketResponse, live: _LiveSource) -> bool:
         """Transmit the one allowed liveness message after immediate serialization."""
@@ -447,16 +511,24 @@ class ElegooSDCPManager:
         if not has_documented_record:
             live.error = "invalid_envelope"
             return
-        digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
-        if live._payload_hashes.get(kind) == digest:
-            return
-        live._payload_hashes[kind] = digest
         observed_at = datetime.now(timezone.utc)
         if kind == "status":
             live.driver.observe_status(session_id, envelope, observed_at)
+            live.status_received.set()
         else:
             live.driver.observe_attributes(session_id, envelope, observed_at)
         self._mark_liveness(live)
+
+    @staticmethod
+    def _control_state_matches(operation: PlatformControlOperation, observation: DriverObservation) -> bool:
+        if observation.phase is not ConnectionPhase.READY or observation.current is None:
+            return False
+        job = observation.current.job
+        if operation is PlatformControlOperation.PAUSE_JOB:
+            return job is not None and job.state == "paused"
+        if operation is PlatformControlOperation.RESUME_JOB:
+            return job is not None and job.state == "printing"
+        return job is None or job.state not in {"printing", "paused"}
 
     @staticmethod
     def _set_mainboard_id(live: _LiveSource, candidate: object) -> bool:

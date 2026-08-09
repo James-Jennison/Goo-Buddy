@@ -89,7 +89,7 @@ async def test_service_boundary_rejects_non_private_or_non_literal_addresses_bef
     assert manager._sources == {}
 
 
-def test_transport_duplicate_frame_is_ignored_without_invalidating_current_snapshot():
+def test_transport_duplicate_frame_refreshes_current_snapshot_without_invalidating_it():
     manager, live, session_id = _live()
     attrs = '{"Topic":"sdcp/attributes/redacted","Data":' + str(attributes()).replace("'", '"') + "}"
     stat = '{"Topic":"sdcp/status/redacted","Data":' + str(status()).replace("'", '"') + "}"
@@ -97,6 +97,7 @@ def test_transport_duplicate_frame_is_ignored_without_invalidating_current_snaps
     manager._observe_text(live, session_id, stat)
     manager._observe_text(live, session_id, stat)
     assert manager.observation(1).phase is ConnectionPhase.READY
+    assert live.status_received.is_set() is True
 
 
 @pytest.mark.asyncio

@@ -11,7 +11,7 @@ Usage:
     python scripts/backfill_archive_bed_type.py
 
     # Or via docker:
-    docker exec -it bambuddy python scripts/backfill_archive_bed_type.py
+    docker exec -it goo-buddy python scripts/backfill_archive_bed_type.py
 
     # Preview without writing:
     python scripts/backfill_archive_bed_type.py --dry-run

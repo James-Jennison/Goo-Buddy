@@ -8,6 +8,7 @@ export type PlatformJobOperation = 'pause' | 'resume' | 'cancel';
 export interface PlatformJobControlResult {
   operation: string;
   status: string;
+  error_code?: string | null;
 }
 
 interface PlatformJobControlsProps {
@@ -62,8 +63,10 @@ export function PlatformJobControls(props: PlatformJobControlsProps) {
     try {
       const response = await props.submit(operation);
       setResult(response.status === 'acknowledged'
-        ? `${CONTROL_COPY[operation].label} request acknowledged for ${props.printerName}.`
-        : `${CONTROL_COPY[operation].label} is unavailable for ${props.printerName}.`);
+        ? `${CONTROL_COPY[operation].label} confirmed for ${props.printerName}.`
+        : response.error_code === 'unconfirmed'
+          ? `${CONTROL_COPY[operation].label} was sent, but ${props.printerName} did not confirm the new state. Check its status before retrying.`
+          : `${CONTROL_COPY[operation].label} is unavailable for ${props.printerName}.`);
     } catch {
       setResult(`${CONTROL_COPY[operation].label} could not be sent. Check the printer status and try again.`);
     } finally {

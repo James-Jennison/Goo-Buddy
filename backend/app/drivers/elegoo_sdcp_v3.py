@@ -156,9 +156,13 @@ def normalize_synthetic_sdcp_v3(
     if temperatures:
         capabilities.add(Capability.TEMPERATURES)
 
+    state = _state(status)
     print_info = _record(status.get("PrintInfo"))
     job = None
-    if print_info is not None:
+    # Printers can retain a completed job's final progress and layer values in
+    # PrintInfo after returning to idle. Those fields are history, not a live
+    # job, and must not make the dashboard present a finished print as active.
+    if print_info is not None and state in {"printing", "paused"}:
         current_ticks = _number(print_info.get("CurrentTicks"))
         total_ticks = _number(print_info.get("TotalTicks"))
         current_layer = _non_negative_int(print_info.get("CurrentLayer"))
@@ -183,7 +187,7 @@ def normalize_synthetic_sdcp_v3(
                 # G-code filenames are intentionally never retained or
                 # projected through the ordinary dashboard API.
                 name=None,
-                state=_state(status),
+                state=state,
                 progress_percent=progress,
                 current_layer=current_layer,
                 total_layers=total_layers,
@@ -205,7 +209,7 @@ def normalize_synthetic_sdcp_v3(
         ),
         driver=DriverKind.ELEGOO_SDCP_V3,
         observed_at=observed_at.astimezone(timezone.utc),
-        state=_state(status),
+        state=state,
         capabilities=frozenset(capabilities),
         temperatures=freeze_temperatures(temperatures),
         job=job,

@@ -41,4 +41,18 @@ describe('Workshop printer presentation', () => {
     expect(screen.queryByLabelText(/Print progress/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Camera, files, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
   });
+
+  it('builds temperature trends from fresh observations instead of rendering an invented history', () => {
+    const { rerender } = render(<WorkshopReadOnlyPresentation platform="elegoo" snapshot={{
+      phase: 'ready', freshness: 'current', temperatures: { nozzle: { current_c: 200, target_c: 210 } },
+    }} />);
+
+    expect(screen.getByLabelText('Nozzle temperature trend from 1 fresh observations')).toHaveTextContent('Collecting trend');
+
+    rerender(<WorkshopReadOnlyPresentation platform="elegoo" snapshot={{
+      phase: 'ready', freshness: 'current', temperatures: { nozzle: { current_c: 203, target_c: 210 } },
+    }} />);
+
+    expect(screen.getByLabelText('Nozzle temperature trend from 2 fresh observations')).toHaveTextContent('Live trend');
+  });
 });
