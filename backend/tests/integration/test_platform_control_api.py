@@ -134,3 +134,48 @@ async def test_control_routes_require_printer_control_permission_and_record_time
     record = (await db_session.execute(select(PlatformControlCommandRecord))).scalar_one()
     assert record.error_code == "dispatch_timeout"
     assert record.requested_by is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.parametrize("platform", ["elegoo", "moonraker"])
+async def test_non_bambu_sources_cannot_enter_bambu_only_workflows(async_client: AsyncClient, platform: str) -> None:
+    """Keep source namespaces out of legacy Bambu command and data paths.
+
+    These are representative entry points for the Bambu-only command, queue,
+    FTP/file upload, virtual-printer, camera, and maintenance workflows.  The
+    public source identifier is deliberately synthetic, and every legacy path
+    must reject it before touching a Bambu transport or persisting work.
+    """
+
+    source_id = await _create_source(async_client, platform)
+
+    command = await async_client.post(f"/api/v1/printers/{source_id}/print/pause")
+    queue = await async_client.post(
+        "/api/v1/queue/",
+        json={"archive_id": 999_999, "printer_id": source_id},
+    )
+    file_manager = await async_client.get(f"/api/v1/printers/{source_id}/files")
+    camera = await async_client.get(f"/api/v1/printers/{source_id}/camera/test")
+    maintenance = await async_client.get(f"/api/v1/maintenance/printers/{source_id}")
+    virtual_printer = await async_client.post(
+        "/api/v1/virtual-printers",
+        json={"name": "Rejected non-Bambu target", "target_printer_id": source_id},
+    )
+    upload = await async_client.post(
+        f"/api/v1/archives/upload?printer_id={source_id}",
+        files={"file": ("source.3mf", b"not-a-3mf", "application/octet-stream")},
+    )
+    bulk_upload = await async_client.post(
+        f"/api/v1/archives/upload-bulk?printer_id={source_id}",
+        files=[("files", ("source.3mf", b"not-a-3mf", "application/octet-stream"))],
+    )
+
+    assert command.status_code == 404
+    assert queue.status_code == 400
+    assert file_manager.status_code == 404
+    assert camera.status_code == 404
+    assert maintenance.status_code == 404
+    assert virtual_printer.status_code == 400
+    assert upload.status_code == 400
+    assert bulk_upload.status_code == 400

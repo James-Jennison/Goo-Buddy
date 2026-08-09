@@ -73,7 +73,7 @@ in the same change.
   JSON-RPC or G-code route.
 - [x] Add Workshop controls that disclose the target, operation, confirmation,
   pending state, result, and unavailable-capability explanation accessibly.
-- [ ] Add regression coverage proving non-Bambu sources cannot use Bambu-only
+- [x] Add regression coverage proving non-Bambu sources cannot use Bambu-only
   command, queue, upload, virtual-printer, file, camera, or maintenance paths.
 - [ ] Add API, driver, simulator, and frontend tests for success, denial,
   disconnect, timeout, duplicate-command, stale-state, and restart recovery

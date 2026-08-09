@@ -23,6 +23,7 @@ from backend.app.core.database import get_db
 from backend.app.core.permissions import Permission
 from backend.app.models.archive import PrintArchive
 from backend.app.models.filament import Filament
+from backend.app.models.printer import Printer
 from backend.app.models.spool_usage_history import SpoolUsageHistory
 from backend.app.models.user import User
 from backend.app.schemas.archive import ArchiveResponse, ArchiveSlim, ArchiveStats, ArchiveUpdate
@@ -40,6 +41,23 @@ from backend.app.utils.threemf_tools import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/archives", tags=["archives"])
+
+
+async def _require_bambu_printer_for_archive_upload(db: AsyncSession, printer_id: int | None) -> None:
+    """Reject non-Bambu source IDs before an archive can enter a Bambu workflow.
+
+    ``Printer`` is the sole model accepted by the legacy archive/upload and
+    queue paths.  Elegoo and Moonraker sources intentionally live in separate
+    tables and use their own closed control adapters, so accepting one of
+    their public synthetic IDs here would create an archive that a Bambu-only
+    dispatch path could later misinterpret.
+    """
+
+    if printer_id is None:
+        return
+    result = await db.execute(select(Printer.id).where(Printer.id == printer_id))
+    if result.scalar_one_or_none() is None:
+        raise HTTPException(400, "Printer not found")
 
 
 def _safe_filename(filename: str) -> str:
@@ -3316,6 +3334,7 @@ async def upload_archive(
     current_user: User | None = RequirePermissionIfAuthEnabled(Permission.ARCHIVES_CREATE),
 ):
     """Manually upload a 3MF file to archive."""
+    await _require_bambu_printer_for_archive_upload(db, printer_id)
     if not file.filename or not file.filename.endswith(".3mf"):
         raise HTTPException(400, "File must be a .3mf file")
 
@@ -3360,6 +3379,7 @@ async def upload_archives_bulk(
     current_user: User | None = RequirePermissionIfAuthEnabled(Permission.ARCHIVES_CREATE),
 ):
     """Bulk upload multiple 3MF files to archive."""
+    await _require_bambu_printer_for_archive_upload(db, printer_id)
     from backend.app.api.routes.library import validate_print_file_upload
 
     results = []
