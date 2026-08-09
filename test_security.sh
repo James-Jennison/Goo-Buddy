@@ -193,11 +193,18 @@ scan_trivy_config() {
 }
 
 scan_pip_audit() {
-    if ! check_command pip-audit; then
+    local pip_audit
+    if check_command pip-audit; then
+        pip_audit="$(command -v pip-audit)"
+    elif [[ -x "$PROJECT_ROOT/.venv/bin/pip-audit" ]]; then
+        # The project venv is the dependency set exercised by the local gate;
+        # use it even when callers have not activated it in their shell.
+        pip_audit="$PROJECT_ROOT/.venv/bin/pip-audit"
+    else
         echo "SKIP: 'pip-audit' not found. Install: pip install pip-audit"
         return 2
     fi
-    pip-audit --desc on 2>&1
+    "$pip_audit" --desc on 2>&1
 }
 
 scan_npm_audit() {

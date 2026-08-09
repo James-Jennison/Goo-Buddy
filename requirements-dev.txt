@@ -18,7 +18,7 @@ ruff==0.15.20
 pre-commit>=4.0
 
 # Required by pyftpdlib TLS_FTPHandler for mock FTP server tests
-pyOpenSSL>=26.0.0
+pyOpenSSL>=26.4.0
 
 # Security scanning
 bandit[sarif]>=1.7.0

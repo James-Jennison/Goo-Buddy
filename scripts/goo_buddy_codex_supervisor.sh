@@ -34,6 +34,14 @@ prepare_state() {
     chmod 600 -- "$WORKER_LOG" "$SUPERVISOR_LOG"
 }
 
+activate_project_venv() {
+    local venv="$ROOT/.venv"
+    if [[ -x "$venv/bin/python" ]]; then
+        export VIRTUAL_ENV="$venv"
+        export PATH="$venv/bin:$PATH"
+    fi
+}
+
 log() {
     printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$*" >> "$SUPERVISOR_LOG"
 }
@@ -119,6 +127,7 @@ readonly TASK_PROMPT="You are the Goo Buddy implementation worker. Read AGENTS.m
 
 worker() {
     prepare_state
+    activate_project_venv
     trap 'stop_cleanly idle "Supervisor stopped by local user."' INT TERM
 
     [[ -n "$CODEX_BIN" && -x "$CODEX_BIN" ]] || stop_cleanly failed 'Codex CLI is unavailable.'
