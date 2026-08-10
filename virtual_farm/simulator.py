@@ -141,6 +141,20 @@ async def webcams(request: web.Request) -> web.Response:
     return web.json_response({"result": {"webcams": cameras}})
 
 
+async def gcode_files(request: web.Request) -> web.Response:
+    """Expose only the fixed Moonraker gcode-list contract for adapter tests."""
+    if request.query != {"root": "gcodes"}:
+        return web.json_response({"error": "virtual-farm supports only the gcodes root"}, status=400)
+    return web.json_response(
+        {
+            "result": [
+                {"path": "virtual-farm-benchy.gcode", "size": 4926481, "modified": 1700000000.0},
+                {"path": "fixtures/calibration-cube.gcode", "size": 324236, "modified": 1700000060.0},
+            ]
+        }
+    )
+
+
 async def camera_frame(request: web.Request) -> web.Response:
     if not request.app[CAMERA_ENABLED]:
         raise web.HTTPServiceUnavailable(reason="virtual-farm camera disabled")
@@ -206,6 +220,7 @@ def app(
             web.get("/server/info", info),
             web.get("/printer/objects/list", objects),
             web.get("/server/webcams/list", webcams),
+            web.get("/server/files/list", gcode_files),
             web.get("/camera/snapshot", camera_frame),
             web.get("/camera/stream", camera_frame),
             web.get("/websocket", ws),
@@ -216,10 +231,11 @@ def app(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=17125)
     parser.add_argument("--camera-mode", choices=("off", "fixture", "v4l2"), default="off")
     parser.add_argument("--camera-device")
     args = parser.parse_args()
     if args.camera_mode == "v4l2" and args.camera_device is None:
         parser.error("--camera-device is required with --camera-mode v4l2")
-    web.run_app(app(args.camera_mode, args.camera_device), host="127.0.0.1", port=args.port)
+    web.run_app(app(args.camera_mode, args.camera_device), host=args.host, port=args.port)

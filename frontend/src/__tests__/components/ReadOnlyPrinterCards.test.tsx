@@ -75,4 +75,19 @@ describe('read-only printer cards', () => {
     await waitFor(() => expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument());
     expect(screen.queryByText(/Waiting for a printer-pushed/i)).not.toBeInTheDocument();
   });
+
+  it('shows Moonraker G-code inventory as display-only when the fixed capability is current', async () => {
+    const publicId = -1_000_201;
+    server.use(http.get('/api/v1/printers/moonraker/201/status', () => HttpResponse.json({
+      phase: 'ready', freshness: 'current', retained: false, last_observation_at: '2030-01-02T03:04:05Z', error: null,
+      state: 'idle', model: 'Klipper', firmware: 'synthetic-v1', temperatures: null, job: null, capabilities: ['files'],
+      files: [{ path: 'fixtures/calibration-cube.gcode', size: 324236, modified: 1700000060.0 }],
+    })));
+
+    renderCard(<MoonrakerPrinterCard printer={readOnlyPrinter({ id: publicId, platform: 'moonraker' })} />);
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Read-only G-code inventory' })).toBeInTheDocument());
+    expect(screen.getByText('fixtures/calibration-cube.gcode')).toBeInTheDocument();
+    expect(screen.getByText(/Inventory only — downloading, uploading, deleting, and starting files are unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/Camera, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
+  });
 });

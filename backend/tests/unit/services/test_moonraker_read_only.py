@@ -115,6 +115,98 @@ def test_mainsail_camera_proxy_path_drops_cache_busters_and_rejects_other_urls()
             normalize_mainsail_camera_proxy_path(candidate)
 
 
+def test_fixed_gcode_inventory_is_bounded_display_data_only():
+    from backend.app.services.moonraker_read_only import parse_gcode_file_inventory
+
+    inventory = parse_gcode_file_inventory(
+        {
+            "result": [
+                {"path": "models/benchy.gcode", "size": 4926481, "modified": 1700000000.5},
+                {"path": "cube.gcode", "size": 324236, "modified": 1700000060},
+            ]
+        }
+    )
+    assert [(item.path, item.size, item.modified) for item in inventory] == [
+        ("models/benchy.gcode", 4926481, 1700000000.5),
+        ("cube.gcode", 324236, 1700000060.0),
+    ]
+
+    for payload in (
+        {"result": [{"path": "../printer.cfg", "size": 1, "modified": 1}]},
+        {"result": [{"path": "/absolute.gcode", "size": 1, "modified": 1}]},
+        {"result": [{"path": "cube.gcode", "size": -1, "modified": 1}]},
+        {"result": [{"path": "cube.gcode", "size": 1, "modified": float("nan")}]},
+        {"result": "not-a-list"},
+    ):
+        with pytest.raises(ValueError, match="invalid Moonraker gcode inventory"):
+            parse_gcode_file_inventory(payload)
+
+
+def test_file_capability_requires_a_valid_fixed_root_inventory():
+    from backend.app.drivers.contract import Capability
+    from backend.app.drivers.moonraker import normalize_moonraker_observation
+
+    snapshot = normalize_moonraker_observation(
+        local_id="moonraker-1",
+        display_name="Synthetic",
+        observed_at=datetime.now(timezone.utc),
+        status={"webhooks": {"state": "ready"}, "extruder": {"temperature": 25}},
+        server={"klippy_state": "ready"},
+        files_available=True,
+    )
+    assert Capability.FILES in snapshot.capabilities
+
+
+@pytest.mark.asyncio
+async def test_discovery_uses_only_the_fixed_gcodes_list_request():
+    from backend.app.drivers.moonraker import MoonrakerDriver
+    from backend.app.services.moonraker_manager import MoonrakerManager, _LiveMoonraker
+
+    class _Response:
+        def __init__(self, payload):
+            self.status = 200
+            self._payload = payload
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return False
+
+        async def json(self, **_):
+            return self._payload
+
+        def raise_for_status(self):
+            return None
+
+    class _Client:
+        def __init__(self):
+            self.requests = []
+
+        def get(self, url, **kwargs):
+            self.requests.append((url, kwargs))
+            payloads = {
+                "/server/info": {"result": {"klippy_state": "ready"}},
+                "/printer/objects/list": {"result": {"objects": ["webhooks", "extruder"]}},
+                "/server/webcams/list": {"result": {"webcams": []}},
+                "/server/files/list": {"result": [{"path": "benchy.gcode", "size": 1, "modified": 1}]},
+            }
+            return _Response(next(payload for suffix, payload in payloads.items() if url.endswith(suffix)))
+
+    manager = MoonrakerManager()
+    live = _LiveMoonraker(
+        1, "Synthetic", "192.168.1.44", 7125, "http", None, MoonrakerDriver("moonraker-1", "Synthetic")
+    )
+    client = _Client()
+    _server, _objects, _snapshot, _stream, inventory = await manager._discover(client, live)
+
+    assert inventory is not None and inventory[0].path == "benchy.gcode"
+    assert client.requests[-1] == (
+        "http://192.168.1.44:7125/server/files/list",
+        {"params": {"root": "gcodes"}, "allow_redirects": False},
+    )
+
+
 class _FixtureMoonrakerSocket:
     """Deterministic in-memory Moonraker peer with no control vocabulary."""
 

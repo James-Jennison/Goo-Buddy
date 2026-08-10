@@ -20,12 +20,17 @@ Buddy can validate and safely provide.
 | --- | --- | --- |
 | Bambu Lab | Mature inherited functionality, covered by ongoing Bambu regression tests | Existing Bambu setup and capabilities remain available. |
 | Elegoo Centauri / OpenCentauri (SDCP v3) | Validated read-only monitoring | Manual, opt-in private-network source. No discovery or automatic contact. |
-| Klipper through Moonraker | Alpha read-only monitoring | Manual, opt-in private-network source. No discovery or automatic contact. |
+| Klipper through Moonraker | Alpha read-only monitoring with an optional constrained Mainsail camera preview | Manual, opt-in private-network source. No discovery or automatic contact. |
 
-The Elegoo and Moonraker sources are monitoring-only. They do not provide
-uploads, G-code, console access, files, camera, maintenance, printer controls,
-or CANVAS where no authoritative mapping exists. Unsupported capabilities are
-shown as unavailable rather than represented as working controls.
+Elegoo sources are monitoring-only. Moonraker sources may also expose one
+bounded camera preview when an enabled webcam advertises a validated,
+same-origin path or the owner explicitly configures a narrow Mainsail webcam
+proxy on the printer's saved private address, plus a bounded read-only G-code
+inventory from Moonraker's fixed `gcodes` root. This does not provide a
+general camera URL, streaming control, file browsing, download, upload,
+deletion, G-code execution, console access, maintenance, printer controls, or
+CANVAS. Unsupported capabilities are shown as unavailable rather than
+represented as working controls.
 
 OrcaSlicer continues to use ElegooLink directly for Elegoo print submission.
 Goo Buddy does not submit Elegoo jobs, and the Moonraker alpha does not upload,

@@ -414,6 +414,7 @@ export interface ElegooDashboardStatus {
   temperatures: Record<string, { current_c: number | null; target_c: number | null }> | null;
   job: { name?: string | null; state: string | null; progress_percent: number | null; current_layer: number | null; total_layers: number | null; elapsed_seconds?: number | null; estimated_remaining_seconds?: number | null } | null;
   capabilities: string[];
+  files?: Array<{ path: string; size: number; modified: number }> | null;
 }
 
 export type MoonrakerDashboardStatus = ElegooDashboardStatus;

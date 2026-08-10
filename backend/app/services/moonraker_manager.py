@@ -26,7 +26,9 @@ from backend.app.drivers.moonraker import MoonrakerDriver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4, normalize_mainsail_camera_proxy_path
 from backend.app.services.moonraker_control import request_for_control_operation
 from backend.app.services.moonraker_read_only import (
+    MoonrakerGcodeFile,
     MoonrakerReadOnlyMethod,
+    parse_gcode_file_inventory,
     select_monitored_objects,
     serialize_read_only_request,
 )
@@ -67,6 +69,7 @@ class _LiveMoonraker:
     camera_snapshot_path: str | None = None
     camera_stream_path: str | None = None
     camera_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    gcode_files: tuple[MoonrakerGcodeFile, ...] | None = None
 
 
 class MoonrakerManager:
@@ -163,6 +166,18 @@ class MoonrakerManager:
                 session_id=observed.session_id,
             )
         return observed
+
+    def gcode_inventory(self, source_id: int) -> tuple[MoonrakerGcodeFile, ...] | None:
+        """Return the fixed-root inventory only while its observation is fresh.
+
+        This method accepts no path, filename, filter, or root; the only
+        request that populates it is the fixed ``gcodes`` listing.
+        """
+
+        live = self._sources.get(source_id)
+        if live is None or self.observation(source_id).phase is not ConnectionPhase.READY:
+            return None
+        return live.gcode_files
 
     async def dispatch_command(self, command: object) -> bool:
         """Send one bodyless, fixed Moonraker job-control endpoint request.
@@ -334,6 +349,8 @@ class MoonrakerManager:
             session_id = uuid.uuid4().hex
             live.driver.start_session(session_id)
             live.connected, live.reconnecting, live.last_liveness = False, attempt > 0, None
+            live.gcode_files = None
+            live.driver.set_files_available(False)
             try:
                 timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS, sock_connect=CONNECT_TIMEOUT_SECONDS)
                 connector = aiohttp.TCPConnector(family=socket.AF_INET, use_dns_cache=False)
@@ -347,12 +364,14 @@ class MoonrakerManager:
                             available,
                             live.camera_snapshot_path,
                             live.camera_stream_path,
+                            live.gcode_files,
                         ) = await self._discover(client, live)
                         live.driver.set_camera_available(
                             live.camera_snapshot_path is not None
                             or live.camera_stream_path is not None
                             or live.camera_proxy_path is not None
                         )
+                        live.driver.set_files_available(live.gcode_files is not None)
                         objects = select_monitored_objects(available)
                         if not objects:
                             live.error = "no_supported_objects"
@@ -394,7 +413,7 @@ class MoonrakerManager:
 
     async def _discover(
         self, client: aiohttp.ClientSession, live: _LiveMoonraker
-    ) -> tuple[dict[str, object], list[str], str | None, str | None]:
+    ) -> tuple[dict[str, object], list[str], str | None, str | None, tuple[MoonrakerGcodeFile, ...] | None]:
         """Use fixed HTTP GET endpoints; redirects are always rejected."""
         async with client.get(f"{self._base_url(live)}/server/info", allow_redirects=False) as response:
             if response.status in {401, 403}:
@@ -408,6 +427,10 @@ class MoonrakerManager:
             objects_payload = await response.json(content_type=None)
         async with client.get(f"{self._base_url(live)}/server/webcams/list", allow_redirects=False) as response:
             webcams_payload = await response.json(content_type=None) if response.status == 200 else None
+        async with client.get(
+            f"{self._base_url(live)}/server/files/list", params={"root": "gcodes"}, allow_redirects=False
+        ) as response:
+            files_payload = await response.json(content_type=None) if response.status == 200 else None
         if not isinstance(server_payload, dict) or not isinstance(server_payload.get("result"), dict):
             raise ValueError("invalid server response")
         result = objects_payload.get("result") if isinstance(objects_payload, dict) else None
@@ -419,7 +442,19 @@ class MoonrakerManager:
             available,
             self._validated_camera_path(webcams_payload, "snapshot_url"),
             self._validated_camera_path(webcams_payload, "stream_url"),
+            self._validated_gcode_inventory(files_payload),
         )
+
+    @staticmethod
+    def _validated_gcode_inventory(payload: object) -> tuple[MoonrakerGcodeFile, ...] | None:
+        """Treat an absent or malformed optional inventory as unavailable."""
+
+        if payload is None:
+            return None
+        try:
+            return parse_gcode_file_inventory(payload)
+        except ValueError:
+            return None
 
     @staticmethod
     def _validated_camera_path(payload: object, field: str) -> str | None:

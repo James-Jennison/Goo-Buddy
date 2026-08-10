@@ -37,6 +37,7 @@ def test_virtual_farm_compose_is_localhost_only():
     assert "127.0.0.1:17127:17127" in usb
     assert "VIRTUAL_FARM_VIDEO_DEVICE" in usb
     assert '"--camera-mode", "v4l2"' in usb
+    assert '"--host", "0.0.0.0"' in compose and '"--host", "0.0.0.0"' in usb
     assert "devices:" in usb
     assert "devices:" not in compose
 
@@ -127,6 +128,23 @@ async def test_disabled_or_unconfigured_camera_does_not_advertise_endpoints():
         response = await _simulator_response(simulator, "/server/webcams/list")
         assert simulator[CAMERA_ENABLED] is False
         assert json.loads(response.body) == {"result": {"webcams": []}}
+
+
+@pytest.mark.asyncio
+async def test_moonraker_simulator_exposes_only_fixed_gcode_inventory():
+    from virtual_farm.simulator import app
+
+    simulator = app()
+    response = await _simulator_response(simulator, "/server/files/list?root=gcodes")
+    assert response.status == 200
+    assert json.loads(response.body) == {
+        "result": [
+            {"path": "virtual-farm-benchy.gcode", "size": 4926481, "modified": 1700000000.0},
+            {"path": "fixtures/calibration-cube.gcode", "size": 324236, "modified": 1700000060.0},
+        ]
+    }
+    rejected = await _simulator_response(simulator, "/server/files/list?root=config")
+    assert rejected.status == 400
 
 
 @pytest.mark.asyncio

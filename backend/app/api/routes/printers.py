@@ -28,7 +28,7 @@ from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.permissions import Permission
 from backend.app.core.tasks import spawn_background_task
-from backend.app.drivers.contract import DriverKind
+from backend.app.drivers.contract import Capability, DriverKind
 from backend.app.models.ams_label import AmsLabel
 from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
 from backend.app.models.moonraker_source import MoonrakerSource
@@ -411,6 +411,7 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
     snapshot = observation.current or (observation.retained.snapshot if observation.retained else None)
     temperatures = None
     job = None
+    files = None
     if snapshot:
         temperatures = {
             name: {"current_c": value.current_c, "target_c": value.target_c}
@@ -424,6 +425,10 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
                 "current_layer": snapshot.job.current_layer,
                 "total_layers": snapshot.job.total_layers,
             }
+    if observation.current and Capability.FILES in observation.capabilities:
+        inventory = moonraker_manager.gcode_inventory(source.id)
+        if inventory is not None:
+            files = [{"path": item.path, "size": item.size, "modified": item.modified} for item in inventory]
     phase = observation.phase.value
     return MoonrakerDashboardStatus(
         phase=phase,
@@ -437,6 +442,7 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
         temperatures=temperatures,
         job=job,
         capabilities=sorted(cap.value for cap in observation.capabilities),
+        files=files,
     ).model_dump(mode="json")
 
 

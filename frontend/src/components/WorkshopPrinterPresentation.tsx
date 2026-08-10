@@ -155,6 +155,14 @@ export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapsho
   const phase = snapshot?.phase ?? 'connecting';
   const progress = snapshot?.job?.progress_percent;
   const state = snapshot?.job?.state ?? snapshot?.state;
+  const unavailableFeatures = [
+    ...(snapshot?.capabilities?.includes('camera') ? [] : ['Camera']),
+    ...(snapshot?.capabilities?.includes('files') ? [] : ['files']),
+    'console',
+    'maintenance',
+    'uploads',
+    'CANVAS',
+  ];
 
   return (
     <section className="workshop-printer-summary" aria-label={`${meta.label} monitoring summary`}>
@@ -195,7 +203,7 @@ export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapsho
 
       {snapshot?.capabilities?.includes('camera') && cameraSnapshotUrl ? (
         <figure className="workshop-camera-preview"><img src={cameraSnapshotUrl} alt={`Latest camera preview for ${meta.label}`} /><figcaption>Read-only camera preview · refreshed on open</figcaption></figure>
-      ) : <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>Camera, files, console, maintenance, uploads, and CANVAS are unavailable for this source. Any supported job controls are shown separately.</span></div>}
+      ) : <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>{unavailableFeatures.join(', ')} are unavailable for this source. Any supported job controls are shown separately.</span></div>}
     </section>
   );
 }
