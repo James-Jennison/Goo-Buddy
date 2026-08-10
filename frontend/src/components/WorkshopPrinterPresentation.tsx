@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CameraOff, Clock3, PlugZap, Thermometer, Waves } from 'lucide-react';
+import { CameraOff, Clock3, ExternalLink, PlugZap, Thermometer, Waves } from 'lucide-react';
 import { workshopPhaseMeta, workshopPlatformMeta, type WorkshopPhase, type WorkshopPlatform } from './workshopPresentationMeta';
 
 export type { WorkshopPhase, WorkshopPlatform } from './workshopPresentationMeta';
@@ -23,6 +23,7 @@ export interface WorkshopSnapshot {
     chamber?: WorkshopTemperature | null;
   } | null;
   job?: {
+    name?: string | null;
     state?: string | null;
     progress_percent?: number | null;
     current_layer?: number | null;
@@ -149,7 +150,21 @@ function LiveTemperatureChart({ temperatures }: { temperatures?: WorkshopSnapsho
   );
 }
 
-export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapshotUrl }: { platform: Exclude<WorkshopPlatform, 'bambu'>; snapshot?: WorkshopSnapshot | null; cameraSnapshotUrl?: string }) {
+export function WorkshopCameraPreview({ label, cameraSnapshotUrl }: { label: string; cameraSnapshotUrl: string }) {
+  return (
+    <figure className="workshop-camera-preview">
+      <img src={cameraSnapshotUrl} alt={`Latest camera preview for ${label}`} />
+      <figcaption>
+        <span>Read-only camera preview · refreshed on open</span>
+        <a href={cameraSnapshotUrl} target="_blank" rel="noopener noreferrer">
+          Open full-size image <ExternalLink className="h-3 w-3" aria-hidden="true" />
+        </a>
+      </figcaption>
+    </figure>
+  );
+}
+
+export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapshotUrl, showCamera = true }: { platform: Exclude<WorkshopPlatform, 'bambu'>; snapshot?: WorkshopSnapshot | null; cameraSnapshotUrl?: string; showCamera?: boolean }) {
   const meta = workshopPlatformMeta(platform);
   const retained = Boolean(snapshot?.retained || snapshot?.freshness === 'retained');
   const phase = snapshot?.phase ?? 'connecting';
@@ -158,7 +173,7 @@ export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapsho
   const unavailableFeatures = [
     ...(snapshot?.capabilities?.includes('camera') ? [] : ['Camera']),
     ...(snapshot?.capabilities?.includes('files') ? [] : ['files']),
-    'console',
+    ...(snapshot?.capabilities?.includes('console-history') ? [] : ['console']),
     'maintenance',
     'uploads',
     'CANVAS',
@@ -201,9 +216,41 @@ export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapsho
         </div>
       )}
 
-      {snapshot?.capabilities?.includes('camera') && cameraSnapshotUrl ? (
-        <figure className="workshop-camera-preview"><img src={cameraSnapshotUrl} alt={`Latest camera preview for ${meta.label}`} /><figcaption>Read-only camera preview · refreshed on open</figcaption></figure>
-      ) : <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>{unavailableFeatures.join(', ')} are unavailable for this source. Any supported job controls are shown separately.</span></div>}
+      {showCamera && (snapshot?.capabilities?.includes('camera') && cameraSnapshotUrl
+        ? <WorkshopCameraPreview label={meta.label} cameraSnapshotUrl={cameraSnapshotUrl} />
+        : <div className="workshop-unavailable" role="note"><CameraOff className="h-4 w-4" aria-hidden="true" /><span>{unavailableFeatures.join(', ')} are unavailable for this source. Any supported job controls are shown separately.</span></div>)}
+    </section>
+  );
+}
+
+function compactDuration(seconds?: number | null): string {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return '—';
+  const minutes = Math.ceil(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  return hours ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+}
+
+/** Compact, graph-free health summary for the fleet overview. Rich monitoring
+ * stays in the individual printer workspace so a fleet remains scannable. */
+export function WorkshopFleetSummary({ platform, snapshot, cameraSnapshotUrl }: { platform: Exclude<WorkshopPlatform, 'bambu'>; snapshot?: WorkshopSnapshot | null; cameraSnapshotUrl?: string }) {
+  const meta = workshopPlatformMeta(platform);
+  const retained = Boolean(snapshot?.retained || snapshot?.freshness === 'retained');
+  const phase = snapshot?.phase ?? 'connecting';
+  const state = snapshot?.job?.state ?? snapshot?.state ?? phase;
+  const progress = snapshot?.job?.progress_percent;
+  const nozzle = snapshot?.temperatures?.nozzle;
+  const bed = snapshot?.temperatures?.bed;
+
+  return (
+    <section className="space-y-3" aria-label={`${meta.label} fleet health summary`}>
+      <div className="flex items-start justify-between gap-3"><div><p className="workshop-eyebrow">{meta.label}</p><p className="text-xs text-bambu-gray">{state}{snapshot?.job?.name ? ` · ${snapshot.job.name}` : ''}</p></div><WorkshopStatusBadge phase={phase} retained={retained} /></div>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded border border-bambu-dark-tertiary px-2.5 py-2"><span className="block text-bambu-gray">Nozzle</span><strong className="text-bambu-white">{displayTemperature(nozzle?.current_c)}° / {displayTemperature(nozzle?.target_c)}°</strong></div>
+        <div className="rounded border border-bambu-dark-tertiary px-2.5 py-2"><span className="block text-bambu-gray">Bed</span><strong className="text-bambu-white">{displayTemperature(bed?.current_c)}° / {displayTemperature(bed?.target_c)}°</strong></div>
+      </div>
+      <div className="flex items-center justify-between gap-3 text-xs"><span className="text-bambu-gray">Progress</span><strong className="text-bambu-white">{typeof progress === 'number' ? `${Math.round(progress)}%` : '—'}</strong><span className="text-bambu-gray">Remaining</span><strong className="text-bambu-white">{compactDuration(snapshot?.job?.estimated_remaining_seconds)}</strong></div>
+      {typeof progress === 'number' && <div className="workshop-progress__track" aria-label={`Print progress ${Math.round(progress)} percent`}><span style={{ width: `${Math.max(0, Math.min(100, progress))}%` }} /></div>}
+      {snapshot?.capabilities?.includes('camera') && cameraSnapshotUrl ? <figure className="overflow-hidden rounded border border-bambu-dark-tertiary bg-bambu-dark"><img className="aspect-video w-full object-cover" src={cameraSnapshotUrl} alt={`Latest camera snapshot for ${meta.label}`} /><figcaption className="px-2 py-1 text-xs text-bambu-gray">Latest read-only camera snapshot</figcaption></figure> : <p className="text-xs text-bambu-gray">No camera snapshot available.</p>}
     </section>
   );
 }

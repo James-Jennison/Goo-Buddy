@@ -16,7 +16,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 import aiohttp
 
@@ -26,9 +26,14 @@ from backend.app.drivers.moonraker import MoonrakerDriver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4, normalize_mainsail_camera_proxy_path
 from backend.app.services.moonraker_control import request_for_control_operation
 from backend.app.services.moonraker_read_only import (
+    CONSOLE_HISTORY_COUNT,
+    MoonrakerConsoleEntry,
     MoonrakerGcodeFile,
+    MoonrakerGcodeMetadata,
     MoonrakerReadOnlyMethod,
+    parse_console_history,
     parse_gcode_file_inventory,
+    parse_gcode_metadata,
     select_monitored_objects,
     serialize_read_only_request,
 )
@@ -39,9 +44,19 @@ MAX_FRAME_BYTES = 128 * 1024
 MAX_BACKOFF_SECONDS = 60
 NO_VALID_INBOUND_SECONDS = 45
 MAX_CAMERA_SNAPSHOT_BYTES = 5 * 1024 * 1024
+MAX_GCODE_METADATA_RESPONSE_BYTES = 64 * 1024
+MAX_GCODE_THUMBNAIL_RESPONSE_BYTES = 1 * 1024 * 1024
 MAX_MJPEG_HEADERS_BYTES = 32 * 1024
 MAX_MJPEG_RESPONSE_BYTES = MAX_CAMERA_SNAPSHOT_BYTES + (2 * MAX_MJPEG_HEADERS_BYTES)
 MJPEG_READ_CHUNK_BYTES = 16 * 1024
+
+
+@dataclass(frozen=True)
+class MoonrakerGcodeThumbnailImage:
+    """Bounded image bytes returned by the trusted thumbnail proxy only."""
+
+    content: bytes
+    media_type: str
 
 
 @dataclass
@@ -70,6 +85,9 @@ class _LiveMoonraker:
     camera_stream_path: str | None = None
     camera_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     gcode_files: tuple[MoonrakerGcodeFile, ...] | None = None
+    metadata_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    thumbnail_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    console_history: tuple[MoonrakerConsoleEntry, ...] | None = None
 
 
 class MoonrakerManager:
@@ -178,6 +196,113 @@ class MoonrakerManager:
         if live is None or self.observation(source_id).phase is not ConnectionPhase.READY:
             return None
         return live.gcode_files
+
+    def console_history(self, source_id: int) -> tuple[MoonrakerConsoleEntry, ...] | None:
+        """Return cached history only while the source observation is fresh.
+
+        There is intentionally no request API, command input, or replay path.
+        """
+
+        live = self._sources.get(source_id)
+        if live is None or self.observation(source_id).phase is not ConnectionPhase.READY:
+            return None
+        return live.console_history
+
+    async def gcode_metadata(self, source_id: int, path: object) -> MoonrakerGcodeMetadata | None:
+        """Fetch a bounded metadata projection for an already-inventoried file.
+
+        The browser cannot turn this into a file browser: ``path`` must exactly
+        match the fresh, fixed-root inventory before it reaches Moonraker.
+        """
+
+        live = self._sources.get(source_id)
+        if (
+            live is None
+            or not isinstance(path, str)
+            or self.observation(source_id).phase is not ConnectionPhase.READY
+            or live.gcode_files is None
+            or not any(item.path == path for item in live.gcode_files)
+        ):
+            return None
+        async with live.metadata_lock:
+            if (
+                live.client is None
+                or live.stop.is_set()
+                or self.observation(source_id).phase is not ConnectionPhase.READY
+                or live.gcode_files is None
+                or not any(item.path == path for item in live.gcode_files)
+            ):
+                return None
+            async with live.client.get(
+                f"{self._base_url(live)}/server/files/metadata",
+                params={"filename": path},
+                allow_redirects=False,
+            ) as response:
+                if response.status != 200 or response.content_type != "application/json":
+                    return None
+                body = await response.content.read(MAX_GCODE_METADATA_RESPONSE_BYTES + 1)
+                if not body or len(body) > MAX_GCODE_METADATA_RESPONSE_BYTES:
+                    return None
+            try:
+                return parse_gcode_metadata(json.loads(body), path)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                return None
+
+    async def gcode_thumbnail(self, source_id: int, path: object) -> MoonrakerGcodeThumbnailImage | None:
+        """Fetch one validated selected-file thumbnail through the private origin.
+
+        The caller supplies only the already selected inventory filename.  The
+        metadata parser derives the thumbnail's relative path, and that value
+        stays server-side while this method fetches a bounded image from the
+        fixed ``gcodes`` root.  No raw G-code or Moonraker URL can cross this
+        boundary.
+        """
+
+        metadata = await self.gcode_metadata(source_id, path)
+        if metadata is None or metadata.thumbnail is None or not isinstance(path, str):
+            return None
+        live = self._sources.get(source_id)
+        if (
+            live is None
+            or self.observation(source_id).phase is not ConnectionPhase.READY
+            or live.gcode_files is None
+            or not any(item.path == path for item in live.gcode_files)
+        ):
+            return None
+        async with live.thumbnail_lock:
+            if (
+                live.client is None
+                or live.stop.is_set()
+                or self.observation(source_id).phase is not ConnectionPhase.READY
+                or live.gcode_files is None
+                or not any(item.path == path for item in live.gcode_files)
+            ):
+                return None
+            async with live.client.get(
+                f"{self._base_url(live)}/server/files/gcodes/{quote(metadata.thumbnail.path, safe='/')}",
+                allow_redirects=False,
+            ) as response:
+                return await self._gcode_thumbnail_from_response(response)
+
+    @staticmethod
+    async def _gcode_thumbnail_from_response(response: aiohttp.ClientResponse) -> MoonrakerGcodeThumbnailImage | None:
+        """Accept only a small image payload whose magic matches its MIME type."""
+
+        if response.status != 200 or response.content_type not in {"image/png", "image/jpeg", "image/webp"}:
+            return None
+        content = await response.content.read(MAX_GCODE_THUMBNAIL_RESPONSE_BYTES + 1)
+        if not 0 < len(content) <= MAX_GCODE_THUMBNAIL_RESPONSE_BYTES:
+            return None
+        signatures = {
+            "image/png": b"\x89PNG\r\n\x1a\n",
+            "image/jpeg": b"\xff\xd8\xff",
+            "image/webp": b"RIFF",
+        }
+        if not content.startswith(signatures[response.content_type]):
+            return None
+        if response.content_type == "image/webp" and (len(content) < 12 or content[8:12] != b"WEBP"):
+            return None
+        return MoonrakerGcodeThumbnailImage(content=content, media_type=response.content_type)
 
     async def dispatch_command(self, command: object) -> bool:
         """Send one bodyless, fixed Moonraker job-control endpoint request.
@@ -350,7 +475,9 @@ class MoonrakerManager:
             live.driver.start_session(session_id)
             live.connected, live.reconnecting, live.last_liveness = False, attempt > 0, None
             live.gcode_files = None
+            live.console_history = None
             live.driver.set_files_available(False)
+            live.driver.set_console_history_available(False)
             try:
                 timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS, sock_connect=CONNECT_TIMEOUT_SECONDS)
                 connector = aiohttp.TCPConnector(family=socket.AF_INET, use_dns_cache=False)
@@ -365,6 +492,7 @@ class MoonrakerManager:
                             live.camera_snapshot_path,
                             live.camera_stream_path,
                             live.gcode_files,
+                            live.console_history,
                         ) = await self._discover(client, live)
                         live.driver.set_camera_available(
                             live.camera_snapshot_path is not None
@@ -372,6 +500,7 @@ class MoonrakerManager:
                             or live.camera_proxy_path is not None
                         )
                         live.driver.set_files_available(live.gcode_files is not None)
+                        live.driver.set_console_history_available(live.console_history is not None)
                         objects = select_monitored_objects(available)
                         if not objects:
                             live.error = "no_supported_objects"
@@ -413,7 +542,14 @@ class MoonrakerManager:
 
     async def _discover(
         self, client: aiohttp.ClientSession, live: _LiveMoonraker
-    ) -> tuple[dict[str, object], list[str], str | None, str | None, tuple[MoonrakerGcodeFile, ...] | None]:
+    ) -> tuple[
+        dict[str, object],
+        list[str],
+        str | None,
+        str | None,
+        tuple[MoonrakerGcodeFile, ...] | None,
+        tuple[MoonrakerConsoleEntry, ...] | None,
+    ]:
         """Use fixed HTTP GET endpoints; redirects are always rejected."""
         async with client.get(f"{self._base_url(live)}/server/info", allow_redirects=False) as response:
             if response.status in {401, 403}:
@@ -431,6 +567,12 @@ class MoonrakerManager:
             f"{self._base_url(live)}/server/files/list", params={"root": "gcodes"}, allow_redirects=False
         ) as response:
             files_payload = await response.json(content_type=None) if response.status == 200 else None
+        async with client.get(
+            f"{self._base_url(live)}/server/gcode_store",
+            params={"count": CONSOLE_HISTORY_COUNT},
+            allow_redirects=False,
+        ) as response:
+            console_payload = await response.json(content_type=None) if response.status == 200 else None
         if not isinstance(server_payload, dict) or not isinstance(server_payload.get("result"), dict):
             raise ValueError("invalid server response")
         result = objects_payload.get("result") if isinstance(objects_payload, dict) else None
@@ -443,6 +585,7 @@ class MoonrakerManager:
             self._validated_camera_path(webcams_payload, "snapshot_url"),
             self._validated_camera_path(webcams_payload, "stream_url"),
             self._validated_gcode_inventory(files_payload),
+            self._validated_console_history(console_payload),
         )
 
     @staticmethod
@@ -453,6 +596,15 @@ class MoonrakerManager:
             return None
         try:
             return parse_gcode_file_inventory(payload)
+        except ValueError:
+            return None
+
+    @staticmethod
+    def _validated_console_history(payload: object) -> tuple[MoonrakerConsoleEntry, ...] | None:
+        if payload is None:
+            return None
+        try:
+            return parse_console_history(payload)
         except ValueError:
             return None
 

@@ -155,6 +155,22 @@ async def gcode_files(request: web.Request) -> web.Response:
     )
 
 
+async def console_history(request: web.Request) -> web.Response:
+    """Expose only the bounded cached-console contract for adapter tests."""
+    if request.query != {"count": "50"}:
+        return web.json_response({"error": "virtual-farm supports only count 50"}, status=400)
+    return web.json_response(
+        {
+            "result": {
+                "gcode_store": [
+                    {"message": "STATUS", "time": 1700000000.0, "type": "command"},
+                    {"message": "// Klipper state: Ready", "time": 1700000000.1, "type": "response"},
+                ]
+            }
+        }
+    )
+
+
 async def camera_frame(request: web.Request) -> web.Response:
     if not request.app[CAMERA_ENABLED]:
         raise web.HTTPServiceUnavailable(reason="virtual-farm camera disabled")
@@ -221,6 +237,7 @@ def app(
             web.get("/printer/objects/list", objects),
             web.get("/server/webcams/list", webcams),
             web.get("/server/files/list", gcode_files),
+            web.get("/server/gcode_store", console_history),
             web.get("/camera/snapshot", camera_frame),
             web.get("/camera/stream", camera_frame),
             web.get("/websocket", ws),

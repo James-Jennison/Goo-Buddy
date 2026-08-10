@@ -415,9 +415,22 @@ export interface ElegooDashboardStatus {
   job: { name?: string | null; state: string | null; progress_percent: number | null; current_layer: number | null; total_layers: number | null; elapsed_seconds?: number | null; estimated_remaining_seconds?: number | null } | null;
   capabilities: string[];
   files?: Array<{ path: string; size: number; modified: number }> | null;
+  console_history?: Array<{ message: string; timestamp: number; kind: 'command' | 'response' }> | null;
 }
 
 export type MoonrakerDashboardStatus = ElegooDashboardStatus;
+
+export interface MoonrakerGcodeMetadata {
+  path: string;
+  slicer: string | null;
+  slicer_version: string | null;
+  estimated_time: number | null;
+  object_height: number | null;
+  filament_weight_total: number | null;
+  layer_height: number | null;
+  nozzle_diameter: number | null;
+  thumbnail_available: boolean;
+}
 
 export interface PlatformControlCommandResponse {
   id: number;
@@ -3912,6 +3925,10 @@ export const api = {
   updateMoonrakerSource: (id: number, data: Partial<MoonrakerSourceCreate>) =>
     request<Printer>(`/printers/moonraker/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getMoonrakerStatus: (id: number) => request<MoonrakerDashboardStatus>(`/printers/moonraker/${id}/status`),
+  getMoonrakerGcodeMetadata: (id: number, filename: string) =>
+    request<MoonrakerGcodeMetadata>(`/printers/moonraker/${id}/files/metadata?filename=${encodeURIComponent(filename)}`),
+  getMoonrakerGcodeThumbnailUrl: (id: number, filename: string) =>
+    withStreamToken(`${API_BASE}/printers/moonraker/${id}/files/thumbnail?filename=${encodeURIComponent(filename)}`),
   pauseMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/pause`, platformControlRequestOptions()),
   resumeMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/resume`, platformControlRequestOptions()),
   cancelMoonrakerJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/moonraker/${id}/control/cancel`, platformControlRequestOptions()),

@@ -24,6 +24,12 @@ COPY backend/ ./backend/
 COPY pyproject.toml ./
 COPY scripts/container/ ./scripts/container/
 
+# The backend suite also validates the opt-in virtual-farm fixture.  Keep its
+# package and Compose contracts in the test image so Docker exercises the same
+# source tree as the local backend gate.
+COPY virtual_farm/ ./virtual_farm/
+COPY docker-compose.virtual-farm.yml docker-compose.virtual-farm-camera-usb.yml ./
+
 # Embedded GCode viewer assets — required so the @app.get("/gcode-viewer/...")
 # packaging-regression test in tests/integration/test_gcode_viewer.py actually
 # runs instead of pytest-skipping with "index.html not present". Path matches

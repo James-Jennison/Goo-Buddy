@@ -23,7 +23,7 @@
 #
 # Prerequisites:
 #   pip install bandit[sarif] pip-audit     # Python tools
-#   gh extension install github/gh-codeql   # CodeQL CLI
+#   Install the CodeQL CLI and ensure `codeql` is on PATH
 #   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh  # Trivy
 #
 
@@ -46,6 +46,13 @@ NC='\033[0m'
 
 WORK_DIR=$(mktemp -d)
 trap 'rm -rf "$WORK_DIR"' EXIT
+
+# Scans use public base images only.  Give Docker and Trivy an isolated empty
+# credential config so a local registry credential helper cannot open a
+# desktop-keyring prompt while a non-interactive gate is running.
+SCAN_DOCKER_CONFIG="$WORK_DIR/docker-config"
+mkdir -p "$SCAN_DOCKER_CONFIG"
+printf '{"auths":{}}\n' > "$SCAN_DOCKER_CONFIG/config.json"
 
 # Parallel job tracking
 declare -A PIDS=()       # scan_name -> PID
@@ -110,7 +117,7 @@ check_command() {
 }
 
 has_codeql() {
-    check_command gh && gh codeql version &>/dev/null
+    check_command codeql && codeql version &>/dev/null
 }
 
 scan_bandit() {
@@ -128,9 +135,9 @@ scan_codeql_python() {
         return 2
     fi
     echo "Creating database..."
-    gh codeql database create --overwrite --language=python --threads=0 /tmp/bambuddy-codeql-python &>/dev/null
+    codeql database create --overwrite --language=python --threads=0 /tmp/bambuddy-codeql-python &>/dev/null
     echo "Analyzing..."
-    gh codeql database analyze /tmp/bambuddy-codeql-python \
+    codeql database analyze /tmp/bambuddy-codeql-python \
         "$PROJECT_ROOT/.codeql/python-bambuddy.qls" \
         --threads=0 --format=sarifv2.1.0 --output="$sarif" &>/dev/null
     echo ""
@@ -144,9 +151,9 @@ scan_codeql_js() {
         return 2
     fi
     echo "Creating database..."
-    gh codeql database create --overwrite --language=javascript --source-root=frontend --threads=0 /tmp/bambuddy-codeql-javascript &>/dev/null
+    codeql database create --overwrite --language=javascript --source-root=frontend --threads=0 /tmp/bambuddy-codeql-javascript &>/dev/null
     echo "Analyzing..."
-    gh codeql database analyze /tmp/bambuddy-codeql-javascript \
+    codeql database analyze /tmp/bambuddy-codeql-javascript \
         "$PROJECT_ROOT/.codeql/javascript-bambuddy.qls" \
         --threads=0 --format=sarifv2.1.0 --output="$sarif" &>/dev/null
     echo ""
@@ -160,9 +167,9 @@ scan_codeql_actions() {
         return 2
     fi
     echo "Creating database..."
-    gh codeql database create --overwrite --language=actions --threads=0 /tmp/bambuddy-codeql-actions &>/dev/null
+    codeql database create --overwrite --language=actions --threads=0 /tmp/bambuddy-codeql-actions &>/dev/null
     echo "Analyzing..."
-    gh codeql database analyze /tmp/bambuddy-codeql-actions \
+    codeql database analyze /tmp/bambuddy-codeql-actions \
         codeql/actions-queries \
         --threads=0 --format=sarifv2.1.0 --output="$sarif" &>/dev/null
     echo ""
@@ -179,9 +186,9 @@ scan_trivy_image() {
         return 2
     fi
     echo "Building Docker image..."
-    docker build -t bambuddy:security-scan . 2>&1
+    DOCKER_CONFIG="$SCAN_DOCKER_CONFIG" docker build -t bambuddy:security-scan . 2>&1
     echo ""
-    trivy image --severity CRITICAL,HIGH,MEDIUM bambuddy:security-scan 2>&1
+    DOCKER_CONFIG="$SCAN_DOCKER_CONFIG" trivy image --severity CRITICAL,HIGH,MEDIUM bambuddy:security-scan 2>&1
 }
 
 scan_trivy_config() {

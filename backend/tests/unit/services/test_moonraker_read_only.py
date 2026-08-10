@@ -142,6 +142,217 @@ def test_fixed_gcode_inventory_is_bounded_display_data_only():
             parse_gcode_file_inventory(payload)
 
 
+def test_gcode_metadata_is_projected_only_for_the_selected_inventory_path():
+    from backend.app.services.moonraker_read_only import parse_gcode_metadata
+
+    metadata = parse_gcode_metadata(
+        {
+            "result": {
+                "filename": "models/benchy.gcode",
+                "slicer": "OrcaSlicer",
+                "slicer_version": "2.3.0",
+                "estimated_time": 3600,
+                "object_height": 48.2,
+                "filament_weight_total": 18.4,
+                "layer_height": 0.2,
+                "nozzle_diameter": 0.4,
+                "ignored_raw_payload": {"arbitrary": "data"},
+            }
+        },
+        "models/benchy.gcode",
+    )
+    assert metadata.path == "models/benchy.gcode"
+    assert metadata.slicer == "OrcaSlicer"
+    assert metadata.estimated_time == 3600.0
+    assert not hasattr(metadata, "ignored_raw_payload")
+
+    for payload, path in (
+        ({"result": {"filename": "other.gcode"}}, "models/benchy.gcode"),
+        ({"result": {"filename": "models/benchy.gcode", "slicer": "x" * 161}}, "models/benchy.gcode"),
+        ({"result": {"filename": "models/benchy.gcode", "estimated_time": -1}}, "models/benchy.gcode"),
+        ({"result": {"filename": "models/benchy.gcode", "layer_height": float("nan")}}, "models/benchy.gcode"),
+        ({"result": {"filename": "models/benchy.gcode"}}, "../printer.cfg"),
+    ):
+        with pytest.raises(ValueError, match="invalid Moonraker gcode metadata"):
+            parse_gcode_metadata(payload, path)
+
+
+def test_gcode_thumbnail_reference_is_internal_and_cannot_traverse_the_gcodes_root():
+    from backend.app.services.moonraker_read_only import parse_gcode_metadata
+
+    metadata = parse_gcode_metadata(
+        {
+            "result": {
+                "filename": "models/benchy.gcode",
+                "thumbnails": [
+                    {"width": 400, "height": 300, "size": 1024, "relative_path": ".thumbs/benchy-400.png"},
+                    {"width": 32, "height": 32, "size": 100, "relative_path": ".thumbs/benchy-32.png"},
+                ],
+            }
+        },
+        "models/benchy.gcode",
+    )
+    assert metadata.thumbnail is not None
+    assert metadata.thumbnail.path == "models/.thumbs/benchy-400.png"
+    assert (metadata.thumbnail.width, metadata.thumbnail.height, metadata.thumbnail.size) == (400, 300, 1024)
+
+    for relative_path in (
+        "../printer.cfg",
+        "/server/files/config",
+        "https://example.invalid/thumb.png",
+        "thumbs\\evil.png",
+    ):
+        with pytest.raises(ValueError, match="invalid Moonraker gcode metadata"):
+            parse_gcode_metadata(
+                {
+                    "result": {
+                        "filename": "models/benchy.gcode",
+                        "thumbnails": [{"width": 400, "height": 300, "size": 1024, "relative_path": relative_path}],
+                    }
+                },
+                "models/benchy.gcode",
+            )
+
+
+@pytest.mark.asyncio
+async def test_metadata_request_is_bound_to_the_fresh_cached_inventory():
+    from backend.app.drivers.moonraker import MoonrakerDriver
+    from backend.app.services.moonraker_manager import MoonrakerManager, _LiveMoonraker
+    from backend.app.services.moonraker_read_only import MoonrakerGcodeFile
+
+    class _Content:
+        async def read(self, _limit):
+            return b'{"result":{"filename":"models/benchy.gcode","slicer":"OrcaSlicer"}}'
+
+    class _Response:
+        status = 200
+        content_type = "application/json"
+        content = _Content()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return False
+
+    class _Client:
+        def __init__(self):
+            self.requests = []
+
+        def get(self, url, **kwargs):
+            self.requests.append((url, kwargs))
+            return _Response()
+
+    driver = MoonrakerDriver("moonraker-1", "Synthetic")
+    driver.start_session("session")
+    assert driver.observe(
+        "session",
+        {"webhooks": {"state": "ready"}, "extruder": {"temperature": 25}},
+        {"klippy_state": "ready"},
+        datetime.now(timezone.utc),
+    )
+    live = _LiveMoonraker(1, "Synthetic", "192.168.1.44", 7125, "http", None, driver)
+    client = _Client()
+    live.client = client
+    live.gcode_files = (MoonrakerGcodeFile("models/benchy.gcode", 1, 1.0),)
+    manager = MoonrakerManager()
+    manager._sources[1] = live
+
+    metadata = await manager.gcode_metadata(1, "models/benchy.gcode")
+    assert metadata is not None and metadata.slicer == "OrcaSlicer"
+    assert client.requests == [
+        (
+            "http://192.168.1.44:7125/server/files/metadata",
+            {"params": {"filename": "models/benchy.gcode"}, "allow_redirects": False},
+        )
+    ]
+    assert await manager.gcode_metadata(1, "../printer.cfg") is None
+    assert len(client.requests) == 1
+
+
+@pytest.mark.asyncio
+async def test_thumbnail_request_is_bound_to_metadata_and_returns_only_a_valid_image():
+    from backend.app.drivers.moonraker import MoonrakerDriver
+    from backend.app.services.moonraker_manager import MoonrakerManager, _LiveMoonraker
+    from backend.app.services.moonraker_read_only import MoonrakerGcodeFile
+
+    class _Content:
+        def __init__(self, payload):
+            self.payload = payload
+
+        async def read(self, _limit):
+            return self.payload
+
+    class _Response:
+        status = 200
+
+        def __init__(self, content_type, payload):
+            self.content_type = content_type
+            self.content = _Content(payload)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return False
+
+    class _Client:
+        def __init__(self):
+            self.requests = []
+
+        def get(self, url, **kwargs):
+            self.requests.append((url, kwargs))
+            if url.endswith("/metadata"):
+                return _Response(
+                    "application/json",
+                    b'{"result":{"filename":"models/benchy.gcode","thumbnails":[{"width":400,"height":300,"size":16,"relative_path":".thumbs/benchy.png"}]}}',
+                )
+            return _Response("image/png", b"\x89PNG\r\n\x1a\nsynthetic-thumbnail")
+
+    driver = MoonrakerDriver("moonraker-1", "Synthetic")
+    driver.start_session("session")
+    assert driver.observe(
+        "session",
+        {"webhooks": {"state": "ready"}, "extruder": {"temperature": 25}},
+        {"klippy_state": "ready"},
+        datetime.now(timezone.utc),
+    )
+    live = _LiveMoonraker(1, "Synthetic", "192.168.1.44", 7125, "http", None, driver)
+    client = _Client()
+    live.client = client
+    live.gcode_files = (MoonrakerGcodeFile("models/benchy.gcode", 1, 1.0),)
+    manager = MoonrakerManager()
+    manager._sources[1] = live
+
+    thumbnail = await manager.gcode_thumbnail(1, "models/benchy.gcode")
+    assert thumbnail is not None
+    assert thumbnail.media_type == "image/png"
+    assert thumbnail.content.startswith(b"\x89PNG\r\n\x1a\n")
+    assert client.requests == [
+        (
+            "http://192.168.1.44:7125/server/files/metadata",
+            {"params": {"filename": "models/benchy.gcode"}, "allow_redirects": False},
+        ),
+        ("http://192.168.1.44:7125/server/files/gcodes/models/.thumbs/benchy.png", {"allow_redirects": False}),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_thumbnail_response_rejects_mismatched_mime_and_magic_bytes():
+    from backend.app.services.moonraker_manager import MoonrakerManager
+
+    class _Content:
+        async def read(self, _limit):
+            return b"not-an-image"
+
+    class _Response:
+        status = 200
+        content_type = "image/png"
+        content = _Content()
+
+    assert await MoonrakerManager._gcode_thumbnail_from_response(_Response()) is None
+
+
 def test_file_capability_requires_a_valid_fixed_root_inventory():
     from backend.app.drivers.contract import Capability
     from backend.app.drivers.moonraker import normalize_moonraker_observation
@@ -155,6 +366,47 @@ def test_file_capability_requires_a_valid_fixed_root_inventory():
         files_available=True,
     )
     assert Capability.FILES in snapshot.capabilities
+
+
+def test_fixed_console_history_is_bounded_and_cannot_be_a_command_path():
+    from backend.app.services.moonraker_read_only import parse_console_history
+
+    history = parse_console_history(
+        {
+            "result": {
+                "gcode_store": [
+                    {"message": "STATUS", "time": 1700000000, "type": "command"},
+                    {"message": "// Klipper state: Ready", "time": 1700000000.1, "type": "response"},
+                ]
+            }
+        }
+    )
+    assert [(entry.message, entry.kind) for entry in history] == [
+        ("STATUS", "command"),
+        ("// Klipper state: Ready", "response"),
+    ]
+    for payload in (
+        {"result": {"gcode_store": [{"message": "G28", "time": 1, "type": "other"}]}},
+        {"result": {"gcode_store": [{"message": "\x00", "time": 1, "type": "command"}]}},
+        {"result": {"gcode_store": "not-a-list"}},
+    ):
+        with pytest.raises(ValueError, match="invalid Moonraker console history"):
+            parse_console_history(payload)
+
+
+def test_console_history_capability_requires_valid_cached_history():
+    from backend.app.drivers.contract import Capability
+    from backend.app.drivers.moonraker import normalize_moonraker_observation
+
+    snapshot = normalize_moonraker_observation(
+        local_id="moonraker-1",
+        display_name="Synthetic",
+        observed_at=datetime.now(timezone.utc),
+        status={"webhooks": {"state": "ready"}, "extruder": {"temperature": 25}},
+        server={"klippy_state": "ready"},
+        console_history_available=True,
+    )
+    assert Capability.CONSOLE_HISTORY in snapshot.capabilities
 
 
 @pytest.mark.asyncio
@@ -190,6 +442,7 @@ async def test_discovery_uses_only_the_fixed_gcodes_list_request():
                 "/printer/objects/list": {"result": {"objects": ["webhooks", "extruder"]}},
                 "/server/webcams/list": {"result": {"webcams": []}},
                 "/server/files/list": {"result": [{"path": "benchy.gcode", "size": 1, "modified": 1}]},
+                "/server/gcode_store": {"result": {"gcode_store": []}},
             }
             return _Response(next(payload for suffix, payload in payloads.items() if url.endswith(suffix)))
 
@@ -198,12 +451,17 @@ async def test_discovery_uses_only_the_fixed_gcodes_list_request():
         1, "Synthetic", "192.168.1.44", 7125, "http", None, MoonrakerDriver("moonraker-1", "Synthetic")
     )
     client = _Client()
-    _server, _objects, _snapshot, _stream, inventory = await manager._discover(client, live)
+    _server, _objects, _snapshot, _stream, inventory, history = await manager._discover(client, live)
 
     assert inventory is not None and inventory[0].path == "benchy.gcode"
-    assert client.requests[-1] == (
+    assert history == ()
+    assert client.requests[-2] == (
         "http://192.168.1.44:7125/server/files/list",
         {"params": {"root": "gcodes"}, "allow_redirects": False},
+    )
+    assert client.requests[-1] == (
+        "http://192.168.1.44:7125/server/gcode_store",
+        {"params": {"count": 50}, "allow_redirects": False},
     )
 
 

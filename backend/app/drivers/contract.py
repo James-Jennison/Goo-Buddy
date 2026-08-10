@@ -29,6 +29,7 @@ class Capability(str, Enum):
     LAYERS = "layers"
     CAMERA = "camera"
     FILES = "files"
+    CONSOLE_HISTORY = "console-history"
     JOB_CONTROL = "job-control"
     MOTION = "motion"
     MULTI_MATERIAL = "multi-material"

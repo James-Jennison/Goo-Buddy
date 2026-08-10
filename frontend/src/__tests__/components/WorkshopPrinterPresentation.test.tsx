@@ -21,7 +21,7 @@ describe('Workshop printer presentation', () => {
   it('labels retained observations as not current and keeps unsupported capabilities unavailable', () => {
     render(<WorkshopReadOnlyPresentation platform="elegoo" snapshot={{ phase: 'stale', retained: true, model: 'Synthetic Centauri', temperatures: { nozzle: { current_c: 200, target_c: 210 } } }} />);
     expect(screen.getByText(/Retained data — not current/i)).toBeInTheDocument();
-    expect(screen.getByText(/Camera, files, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent(/Camera, files, console, maintenance, uploads, CANVAS are unavailable/i);
     expect(screen.getByLabelText(/Stale; retained data, not current/i)).toBeInTheDocument();
   });
 
@@ -39,7 +39,7 @@ describe('Workshop printer presentation', () => {
     rerender(<WorkshopReadOnlyPresentation platform="moonraker" snapshot={{ phase: 'disabled', freshness: 'unavailable' }} />);
     expect(screen.getByLabelText('Disabled')).toBeInTheDocument();
     expect(screen.queryByLabelText(/Print progress/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/Camera, files, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent(/Camera, files, console, maintenance, uploads, CANVAS are unavailable/i);
   });
 
   it('shows a proxied camera preview only when the source has the camera capability', () => {
@@ -52,10 +52,15 @@ describe('Workshop printer presentation', () => {
       '/api/v1/printers/moonraker/-1000001/camera/snapshot?token=opaque',
     );
     expect(screen.getByText('Read-only camera preview · refreshed on open')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Open full-size image/i })).toHaveAttribute(
+      'href',
+      '/api/v1/printers/moonraker/-1000001/camera/snapshot?token=opaque',
+    );
+    expect(screen.getByRole('link', { name: /Open full-size image/i })).toHaveAttribute('target', '_blank');
 
     rerender(<WorkshopReadOnlyPresentation platform="moonraker" snapshot={{ phase: 'ready', freshness: 'current' }} />);
     expect(screen.queryByRole('img', { name: /Latest camera preview/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/Camera, files, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent(/Camera, files, console, maintenance, uploads, CANVAS are unavailable/i);
   });
 
   it('builds temperature trends from fresh observations instead of rendering an invented history', () => {

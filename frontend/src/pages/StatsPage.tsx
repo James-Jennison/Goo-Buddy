@@ -646,10 +646,14 @@ function PrinterStatsWidget({
               <YAxis type="category" dataKey="name" stroke="#9ca3af" tick={{ fontSize: 11 }} width={100} />
               <Tooltip
                 contentStyle={RECHARTS_TOOLTIP_STYLE}
-                formatter={(v: number | undefined) => [
-                  printerMetric === 'weight' ? formatWeight(Number(v ?? 0)) : `${v ?? 0}${ps.unit}`,
+                formatter={(value: unknown) => {
+                  const numberValue = typeof value === 'number' ? value : Number(value ?? 0);
+                  const safeValue = Number.isFinite(numberValue) ? numberValue : 0;
+                  return [
+                  printerMetric === 'weight' ? formatWeight(safeValue) : `${safeValue}${ps.unit}`,
                   pLabel,
-                ]}
+                  ];
+                }}
               />
               <Bar dataKey="value" fill={ps.color} radius={[0, 4, 4, 0]} />
             </BarChart>
@@ -690,7 +694,11 @@ function PrinterStatsWidget({
                 <CartesianGrid strokeDasharray="3 3" stroke="#3d3d3d" />
                 <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 11 }} />
                 <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} unit={hs.unit} />
-                <Tooltip contentStyle={RECHARTS_TOOLTIP_STYLE} formatter={(v: number | undefined) => [`${v ?? 0}${hs.unit}`, hLabel]} />
+                <Tooltip contentStyle={RECHARTS_TOOLTIP_STYLE} formatter={(value: unknown) => {
+                  const numberValue = typeof value === 'number' ? value : Number(value ?? 0);
+                  const safeValue = Number.isFinite(numberValue) ? numberValue : 0;
+                  return [`${safeValue}${hs.unit}`, hLabel];
+                }} />
                 <Bar dataKey="avg" fill={hs.color} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

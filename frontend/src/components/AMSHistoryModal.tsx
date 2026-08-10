@@ -346,13 +346,19 @@ export function AMSHistoryModal({
                       borderRadius: '8px',
                       color: textPrimary,
                     }}
-                    labelFormatter={(ts) => new Date(ts).toLocaleString(undefined, applyTimeFormat({
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }, timeFormat))}
+                    labelFormatter={(label) => {
+                      const timestamp = typeof label === 'number' || typeof label === 'string'
+                        ? Number(label)
+                        : Number.NaN;
+                      if (!Number.isFinite(timestamp)) return '';
+                      return new Date(timestamp).toLocaleString(undefined, applyTimeFormat({
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }, timeFormat));
+                    }}
                     formatter={(value) => [
                       mode === 'humidity' ? `${value ?? 0}%` : `${value ?? 0}°C`,
                       mode === 'humidity' ? 'Humidity' : 'Temperature'

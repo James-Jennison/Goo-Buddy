@@ -840,10 +840,63 @@ input:hover, select:hover, textarea:hover { border-color: color-mix(in srgb, var
 .workshop-progress__track { background: color-mix(in srgb, var(--color-text) 10%, transparent) !important; }
 .workshop-progress__track span { background: var(--color-accent) !important; }
 .workshop-unavailable { border-color: var(--color-divider) !important; background: color-mix(in srgb, var(--color-bg) 36%, transparent) !important; }
-.workshop-camera-preview { position: relative; overflow: hidden; margin: 0; border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-bg) 58%, var(--color-surface)); box-shadow: var(--shadow-sm); }
+.workshop-camera-preview { position: relative; width: min(100%, 42rem); overflow: hidden; margin: 0 auto; border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-bg) 58%, var(--color-surface)); box-shadow: var(--shadow-sm); }
 .workshop-camera-preview::before { content: ''; position: absolute; inset: 0 0 auto; z-index: 1; height: 1px; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent-2) 70%, transparent) 48px, color-mix(in srgb, var(--color-accent-2) 70%, transparent) calc(100% - 48px), transparent); }
-.workshop-camera-preview img { display: block; width: 100%; min-height: 140px; max-height: 360px; object-fit: cover; background: color-mix(in srgb, var(--color-bg) 72%, var(--color-surface)); }
-.workshop-camera-preview figcaption { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); color: var(--color-neutral-400); font-size: .7rem; letter-spacing: .035em; }
+.workshop-camera-preview img { display: block; width: 100%; min-height: 140px; max-height: 360px; object-fit: contain; background: color-mix(in srgb, var(--color-bg) 72%, var(--color-surface)); }
+.workshop-camera-preview figcaption { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); color: var(--color-neutral-400); font-size: .7rem; letter-spacing: .035em; }
+.workshop-camera-preview figcaption a { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--space-1); color: var(--color-accent-2); text-decoration: none; }
+.workshop-camera-preview figcaption a:hover { color: var(--color-text); text-decoration: underline; }
+.moonraker-workspace-dashboard { display: grid; grid-template-areas: 'files thermals' 'camera console'; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-items: stretch; }
+.moonraker-workspace-panel { overflow: hidden; border: 1px solid var(--color-divider); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-bg) 38%, var(--color-surface)); box-shadow: var(--shadow-sm); }
+.moonraker-workspace-panel:nth-child(1) { grid-area: files; }
+.moonraker-workspace-panel:nth-child(2) { grid-area: thermals; }
+.moonraker-workspace-panel:nth-child(3) { grid-area: camera; }
+.moonraker-workspace-panel:nth-child(4) { grid-area: console; }
+.moonraker-workspace-panel > header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 2.6rem; padding: 0 var(--space-4); border-bottom: 1px solid var(--color-divider); background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+.moonraker-workspace-panel > header h2 { display: inline-flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-text); font-family: var(--font-heading); font-size: .9rem; font-weight: 500; }
+.moonraker-workspace-panel > header span { color: var(--color-neutral-400); font-size: .65rem; letter-spacing: .06em; text-transform: uppercase; }
+.moonraker-workspace-panel__body { padding: var(--space-4); }
+.moonraker-workspace-panel__body > .workshop-printer-summary { gap: var(--space-4); }
+.moonraker-workspace-panel__body > .workshop-camera-preview { width: 100%; }
+.moonraker-workspace-panel__empty { margin: 0; color: var(--color-neutral-400); font-size: .8rem; }
+.moonraker-file-inventory { display: grid; gap: var(--space-3); min-height: 0; }
+.moonraker-file-metadata { display: grid; gap: var(--space-1); padding: var(--space-2) var(--space-3); border-left: 2px solid var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, transparent); color: var(--color-neutral-300); font-size: .72rem; }
+.moonraker-file-metadata strong { overflow: hidden; color: var(--color-text); font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
+.moonraker-gcode-thumbnail { display: grid; grid-template-columns: minmax(0, 10rem) minmax(0, 1fr); align-items: end; gap: var(--space-2); margin: var(--space-2) 0 0; }
+.moonraker-gcode-thumbnail img { display: block; width: 100%; max-height: 7rem; border: 1px solid var(--color-divider); background: color-mix(in srgb, var(--color-bg) 72%, var(--color-surface)); object-fit: contain; }
+.moonraker-gcode-thumbnail figcaption { color: var(--color-neutral-400); font-size: .65rem; letter-spacing: .045em; text-transform: uppercase; }
+.moonraker-file-list, .moonraker-console-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.moonraker-file-list { max-height: 25rem; overflow-y: auto; padding-right: var(--space-2); scrollbar-color: var(--color-neutral-600) transparent; }
+.moonraker-file-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-divider); color: var(--color-neutral-200); font-size: .8rem; }
+.moonraker-file-list li:first-child { padding-top: 0; }
+.moonraker-file-list li:last-child { padding-bottom: 0; border-bottom: 0; }
+.moonraker-file-list li button { min-width: 0; padding: 0; border: 0 !important; color: inherit !important; text-align: left; }
+.moonraker-file-list li button:hover, .moonraker-file-list li button.is-selected { color: var(--color-accent-2) !important; background: transparent !important; }
+.moonraker-file-list li span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.moonraker-file-list li small { flex: 0 0 auto; color: var(--color-neutral-400); }
+.moonraker-console-list { max-height: 24rem; overflow: auto; font-family: var(--font-mono, ui-monospace, monospace); font-size: .72rem; }
+.moonraker-console-list li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-2); padding: var(--space-2) 0; color: var(--color-neutral-300); }
+.moonraker-console-list li span { color: var(--color-neutral-500); text-transform: uppercase; }
+@media (max-width: 920px) { .moonraker-workspace-dashboard { grid-template-areas: 'thermals' 'files' 'camera' 'console'; grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 921px) and (min-height: 700px) {
+  .moonraker-workspace-page { box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-3); height: 100dvh; padding: var(--space-4); overflow: hidden; }
+  .moonraker-workspace-page > .nocturne-text-link { flex: 0 0 auto; font-size: .72rem; }
+  .moonraker-workspace-page > .page-header { flex: 0 0 auto; padding-bottom: var(--space-3); }
+  .moonraker-workspace-page > .page-header .workshop-eyebrow { font-size: .64rem; }
+  .moonraker-workspace-page > .page-header .page-title { margin: var(--space-1) 0; font-size: 1.2rem; }
+  .moonraker-workspace-page > .page-header .page-subtitle { margin: 0; font-size: .76rem; }
+  .moonraker-workspace-dashboard { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+  .moonraker-workspace-panel { display: flex; flex-direction: column; min-height: 0; }
+  .moonraker-workspace-panel__body { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .moonraker-file-inventory { height: 100%; grid-template-rows: auto minmax(0, 1fr); }
+  .moonraker-file-list, .moonraker-console-list { max-height: none; height: 100%; overflow-y: auto; }
+  .moonraker-workspace-panel__body > .workshop-camera-preview { display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100%; }
+  .moonraker-workspace-panel__body > .workshop-camera-preview img { min-height: 0; height: 100%; max-height: none; }
+  .moonraker-workspace-panel:nth-child(2) .workshop-printer-summary { gap: var(--space-2); }
+  .moonraker-workspace-panel:nth-child(2) .workshop-temperature { min-height: 6.2rem; padding: var(--space-3); }
+  .moonraker-workspace-panel:nth-child(2) .workshop-temperature-chart { padding: var(--space-3); }
+  .moonraker-workspace-panel:nth-child(2) .workshop-temperature-chart svg { height: 70px; margin-top: var(--space-2); }
+}
 dialog { color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 0; }
 dialog::backdrop, .nocturne-dialog-backdrop { background: rgb(10 11 21 / 70%); backdrop-filter: blur(4px); }
 .workshop-main > div:not(.workshop-page) > .p-4, .workshop-main > .p-4 { max-width: 1720px; margin-inline: auto; }
@@ -852,4 +905,31 @@ dialog::backdrop, .nocturne-dialog-backdrop { background: rgb(10 11 21 / 70%); b
 .workshop-main table tr:hover { background: color-mix(in srgb, var(--color-accent) 6%, transparent) !important; }
 .recharts-cartesian-grid line { stroke: color-mix(in srgb, var(--color-text) 12%, transparent) !important; }
 .recharts-bar-rectangle path { fill: var(--color-accent) !important; }
+
+/* Compact, Mainsail-inspired panel geometry. This is a visual treatment only:
+   it deliberately preserves Goo Buddy's existing palette and capabilities. */
+.workshop-app-shell {
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 5px;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 28%);
+  --shadow-md: 0 3px 9px rgb(0 0 0 / 30%);
+  --shadow-lg: 0 10px 28px rgb(0 0 0 / 38%);
+  --workshop-shadow: var(--shadow-sm);
+}
+.workshop-nav-rail nav { padding: var(--space-3) !important; }
+.workshop-nav-rail nav ul { gap: var(--space-1) !important; }
+.workshop-nav-rail nav a { border-radius: var(--radius-sm) !important; }
+.nocturne-card, .workshop-surface, .workshop-printer-card, dialog { border-radius: var(--radius-md) !important; box-shadow: var(--shadow-sm) !important; }
+.nocturne-card:hover, .workshop-printer-card:hover { box-shadow: var(--shadow-md) !important; transform: none; }
+.nocturne-card > div:first-child.border-b { background: color-mix(in srgb, var(--color-text) 4%, var(--color-surface)); }
+.workshop-main button:not([role='switch']), .nocturne-button { border-radius: var(--radius-sm) !important; }
+input, select, textarea, .workshop-toolbar input { border-radius: var(--radius-sm) !important; }
+.workshop-page { max-width: 1800px; padding: var(--space-6) !important; }
+.workshop-page-header, .page-header { padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-divider); }
+.workshop-main table thead th { color: var(--color-neutral-200); font-size: .72rem; font-weight: 650; letter-spacing: .035em; text-transform: uppercase; }
+.workshop-main table td { border-color: var(--color-divider); }
+.workshop-temperature, .workshop-temperature-chart, .workshop-camera-preview, .moonraker-workspace-panel { border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-sm) !important; }
+.moonraker-workspace-panel > header { background: color-mix(in srgb, var(--color-text) 4%, var(--color-surface)); }
+.moonraker-workspace-panel > header h2 { font-weight: 550; }
 @media (max-width: 740px) { .workshop-page { padding: var(--space-6) !important; } .workshop-page-header { grid-template-columns: 1fr; } .workshop-page-header > .nocturne-button { justify-self: start; } .nocturne-fleet-band__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .nocturne-fleet-stat:nth-child(2) { border-right: 0; } .nocturne-fleet-stat:nth-child(n + 3) { padding-top: var(--space-4); border-top: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent); } }

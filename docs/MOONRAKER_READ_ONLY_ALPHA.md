@@ -4,7 +4,8 @@ Goo Buddy's Moonraker integration is a manual, opt-in monitoring source. It
 accepts only a canonical RFC1918 IPv4 literal, an explicit port (default
 `7125`), and HTTP or HTTPS. It derives the following fixed endpoints itself:
 `/server/info`, `/printer/objects/list`, `/server/webcams/list`,
-`/server/files/list?root=gcodes`, and `/websocket`. Redirects, URLs,
+`/server/files/list?root=gcodes`, `/server/gcode_store?count=50`, and
+`/websocket`. Redirects, URLs,
 hostnames, queries, fragments, proxies, and alternate paths are rejected.
 
 An optional API key is held by the existing protected-secret mechanism and is
@@ -21,6 +22,9 @@ the documented fixed-root G-code inventory endpoint
 and validated as relative display data; Goo Buddy never accepts a file name,
 path, root, filter, or query from the browser. It shows no inventory when the
 fixed request fails or is malformed. The
+documented cached-console endpoint `/server/gcode_store?count=50` is also
+limited to 50 validated, display-only command or response entries. It has no
+input, replay, or command route; Goo Buddy never sends any G-code. The
 WebSocket JSON-RPC allowlist is exactly:
 
 - `printer.objects.query`
@@ -45,7 +49,7 @@ source disabled until the owner explicitly enables it again.
 
 ## Alpha compatibility and privacy
 
-The dashboard shows only validated Klipper/Moonraker state, available
+The printer workspace shows only validated Klipper/Moonraker state, available
 temperatures, safe job display name, progress, current/total layers when
 reported in `print_stats.info`, elapsed duration, and a progress-derived
 remaining estimate when both input values are present. It labels retained
@@ -64,9 +68,12 @@ authorities are rejected, and the preview does not imply streaming, camera
 control, files, console, uploads, or maintenance support. Every other camera
 shape remains unavailable.
 
-The inventory is a convenience for operator awareness, not file management:
+The G-code inventory is a convenience for operator awareness, not file management:
 it does not imply browsing, download, upload, deletion, printing, metadata,
 thumbnails, or any other file capability.
+
+The console view is likewise history only. It is not an interactive terminal,
+does not follow live G-code responses, and cannot issue printer commands.
 
 Moonraker API reference: [File management](https://moonraker.readthedocs.io/en/latest/external_api/file_manager/), [Server administration](https://moonraker.readthedocs.io/en/latest/external_api/server/), [Printer objects](https://moonraker.readthedocs.io/en/latest/printer_objects/), and [WebSocket/API overview](https://moonraker.readthedocs.io/en/latest/external_api/introduction/).
 

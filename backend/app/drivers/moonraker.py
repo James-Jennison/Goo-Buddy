@@ -49,6 +49,7 @@ def normalize_moonraker_observation(
     server: object,
     camera_available: bool = False,
     files_available: bool = False,
+    console_history_available: bool = False,
 ) -> NormalizedPrinterSnapshot:
     """Normalize only a small, safe status subset supplied by fixed queries."""
     if not local_id or not display_name or observed_at.tzinfo is None:
@@ -83,6 +84,8 @@ def normalize_moonraker_observation(
         caps.add(Capability.CAMERA)
     if files_available:
         caps.add(Capability.FILES)
+    if console_history_available:
+        caps.add(Capability.CONSOLE_HISTORY)
     progress = _number(virtual_sdcard.get("progress"))
     progress_percent = progress * 100 if progress is not None and 0 <= progress <= 1 else None
     info = print_stats.get("info") if isinstance(print_stats.get("info"), dict) else {}
@@ -155,12 +158,16 @@ class MoonrakerDriver:
         self.invalid_error: str | None = None
         self.camera_available = False
         self.files_available = False
+        self.console_history_available = False
 
     def set_camera_available(self, available: bool) -> None:
         self.camera_available = available is True
 
     def set_files_available(self, available: bool) -> None:
         self.files_available = available is True
+
+    def set_console_history_available(self, available: bool) -> None:
+        self.console_history_available = available is True
 
     def start_session(self, session_id: str) -> None:
         self.active, self.invalid_error = _Session(session_id), None
@@ -177,6 +184,7 @@ class MoonrakerDriver:
                 server=server,
                 camera_available=self.camera_available,
                 files_available=self.files_available,
+                console_history_available=self.console_history_available,
             )
         except MoonrakerNormalizationError:
             self.invalid_error = "invalid Moonraker observation"
@@ -196,6 +204,7 @@ class MoonrakerDriver:
                         server=self.active.server,
                         camera_available=self.camera_available,
                         files_available=self.files_available,
+                        console_history_available=self.console_history_available,
                     )
                 except MoonrakerNormalizationError:
                     self.invalid_error = "invalid Moonraker observation"
@@ -225,6 +234,7 @@ class MoonrakerDriver:
             server=self.active.server,
             camera_available=self.camera_available,
             files_available=self.files_available,
+            console_history_available=self.console_history_available,
         )
         self.retained = snap
         if now.astimezone(timezone.utc) - snap.observed_at >= self.stale_after:

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router';
 import type { Printer } from '../../api/client';
 import { ElegooPrinterCard, MoonrakerPrinterCard } from '../../pages/PrintersPage';
 import { AuthProvider } from '../../contexts/AuthContext';
@@ -30,13 +31,18 @@ function readOnlyPrinter(overrides: Partial<Printer>): Printer {
   };
 }
 
+function CurrentLocation() {
+  const location = useLocation();
+  return <output data-testid="current-location">{location.pathname}</output>;
+}
+
 function renderCard(card: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<AuthProvider><QueryClientProvider client={queryClient}>{card}</QueryClientProvider></AuthProvider>);
+  return render(<MemoryRouter><AuthProvider><QueryClientProvider client={queryClient}>{card}<CurrentLocation /></QueryClientProvider></AuthProvider></MemoryRouter>);
 }
 
 describe('read-only printer cards', () => {
-  it('renders a retained Elegoo snapshot distinctly and includes a supported chamber reading', async () => {
+  it('renders a compact retained Elegoo health summary', async () => {
     server.use(http.get('/api/v1/printers/elegoo/101/status', () => HttpResponse.json({
       phase: 'stale', freshness: 'retained', retained: true, last_observation_at: '2030-01-02T03:04:05Z', error: 'no_validated_inbound',
       state: 'printing', model: 'Synthetic Centauri', firmware: 'synthetic-v3',
@@ -45,9 +51,13 @@ describe('read-only printer cards', () => {
     })));
 
     renderCard(<ElegooPrinterCard printer={readOnlyPrinter({ platform: 'elegoo' })} />);
-    await waitFor(() => expect(screen.getByText(/retained data — not current/i)).toBeInTheDocument());
-    expect(screen.getByLabelText('Chamber temperature')).toHaveTextContent('33.0°C');
+    await waitFor(() => expect(screen.getByLabelText(/Stale; retained data, not current/i)).toBeInTheDocument());
+    expect(screen.getByText('208.0° / 210.0°')).toBeInTheDocument();
+    expect(screen.getByText('59.0° / 60.0°')).toBeInTheDocument();
+    expect(screen.getByLabelText('Print progress 42 percent')).toBeInTheDocument();
     expect(screen.getByText(/camera, files, console, and maintenance remain unavailable/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Synthetic printer'));
+    expect(screen.getByTestId('current-location')).toHaveTextContent('/printers/-101');
   });
 
   it('explains Moonraker authorization without exposing configuration and disables controls', async () => {
@@ -76,7 +86,7 @@ describe('read-only printer cards', () => {
     expect(screen.queryByText(/Waiting for a printer-pushed/i)).not.toBeInTheDocument();
   });
 
-  it('shows Moonraker G-code inventory as display-only when the fixed capability is current', async () => {
+  it('sends a Moonraker card to its workspace when fixed read-only capabilities are current', async () => {
     const publicId = -1_000_201;
     server.use(http.get('/api/v1/printers/moonraker/201/status', () => HttpResponse.json({
       phase: 'ready', freshness: 'current', retained: false, last_observation_at: '2030-01-02T03:04:05Z', error: null,
@@ -85,9 +95,8 @@ describe('read-only printer cards', () => {
     })));
 
     renderCard(<MoonrakerPrinterCard printer={readOnlyPrinter({ id: publicId, platform: 'moonraker' })} />);
-    await waitFor(() => expect(screen.getByRole('region', { name: 'Read-only G-code inventory' })).toBeInTheDocument());
-    expect(screen.getByText('fixtures/calibration-cube.gcode')).toBeInTheDocument();
-    expect(screen.getByText(/Inventory only — downloading, uploading, deleting, and starting files are unavailable/i)).toBeInTheDocument();
-    expect(screen.getByText(/Camera, console, maintenance, uploads, and CANVAS are unavailable/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/Read-only G-code inventory is available in this printer workspace/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Synthetic printer'));
+    expect(screen.getByTestId('current-location')).toHaveTextContent(`/printers/${publicId}`);
   });
 });

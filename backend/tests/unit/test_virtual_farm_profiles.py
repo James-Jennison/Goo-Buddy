@@ -148,6 +148,18 @@ async def test_moonraker_simulator_exposes_only_fixed_gcode_inventory():
 
 
 @pytest.mark.asyncio
+async def test_moonraker_simulator_exposes_only_bounded_console_history():
+    from virtual_farm.simulator import app
+
+    simulator = app()
+    response = await _simulator_response(simulator, "/server/gcode_store?count=50")
+    assert response.status == 200
+    assert json.loads(response.body)["result"]["gcode_store"][0]["type"] == "command"
+    rejected = await _simulator_response(simulator, "/server/gcode_store?count=51")
+    assert rejected.status == 400
+
+
+@pytest.mark.asyncio
 async def test_v4l2_source_uses_injected_capture_seam():
     from virtual_farm.simulator import FIXTURE_JPEG, V4L2FrameSource
 

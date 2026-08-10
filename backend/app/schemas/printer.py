@@ -363,6 +363,21 @@ class MoonrakerDashboardStatus(BaseModel):
     job: dict[str, str | float | int | None] | None = None
     capabilities: list[str] = []
     files: list[dict[str, str | int | float]] | None = None
+    console_history: list[dict[str, str | float]] | None = None
+
+
+class MoonrakerGcodeMetadataResponse(BaseModel):
+    """Read-only, allowlisted metadata for a currently inventoried G-code file."""
+
+    path: str
+    slicer: str | None = None
+    slicer_version: str | None = None
+    estimated_time: float | None = None
+    object_height: float | None = None
+    filament_weight_total: float | None = None
+    layer_height: float | None = None
+    nozzle_diameter: float | None = None
+    thumbnail_available: bool = False
 
 
 class PlateDetectionROI(BaseModel):

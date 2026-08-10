@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
 import { PrintersPage } from './pages/PrintersPage';
+import { PrinterWorkspacePage } from './pages/PrinterWorkspacePage';
 import { FleetDashboardPage } from './pages/FleetDashboardPage';
 import { ArchivesPage } from './pages/ArchivesPage';
 import { QueuePage } from './pages/QueuePage';
@@ -203,6 +204,7 @@ function App() {
                 <Route element={<ProtectedRoute><WebSocketProvider><Layout /></WebSocketProvider></ProtectedRoute>}>
                   <Route index element={<FleetDashboardPage />} />
                   <Route path="printers" element={<PrintersPage />} />
+                  <Route path="printers/:printerId" element={<PrinterWorkspacePage />} />
                   <Route path="archives" element={<ArchivesPage />} />
                   <Route path="queue" element={<QueuePage />} />
                   {/* Slicer Pipelines (#1425) — Pipelines tab lives on the

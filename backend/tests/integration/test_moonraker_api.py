@@ -6,6 +6,8 @@ import pytest
 from httpx import AsyncClient
 
 from backend.app.models.moonraker_source import MoonrakerSource
+from backend.app.services.moonraker_manager import MoonrakerGcodeThumbnailImage
+from backend.app.services.moonraker_read_only import MoonrakerGcodeMetadata
 
 
 @pytest.mark.asyncio
@@ -114,15 +116,105 @@ async def test_moonraker_camera_snapshot_is_backend_proxied_and_bounded_to_the_s
     snapshot.assert_awaited_once_with(source.id)
 
 
-def test_moonraker_camera_snapshot_uses_browser_image_stream_token_gate():
-    """A bearer-only dependency would make a protected ``<img>`` unusable."""
+def test_moonraker_browser_images_use_stream_token_gates():
+    """A bearer-only dependency would make protected ``<img>`` elements unusable."""
     from backend.app.core.auth import RequireCameraStreamTokenIfAuthEnabled
     from backend.app.main import app
 
-    route = next(
-        route
-        for route in app.routes
-        if getattr(route, "path", None) == "/api/v1/printers/moonraker/{source_id}/camera/snapshot"
+    for path in (
+        "/api/v1/printers/moonraker/{source_id}/camera/snapshot",
+        "/api/v1/printers/moonraker/{source_id}/files/thumbnail",
+    ):
+        route = next(route for route in app.routes if getattr(route, "path", None) == path)
+        gates = [dependency.call for dependency in route.dependant.dependencies if dependency.call]
+        assert RequireCameraStreamTokenIfAuthEnabled.dependency in gates
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_moonraker_metadata_is_read_only_and_never_reflects_an_unavailable_filename(
+    async_client: AsyncClient, db_session
+):
+    source = MoonrakerSource(
+        display_name="Synthetic metadata",
+        private_ipv4="10.0.0.46",
+        port=7125,
+        scheme="http",
+        is_enabled=True,
+        read_only_acknowledged=True,
     )
-    gates = [dependency.call for dependency in route.dependant.dependencies if dependency.call]
-    assert RequireCameraStreamTokenIfAuthEnabled.dependency in gates
+    db_session.add(source)
+    await db_session.commit()
+    await db_session.refresh(source)
+    metadata = MoonrakerGcodeMetadata(
+        path="models/benchy.gcode",
+        slicer="OrcaSlicer",
+        slicer_version=None,
+        estimated_time=3600,
+        object_height=None,
+        filament_weight_total=None,
+        layer_height=None,
+        nozzle_diameter=None,
+    )
+    with patch(
+        "backend.app.api.routes.printers.moonraker_manager.gcode_metadata", new=AsyncMock(return_value=metadata)
+    ) as read:
+        response = await async_client.get(
+            f"/api/v1/printers/moonraker/{source.id}/files/metadata", params={"filename": "models/benchy.gcode"}
+        )
+    assert response.status_code == 200
+    assert response.json() == {
+        "path": "models/benchy.gcode",
+        "slicer": "OrcaSlicer",
+        "slicer_version": None,
+        "estimated_time": 3600.0,
+        "object_height": None,
+        "filament_weight_total": None,
+        "layer_height": None,
+        "nozzle_diameter": None,
+        "thumbnail_available": False,
+    }
+    read.assert_awaited_once_with(source.id, "models/benchy.gcode")
+
+    with patch("backend.app.api.routes.printers.moonraker_manager.gcode_metadata", new=AsyncMock(return_value=None)):
+        unavailable = await async_client.get(
+            f"/api/v1/printers/moonraker/{source.id}/files/metadata", params={"filename": "../printer.cfg"}
+        )
+    assert unavailable.status_code == 404
+    assert "printer.cfg" not in unavailable.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_moonraker_thumbnail_is_a_token_gated_image_proxy(async_client: AsyncClient, db_session):
+    source = MoonrakerSource(
+        display_name="Synthetic thumbnail",
+        private_ipv4="10.0.0.47",
+        port=7125,
+        scheme="http",
+        is_enabled=True,
+        read_only_acknowledged=True,
+    )
+    db_session.add(source)
+    await db_session.commit()
+    await db_session.refresh(source)
+    image = MoonrakerGcodeThumbnailImage(content=b"\x89PNG\r\n\x1a\nsynthetic", media_type="image/png")
+    with patch(
+        "backend.app.api.routes.printers.moonraker_manager.gcode_thumbnail", new=AsyncMock(return_value=image)
+    ) as read:
+        response = await async_client.get(
+            f"/api/v1/printers/moonraker/{source.id}/files/thumbnail", params={"filename": "models/benchy.gcode"}
+        )
+    assert response.status_code == 200
+    assert response.content == image.content
+    assert response.headers["content-type"] == "image/png"
+    assert response.headers["cache-control"] == "no-store"
+    assert "10.0.0.47" not in response.text
+    read.assert_awaited_once_with(source.id, "models/benchy.gcode")
+
+    with patch("backend.app.api.routes.printers.moonraker_manager.gcode_thumbnail", new=AsyncMock(return_value=None)):
+        unavailable = await async_client.get(
+            f"/api/v1/printers/moonraker/{source.id}/files/thumbnail", params={"filename": "../printer.cfg"}
+        )
+    assert unavailable.status_code == 404
+    assert "printer.cfg" not in unavailable.text

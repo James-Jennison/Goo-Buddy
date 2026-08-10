@@ -49,6 +49,7 @@ from backend.app.schemas.printer import (
     HmsActionBody,
     HMSErrorResponse,
     MoonrakerDashboardStatus,
+    MoonrakerGcodeMetadataResponse,
     MoonrakerSourceCreate,
     MoonrakerSourceResponse,
     MoonrakerSourceUpdate,
@@ -348,6 +349,7 @@ def _elegoo_dashboard_status(source: ElegooSDCPSource) -> dict:
         }
         if snapshot.job is not None:
             job = {
+                "name": snapshot.job.name,
                 "state": snapshot.job.state,
                 "progress_percent": snapshot.job.progress_percent,
                 "current_layer": snapshot.job.current_layer,
@@ -412,6 +414,7 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
     temperatures = None
     job = None
     files = None
+    console_history = None
     if snapshot:
         temperatures = {
             name: {"current_c": value.current_c, "target_c": value.target_c}
@@ -424,11 +427,19 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
                 "progress_percent": snapshot.job.progress_percent,
                 "current_layer": snapshot.job.current_layer,
                 "total_layers": snapshot.job.total_layers,
+                "elapsed_seconds": snapshot.job.elapsed_seconds,
+                "estimated_remaining_seconds": snapshot.job.estimated_remaining_seconds,
             }
     if observation.current and Capability.FILES in observation.capabilities:
         inventory = moonraker_manager.gcode_inventory(source.id)
         if inventory is not None:
             files = [{"path": item.path, "size": item.size, "modified": item.modified} for item in inventory]
+    if observation.current and Capability.CONSOLE_HISTORY in observation.capabilities:
+        history = moonraker_manager.console_history(source.id)
+        if history is not None:
+            console_history = [
+                {"message": item.message, "timestamp": item.timestamp, "kind": item.kind} for item in history
+            ]
     phase = observation.phase.value
     return MoonrakerDashboardStatus(
         phase=phase,
@@ -443,6 +454,7 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
         job=job,
         capabilities=sorted(cap.value for cap in observation.capabilities),
         files=files,
+        console_history=console_history,
     ).model_dump(mode="json")
 
 
@@ -980,6 +992,63 @@ async def get_moonraker_status(
     if source is None:
         raise HTTPException(404, "Printer not found")
     return _moonraker_dashboard_status(source)
+
+
+@router.get("/moonraker/{source_id}/files/metadata", response_model=MoonrakerGcodeMetadataResponse)
+async def get_moonraker_gcode_metadata(
+    source_id: int,
+    filename: str = Query(..., min_length=1, max_length=240),
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_READ),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return metadata only for a file in the fresh fixed-root inventory."""
+
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    metadata = await moonraker_manager.gcode_metadata(source.id, filename)
+    if metadata is None:
+        # Do not distinguish a stale source, an absent inventory, or an
+        # arbitrary filename: all are unavailable to this read-only view.
+        raise HTTPException(404, "G-code metadata is unavailable")
+    return MoonrakerGcodeMetadataResponse(
+        path=metadata.path,
+        slicer=metadata.slicer,
+        slicer_version=metadata.slicer_version,
+        estimated_time=metadata.estimated_time,
+        object_height=metadata.object_height,
+        filament_weight_total=metadata.filament_weight_total,
+        layer_height=metadata.layer_height,
+        nozzle_diameter=metadata.nozzle_diameter,
+        thumbnail_available=metadata.thumbnail is not None,
+    )
+
+
+@router.get("/moonraker/{source_id}/files/thumbnail")
+async def get_moonraker_gcode_thumbnail(
+    source_id: int,
+    filename: str = Query(..., min_length=1, max_length=240),
+    _: None = RequireCameraStreamTokenIfAuthEnabled,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return only a validated selected-file thumbnail through Goo Buddy.
+
+    The browser never receives a Moonraker origin, API key, relative thumbnail
+    path, or raw G-code bytes.  A generic unavailable response avoids turning
+    this endpoint into an inventory or file-read oracle.
+    """
+
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    thumbnail = await moonraker_manager.gcode_thumbnail(source.id, filename)
+    if thumbnail is None:
+        raise HTTPException(404, "G-code thumbnail is unavailable")
+    return Response(
+        content=thumbnail.content,
+        media_type=thumbnail.media_type,
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @router.post("/moonraker/{source_id}/control/pause", response_model=PlatformControlCommandResponse)
