@@ -29,12 +29,29 @@ release, deployment, image publication, printer contact, or upstream sync.
    — first independently published alpha distribution **complete** at
    `0.3.0-alpha.5`. Continued validation and a future generally recommended
    stable release remain separate work.
-5. **Mature capability-driven Elegoo and Moonraker support** — **active**.
-   Goo Buddy will progress the currently read-only Elegoo SDCP v3 and
-   Moonraker sources to evidence-backed, capability-gated operation support.
-   The approved scope, safety contract, automated delivery gate, and required
+5. **Mature capability-driven multi-platform support** — **active**. Goo Buddy
+   will maintain and extend Bambu Lab, Elegoo SDCP v3, and Moonraker support
+   through platform-specific, evidence-backed capability contracts. The
+   approved scope, safety contract, automated delivery gate, and required
    supervised hardware validation are recorded in
    [the multi-platform control maturity gate](MULTI_PLATFORM_MATURITY.md).
+
+   **Deferred cross-platform milestones — not current capability claims:**
+
+   - **C4: Job lifecycle controls** — pause, resume, and cancel across every
+     supported printer type. Each platform/operation requires its own protocol
+     evidence, deterministic adapter/API/UI coverage, idempotency and
+     status-reconciliation rules, permission and audit review, then separately
+     approved supervised hardware validation. Existing Bambu behavior remains
+     governed by its inherited regression contract; Elegoo and Moonraker must
+     not advertise or exercise a control until their own gates are met.
+   - **C5: Managed print submission** — a platform-specific file-transfer and
+     job-start capability for every supported printer type. Each adapter needs
+     an exact documented transport contract, bounded upload and integrity
+     rules, owner/target confirmation, audit and recovery semantics,
+     deterministic fixtures, and separately approved hardware validation.
+     Existing slicer/vendor submission paths do not establish a Goo Buddy
+     upload or start-print capability for another platform.
 
 ## Approved design direction: Goo Buddy Workshop
 
