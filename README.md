@@ -19,10 +19,12 @@ Buddy can validate and safely provide.
 | Platform | Current support | Setup and safety boundary |
 | --- | --- | --- |
 | Bambu Lab | Mature inherited functionality, covered by ongoing Bambu regression tests | Existing Bambu setup and capabilities remain available. |
-| Elegoo Centauri / OpenCentauri (SDCP v3) | Validated read-only monitoring | Manual, opt-in private-network source. No discovery or automatic contact. |
+| Elegoo Centauri / OpenCentauri (SDCP v3) | Evidence-backed read-only monitoring | Manual, opt-in source, with separately enabled owner-bounded UDP discovery available for candidate review. |
 | Klipper through Moonraker | Alpha read-only monitoring with an optional constrained Mainsail camera preview | Manual, opt-in private-network source. No discovery or automatic contact. |
 
-Elegoo sources are monitoring-only. Moonraker sources may also expose one
+Elegoo sources are monitoring-only. They expose no print, motion, temperature,
+fan, lighting, file, camera, media, console, maintenance, or other control
+capability. Moonraker sources may also expose one
 bounded camera preview when an enabled webcam advertises a validated,
 same-origin path or the owner explicitly configures a narrow Mainsail webcam
 proxy on the printer's saved private address, plus a bounded read-only G-code
@@ -83,11 +85,23 @@ them.
 
 ### Elegoo SDCP v3
 
-Enter a canonical RFC1918 IPv4 address. Goo Buddy derives the fixed SDCP v3
-WebSocket endpoint itself and does not accept a hostname or arbitrary URL. Its
-outbound SDCP surface is closed to the documented text `ping`, Cmd `0` status
-refresh, and Cmd `1` attributes refresh. It never sends print, motion,
-temperature, file, or other mutating commands.
+You can register one canonical RFC1918 IPv4 address manually, or explicitly
+configure and acknowledge one bounded private IPv4 CIDR (`/24`–`/30`) in the
+Elegoo setup flow. Discovery is disabled by default. When enabled, Goo Buddy
+sends only the documented `M99999` datagram to that CIDR's UDP/3000 broadcast
+address. Valid responders are shown as ephemeral candidates and may receive
+one bounded read-only SDCP observation. They are never automatically saved,
+enabled, or trusted; owner registration remains a separate step.
+
+For a registered source, Goo Buddy derives the fixed SDCP v3 WebSocket endpoint
+itself and does not accept a hostname or arbitrary URL. Its outbound SDCP
+surface is closed to the documented text `ping`, Cmd `0` status refresh, and
+Cmd `1` attributes refresh. It never sends print, motion, temperature, fan,
+light, file, camera, media, maintenance, or other mutating commands. Fan and
+chamber-light values are telemetry only. Retained progress/layer values are
+labelled stale whenever the authoritative printer state is not actively
+printing, and SDCP tick fields are not converted into elapsed or remaining
+time.
 
 See the [Elegoo SDCP v3 read-only connection guide](docs/ELEGOO_SDCP_V3_READ_ONLY.md)
 for its lifecycle, privacy boundary, and known limits.
@@ -127,8 +141,10 @@ control capabilities.
 - It does not host a public demo service.
 - Normal installations do not include or show the development-only synthetic
   printer-state matrix used for local UI review.
-- Elegoo and Moonraker sources do not scan a LAN, use broadcast discovery, or
-  contact a printer automatically.
+- Moonraker sources do not scan a LAN or contact a printer automatically.
+  Elegoo discovery is the narrow exception: it is disabled by default and
+  requires an owner-configured, acknowledged private CIDR; it broadcasts only
+  `M99999` to UDP/3000 and follows up only with validated responders.
 - The new read-only sources never expose endpoints, credentials, raw protocol
   payloads, or sensitive printer identifiers in ordinary dashboard views.
 
