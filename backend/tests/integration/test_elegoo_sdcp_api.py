@@ -7,6 +7,7 @@ import pytest
 from httpx import AsyncClient
 
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
+from backend.app.services.elegoo_sdcp_discovery import ElegooSDCPDiscoveryCandidate
 from backend.app.services.elegoo_sdcp_manager import _LiveSource, elegoo_sdcp_manager
 from backend.tests._fixtures.elegoo_sdcp_v3 import attributes, cc1_idle_after_job_status, status
 
@@ -40,6 +41,93 @@ async def test_elegoo_source_requires_acknowledgement_and_never_returns_address(
     assert status.status_code == 200
     assert status.json()["phase"] == "disabled"
     assert "192.168.50.20" not in status.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_elegoo_discovery_is_disabled_by_default_and_saving_a_boundary_does_not_scan(async_client: AsyncClient):
+    with patch("backend.app.api.routes.printers.elegoo_sdcp_discovery.discover", new=AsyncMock()) as discover:
+        initial = await async_client.get("/api/v1/printers/elegoo/discovery/configuration")
+        assert initial.status_code == 200
+        assert initial.json() == {"private_ipv4_cidr": None, "is_enabled": False, "owner_acknowledged": False}
+
+        disabled = await async_client.post("/api/v1/printers/elegoo/discovery/scan")
+        assert disabled.status_code == 409
+        discover.assert_not_awaited()
+
+        saved = await async_client.put(
+            "/api/v1/printers/elegoo/discovery/configuration",
+            json={"private_ipv4_cidr": "192.168.50.0/24", "is_enabled": False, "owner_acknowledged": False},
+        )
+        assert saved.status_code == 200
+        discover.assert_not_awaited()
+
+        unacknowledged = await async_client.put(
+            "/api/v1/printers/elegoo/discovery/configuration",
+            json={"private_ipv4_cidr": "192.168.50.0/24", "is_enabled": True, "owner_acknowledged": False},
+        )
+        assert unacknowledged.status_code == 422
+        discover.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "cidr",
+    ["192.168.50.0/23", "192.168.50.2/24", "127.0.0.0/24", "169.254.0.0/24", "8.8.8.0/24"],
+)
+async def test_elegoo_discovery_configuration_rejects_unsafe_cidrs(async_client: AsyncClient, cidr: str):
+    response = await async_client.put(
+        "/api/v1/printers/elegoo/discovery/configuration",
+        json={"private_ipv4_cidr": cidr, "is_enabled": False, "owner_acknowledged": False},
+    )
+    assert response.status_code == 422
+    assert cidr not in response.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_elegoo_discovery_returns_candidates_without_registering_or_enabling_sources(async_client: AsyncClient):
+    configured = await async_client.put(
+        "/api/v1/printers/elegoo/discovery/configuration",
+        json={"private_ipv4_cidr": "192.168.50.0/24", "is_enabled": True, "owner_acknowledged": True},
+    )
+    assert configured.status_code == 200
+    candidate = ElegooSDCPDiscoveryCandidate(
+        private_ipv4="192.168.50.22",
+        mainboard_id="synthetic-board-01",
+        name="Synthetic CC1",
+        model="Centauri Carbon",
+        protocol_version="v3",
+        firmware="fixture",
+    )
+    with (
+        patch(
+            "backend.app.api.routes.printers.elegoo_sdcp_discovery.discover", new=AsyncMock(return_value=[candidate])
+        ) as discover,
+        patch(
+            "backend.app.api.routes.printers.elegoo_sdcp_manager.observe_discovery_candidate",
+            new=AsyncMock(return_value="observed"),
+        ) as observe,
+    ):
+        response = await async_client.post("/api/v1/printers/elegoo/discovery/scan")
+    assert response.status_code == 200
+    assert response.json()["candidates"] == [
+        {
+            "private_ipv4": "192.168.50.22",
+            "mainboard_id": "synthetic-board-01",
+            "name": "Synthetic CC1",
+            "model": "Centauri Carbon",
+            "protocol_version": "v3",
+            "firmware": "fixture",
+            "registration_state": "owner-acknowledgement-required",
+            "observation_state": "observed",
+        }
+    ]
+    discover.assert_awaited_once_with("192.168.50.0/24")
+    observe.assert_awaited_once_with("192.168.50.22", "synthetic-board-01")
+    listed = await async_client.get("/api/v1/printers/")
+    assert all(item["platform"] != "elegoo" for item in listed.json())
 
 
 @pytest.mark.asyncio

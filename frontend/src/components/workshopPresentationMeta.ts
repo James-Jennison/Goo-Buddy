@@ -5,7 +5,7 @@ export type WorkshopPhase = 'ready' | 'stale' | 'disconnected' | 'disabled' | 'i
 
 const PLATFORM_META: Record<WorkshopPlatform, { label: string; detail: string }> = {
   bambu: { label: 'Bambu Lab', detail: 'connected printer' },
-  elegoo: { label: 'Elegoo SDCP v3', detail: 'capability-gated monitoring and job control' },
+  elegoo: { label: 'Elegoo SDCP v3', detail: 'evidence-backed read-only monitoring' },
   moonraker: { label: 'Klipper via Moonraker', detail: 'capability-gated monitoring and job control' },
 };
 

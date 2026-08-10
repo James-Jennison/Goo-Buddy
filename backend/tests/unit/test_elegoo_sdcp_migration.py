@@ -67,3 +67,17 @@ async def test_elegoo_source_upgrade_preserves_a_representative_existing_bambu_r
         assert sdcp_tables == [("elegoo_sdcp_sources",)]
     finally:
         await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_elegoo_discovery_configuration_migration_is_additive_and_empty_by_default(monkeypatch):
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    monkeypatch.setattr(database, "is_sqlite", lambda: True)
+    try:
+        async with engine.begin() as conn:
+            await database._migrate_elegoo_sdcp_discovery_configuration(conn)
+            await database._migrate_elegoo_sdcp_discovery_configuration(conn)
+            rows = (await conn.execute(text("SELECT count(*) FROM elegoo_sdcp_discovery_configuration"))).scalar_one()
+        assert rows == 0
+    finally:
+        await engine.dispose()

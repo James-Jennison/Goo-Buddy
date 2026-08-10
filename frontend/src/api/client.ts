@@ -389,6 +389,23 @@ export interface ElegooSourceCreate {
   is_enabled: boolean;
 }
 
+export interface ElegooDiscoveryConfiguration {
+  private_ipv4_cidr: string | null;
+  is_enabled: boolean;
+  owner_acknowledged: boolean;
+}
+
+export interface ElegooDiscoveryCandidate {
+  private_ipv4: string;
+  mainboard_id: string;
+  name: string | null;
+  model: string | null;
+  protocol_version: string | null;
+  firmware: string | null;
+  registration_state: 'owner-acknowledgement-required';
+  observation_state: 'observed' | 'unavailable' | 'error';
+}
+
 export interface MoonrakerSourceCreate {
   name: string;
   private_ipv4: string;
@@ -3915,6 +3932,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  getElegooDiscoveryConfiguration: () =>
+    request<ElegooDiscoveryConfiguration>('/printers/elegoo/discovery/configuration'),
+  configureElegooDiscovery: (data: Omit<ElegooDiscoveryConfiguration, 'private_ipv4_cidr'> & { private_ipv4_cidr: string }) =>
+    request<ElegooDiscoveryConfiguration>('/printers/elegoo/discovery/configuration', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  scanElegooDiscovery: () => request<{ candidates: ElegooDiscoveryCandidate[] }>('/printers/elegoo/discovery/scan', { method: 'POST' }),
   updateElegooSource: (id: number, data: Partial<ElegooSourceCreate>) =>
     request<Printer>(`/printers/elegoo/${id}`, {
       method: 'PATCH',

@@ -30,6 +30,7 @@ from backend.app.core.permissions import Permission
 from backend.app.core.tasks import spawn_background_task
 from backend.app.drivers.contract import Capability, DriverKind
 from backend.app.models.ams_label import AmsLabel
+from backend.app.models.elegoo_sdcp_discovery import ElegooSDCPDiscoveryConfiguration
 from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
 from backend.app.models.moonraker_source import MoonrakerSource
 from backend.app.models.platform_control_command import PlatformControlCommand as PlatformControlCommandRecord
@@ -42,6 +43,10 @@ from backend.app.schemas.printer import (
     AMSUnit,
     DiagnosticRequest,
     ElegooDashboardStatus,
+    ElegooSDCPDiscoveryCandidateResponse,
+    ElegooSDCPDiscoveryConfigurationResponse,
+    ElegooSDCPDiscoveryConfigurationUpdate,
+    ElegooSDCPDiscoveryScanResponse,
     ElegooSDCPSourceCreate,
     ElegooSDCPSourceResponse,
     ElegooSDCPSourceUpdate,
@@ -73,6 +78,7 @@ from backend.app.services.bambu_ftp import (
     get_storage_info_async,
     list_files_async,
 )
+from backend.app.services.elegoo_sdcp_discovery import elegoo_sdcp_discovery
 from backend.app.services.elegoo_sdcp_manager import ElegooControlUnconfirmed, elegoo_sdcp_manager
 from backend.app.services.moonraker_manager import moonraker_manager
 from backend.app.services.printer_diagnostic import run_connection_diagnostic
@@ -152,6 +158,16 @@ async def _parse_elegoo_source_body(request: Request, schema: type[BaseModel]) -
         return schema.model_validate(body)
     except (TypeError, ValueError, ValidationError):
         raise HTTPException(422, "Invalid read-only Elegoo source configuration") from None
+
+
+async def _parse_elegoo_discovery_body(request: Request) -> ElegooSDCPDiscoveryConfigurationUpdate:
+    """Do not reflect a configured subnet in a validation response."""
+
+    try:
+        body = await request.json()
+        return ElegooSDCPDiscoveryConfigurationUpdate.model_validate(body)
+    except (TypeError, ValueError, ValidationError):
+        raise HTTPException(422, "Invalid owner-configured Elegoo discovery boundary") from None
 
 
 async def _parse_moonraker_source_body(request: Request, schema: type[BaseModel]) -> BaseModel:
@@ -744,6 +760,86 @@ async def create_elegoo_source(
     if source.is_enabled:
         await elegoo_sdcp_manager.enable(source.id, source.private_ipv4, source.configuration_revision)
     return _serialize_elegoo_source(source)
+
+
+@router.get("/elegoo/discovery/configuration", response_model=ElegooSDCPDiscoveryConfigurationResponse)
+async def get_elegoo_discovery_configuration(
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return the owner-selected boundary; absence is safely disabled."""
+
+    configuration = await db.get(ElegooSDCPDiscoveryConfiguration, 1)
+    if configuration is None:
+        return ElegooSDCPDiscoveryConfigurationResponse()
+    return ElegooSDCPDiscoveryConfigurationResponse(
+        private_ipv4_cidr=configuration.private_ipv4_cidr,
+        is_enabled=configuration.is_enabled,
+        owner_acknowledged=configuration.owner_acknowledged,
+    )
+
+
+@router.put("/elegoo/discovery/configuration", response_model=ElegooSDCPDiscoveryConfigurationResponse)
+async def put_elegoo_discovery_configuration(
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Persist a boundary only. Saving it never starts a discovery request."""
+
+    configuration_data = await _parse_elegoo_discovery_body(request)
+    configuration = await db.get(ElegooSDCPDiscoveryConfiguration, 1)
+    if configuration is None:
+        configuration = ElegooSDCPDiscoveryConfiguration(id=1)
+        db.add(configuration)
+    configuration.private_ipv4_cidr = configuration_data.private_ipv4_cidr
+    configuration.is_enabled = configuration_data.is_enabled
+    configuration.owner_acknowledged = configuration_data.owner_acknowledged
+    await db.commit()
+    await db.refresh(configuration)
+    return ElegooSDCPDiscoveryConfigurationResponse(
+        private_ipv4_cidr=configuration.private_ipv4_cidr,
+        is_enabled=configuration.is_enabled,
+        owner_acknowledged=configuration.owner_acknowledged,
+    )
+
+
+@router.post("/elegoo/discovery/scan", response_model=ElegooSDCPDiscoveryScanResponse)
+async def scan_elegoo_discovery_boundary(
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Broadcast only inside an explicitly enabled, owner-acknowledged CIDR.
+
+    Returned candidates are ephemeral. This route intentionally neither saves
+    them nor opens a WebSocket/status session. The ordinary source creation
+    route remains the separate acknowledgement/registration step.
+    """
+
+    configuration = await db.get(ElegooSDCPDiscoveryConfiguration, 1)
+    if configuration is None or not configuration.is_enabled or not configuration.owner_acknowledged:
+        raise HTTPException(409, "Owner-configured Elegoo discovery is disabled")
+    candidates = await elegoo_sdcp_discovery.discover(configuration.private_ipv4_cidr)
+    observation_states = {
+        candidate.mainboard_id: await elegoo_sdcp_manager.observe_discovery_candidate(
+            candidate.private_ipv4, candidate.mainboard_id
+        )
+        for candidate in candidates
+    }
+    return ElegooSDCPDiscoveryScanResponse(
+        candidates=[
+            ElegooSDCPDiscoveryCandidateResponse(
+                private_ipv4=candidate.private_ipv4,
+                mainboard_id=candidate.mainboard_id,
+                name=candidate.name,
+                model=candidate.model,
+                protocol_version=candidate.protocol_version,
+                firmware=candidate.firmware,
+                observation_state=observation_states[candidate.mainboard_id],
+            )
+            for candidate in candidates
+        ]
+    )
 
 
 @router.get("/elegoo/{source_id}", response_model=ElegooSDCPSourceResponse)

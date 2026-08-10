@@ -509,6 +509,19 @@ async def _migrate_elegoo_sdcp_sources(conn) -> None:
     )
 
 
+async def _migrate_elegoo_sdcp_discovery_configuration(conn) -> None:
+    """Create one opt-in owner discovery boundary without storing candidates."""
+
+    await _safe_execute(
+        conn,
+        "CREATE TABLE elegoo_sdcp_discovery_configuration ("
+        "id INTEGER PRIMARY KEY, private_ipv4_cidr VARCHAR(18) NOT NULL, "
+        "is_enabled BOOLEAN DEFAULT 0 NOT NULL, owner_acknowledged BOOLEAN DEFAULT 0 NOT NULL, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+        ")",
+    )
+
+
 async def _migrate_moonraker_sources(conn) -> None:
     """Add isolated Moonraker monitoring configuration without touching Bambu rows.
 
@@ -1033,6 +1046,7 @@ async def run_migrations(conn):
     # Goo Buddy: isolated SDCP source table. It is additive: rollback simply
     # leaves an unused table and never changes Bambu configuration rows.
     await _migrate_elegoo_sdcp_sources(conn)
+    await _migrate_elegoo_sdcp_discovery_configuration(conn)
     await _migrate_moonraker_sources(conn)
     await _migrate_platform_control_commands(conn)
     await _reconcile_interrupted_platform_control_commands(conn)

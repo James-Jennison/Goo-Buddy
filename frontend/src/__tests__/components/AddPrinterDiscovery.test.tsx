@@ -56,20 +56,48 @@ describe('AddPrinterModal Discovery', () => {
     );
   });
 
-  it('offers explicit manual Elegoo setup with only capability-gated controls and no Bambu discovery', async () => {
+  it('offers owner-bounded Elegoo discovery and separate read-only registration', async () => {
     render(<PrintersPage />);
     await waitFor(() => expect(screen.getByText('X1 Carbon')).toBeInTheDocument());
 
     await userEvent.click(screen.getAllByRole('button', { name: /add printer/i })[0]);
     await userEvent.selectOptions(screen.getByLabelText('Printer platform'), 'elegoo');
 
-    expect(screen.getByText(/capability- and permission-gated pause, resume, and cancel requests/i)).toBeInTheDocument();
-    expect(screen.queryByText(/subnet to scan/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/registration remains separate from discovery/i)).toBeInTheDocument();
+    expect(screen.getByText(/optional owner-configured discovery/i)).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText('Display name'), 'Centauri');
     await userEvent.type(screen.getByLabelText('Private IPv4 address'), '192.168.10.20');
-    const acknowledgement = screen.getByLabelText(/only supported, capability-gated job controls may be available/i);
+    const acknowledgement = screen.getByLabelText(/source is read-only and has no printer-control capability/i);
     await userEvent.click(acknowledgement);
     expect(within(acknowledgement.closest('form')!).getByRole('button', { name: /^add printer$/i })).toBeEnabled();
+  });
+
+  it('requires a separate discovery acknowledgement and only prefills a candidate for registration', async () => {
+    server.use(
+      http.put('/api/v1/printers/elegoo/discovery/configuration', () => HttpResponse.json({
+        private_ipv4_cidr: '192.168.10.0/24', is_enabled: true, owner_acknowledged: true,
+      })),
+      http.post('/api/v1/printers/elegoo/discovery/scan', () => HttpResponse.json({
+        candidates: [{
+          private_ipv4: '192.168.10.20', mainboard_id: 'synthetic-board', name: 'Synthetic CC1', model: 'Centauri Carbon',
+          protocol_version: 'v3', firmware: 'fixture', registration_state: 'owner-acknowledgement-required', observation_state: 'observed',
+        }],
+      })),
+    );
+    render(<PrintersPage />);
+    await userEvent.click(screen.getAllByRole('button', { name: /add printer/i })[0]);
+    await userEvent.selectOptions(screen.getByLabelText('Printer platform'), 'elegoo');
+    await userEvent.type(screen.getByLabelText('Private IPv4 CIDR'), '192.168.10.0/24');
+    const scanButton = screen.getByRole('button', { name: /scan configured boundary/i });
+    expect(scanButton).toBeDisabled();
+    await userEvent.click(screen.getByLabelText(/authorize this single bounded discovery broadcast/i));
+    await userEvent.click(scanButton);
+    await screen.findByText('Synthetic CC1');
+    await userEvent.click(screen.getByRole('button', { name: /review and register/i }));
+
+    expect(screen.getByLabelText('Display name')).toHaveValue('Synthetic CC1');
+    expect(screen.getByLabelText('Private IPv4 address')).toHaveValue('192.168.10.20');
+    expect(screen.getByText(/registration remains separate from discovery/i)).toBeInTheDocument();
   });
 
   it('offers manual Moonraker setup with only capability-gated controls and no Bambu discovery', async () => {

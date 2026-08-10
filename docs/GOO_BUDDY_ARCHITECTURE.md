@@ -36,8 +36,11 @@ The Elegoo source accepts manual canonical-private-IPv4 configuration and
 normalizes synthetic or SDCP status and attributes payloads. Its transport is
 restricted to the documented text `ping`, Cmd 0 status-refresh, and Cmd 1
 attributes-refresh operations; it has no generic command surface, G-code,
-controls, files, camera, CANVAS fabrication, or discovery scanning. The
-source has isolated persistence and models waiting, ready, stale,
+controls, files, camera, or CANVAS fabrication. A separately owner-enabled
+discovery boundary may send only `M99999` to the broadcast address of one
+validated RFC1918 `/24`–`/30` on UDP/3000. It retains no candidates; only a
+validated responder can receive one bounded ping/Cmd 0/Cmd 1 observation, and
+explicit source registration remains separate. The source has isolated persistence and models waiting, ready, stale,
 disconnected, and invalid phases. A snapshot
 is current only while fresh; otherwise the last valid snapshot is explicitly
 retained and labeled with its retention reason. Observations are session-bound:

@@ -328,6 +328,19 @@ def test_invalid_or_unrelated_inbound_frames_never_reset_liveness():
     assert live.liveness_received.is_set() is False
 
 
+@pytest.mark.asyncio
+async def test_discovery_candidate_observation_uses_only_ping_and_the_read_only_information_pair():
+    manager, live, session_id = _live()
+    websocket = _FixtureServerSocket()
+
+    await manager._observe_candidate_connection(websocket, live, session_id)
+
+    assert websocket.sent[0] == "ping"
+    requests = [json.loads(text) for text in websocket.sent[1:]]
+    assert [request["Data"]["Cmd"] for request in requests] == [0, 1]
+    assert live.driver.observation(datetime.now(timezone.utc)).current is not None
+
+
 def test_documented_top_level_status_and_attributes_are_valid_liveness():
     manager, live, session_id = _live()
     manager._observe_text(

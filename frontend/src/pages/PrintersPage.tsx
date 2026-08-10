@@ -91,7 +91,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router';
 import { api, discoveryApi, firmwareApi, withStreamToken, ApiError } from '../api/client';
 import { formatDateOnly, formatETA, formatDuration, parseUTCDate } from '../utils/date';
-import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult, ElegooSourceCreate, MoonrakerSourceCreate } from '../api/client';
+import type { Printer, PrinterCreate, PrinterStatus, AMSUnit, DiscoveredPrinter, FirmwareUpdateInfo, FirmwareUploadStatus, LinkedSpoolInfo, SpoolAssignment, HMSError, InventorySpool, SmartPlug, PrinterDiagnosticResult, ElegooDiscoveryCandidate, ElegooSourceCreate, MoonrakerSourceCreate } from '../api/client';
 import { Card, CardContent } from '../components/Card';
 import { WorkshopFleetSummary } from '../components/WorkshopPrinterPresentation';
 import { PlatformJobControls, type PlatformJobOperation } from '../components/PlatformJobControls';
@@ -6745,6 +6745,11 @@ export function AddPrinterModal({
   const [elegooAddress, setElegooAddress] = useState('');
   const [elegooAcknowledged, setElegooAcknowledged] = useState(false);
   const [elegooEnabled, setElegooEnabled] = useState(false);
+  const [elegooDiscoveryCidr, setElegooDiscoveryCidr] = useState('');
+  const [elegooDiscoveryAcknowledged, setElegooDiscoveryAcknowledged] = useState(false);
+  const [elegooCandidates, setElegooCandidates] = useState<ElegooDiscoveryCandidate[]>([]);
+  const [elegooDiscoveryBusy, setElegooDiscoveryBusy] = useState(false);
+  const [elegooDiscoveryError, setElegooDiscoveryError] = useState('');
   const [moonrakerName, setMoonrakerName] = useState('');
   const [moonrakerAddress, setMoonrakerAddress] = useState('');
   const [moonrakerPort, setMoonrakerPort] = useState('7125');
@@ -6931,6 +6936,31 @@ export function AddPrinterModal({
     setDiscovered([]);
   };
 
+  const scanElegooCandidates = async () => {
+    setElegooDiscoveryBusy(true);
+    setElegooDiscoveryError('');
+    setElegooCandidates([]);
+    try {
+      await api.configureElegooDiscovery({
+        private_ipv4_cidr: elegooDiscoveryCidr.trim(),
+        is_enabled: true,
+        owner_acknowledged: true,
+      });
+      const result = await api.scanElegooDiscovery();
+      setElegooCandidates(result.candidates);
+    } catch (error) {
+      setElegooDiscoveryError(error instanceof Error ? error.message : 'Unable to scan the configured Elegoo discovery boundary.');
+    } finally {
+      setElegooDiscoveryBusy(false);
+    }
+  };
+
+  const selectElegooCandidate = (candidate: ElegooDiscoveryCandidate) => {
+    setElegooAddress(candidate.private_ipv4);
+    setElegooName(candidate.name || candidate.model || 'Elegoo SDCP v3');
+    setElegooCandidates([]);
+  };
+
   // Cleanup discovery on unmount
   useEffect(() => {
     return () => {
@@ -6959,16 +6989,27 @@ export function AddPrinterModal({
               <label htmlFor="elegoo-platform" className="block text-sm text-bambu-gray mb-1">Printer platform</label>
               <select id="elegoo-platform" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" value={platform} onChange={(e) => setPlatform(e.target.value as 'bambu' | 'elegoo' | 'moonraker')}>
                 <option value="bambu">Bambu Lab</option>
-                <option value="elegoo">Elegoo SDCP v3 (monitoring + job controls)</option>
+                <option value="elegoo">Elegoo SDCP v3 (read-only monitoring)</option>
                 <option value="moonraker">Klipper via Moonraker (monitoring + job controls)</option>
               </select>
             </div>
+            <section className="mb-4 space-y-2 rounded border border-bambu-dark-tertiary p-3" aria-labelledby="elegoo-discovery-title">
+              <h3 id="elegoo-discovery-title" className="text-sm font-medium text-white">Optional owner-configured discovery</h3>
+              <p className="text-xs text-bambu-gray">This sends only SDCP <code>M99999</code> to the broadcast address of one private /24–/30. Responders receive one read-only status observation; nothing is registered or enabled automatically.</p>
+              <label htmlFor="elegoo-discovery-cidr" className="block text-xs text-bambu-gray">Private IPv4 CIDR</label>
+              <input id="elegoo-discovery-cidr" value={elegooDiscoveryCidr} onChange={(event) => setElegooDiscoveryCidr(event.target.value)} placeholder="192.168.1.0/24" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" />
+              <label htmlFor="elegoo-discovery-ack" className="flex gap-2 text-xs text-bambu-gray"><input id="elegoo-discovery-ack" type="checkbox" checked={elegooDiscoveryAcknowledged} onChange={(event) => setElegooDiscoveryAcknowledged(event.target.checked)} />I authorize this single bounded discovery broadcast.</label>
+              <Button type="button" variant="secondary" onClick={scanElegooCandidates} disabled={!elegooDiscoveryAcknowledged || !elegooDiscoveryCidr.trim() || elegooDiscoveryBusy}>{elegooDiscoveryBusy ? 'Scanning…' : 'Scan configured boundary'}</Button>
+              {elegooDiscoveryError && <p role="alert" className="text-xs text-red-300">{elegooDiscoveryError}</p>}
+              {elegooCandidates.length > 0 && <ul className="space-y-2" aria-label="Elegoo discovery candidates">{elegooCandidates.map((candidate) => <li key={candidate.mainboard_id} className="flex items-center justify-between gap-2 rounded bg-bambu-dark p-2 text-xs"><span><strong>{candidate.name || candidate.model || 'Elegoo device'}</strong><br />{candidate.private_ipv4} · status {candidate.observation_state}</span><Button type="button" variant="secondary" onClick={() => selectElegooCandidate(candidate)}>Review and register</Button></li>)}</ul>}
+              {elegooCandidates.length === 0 && !elegooDiscoveryBusy && !elegooDiscoveryError && <p className="text-xs text-bambu-gray">Candidates remain ephemeral. Select one only to prefill the separate registration form below.</p>}
+            </section>
             <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); onAdd({ name: elegooName.trim(), private_ipv4: elegooAddress, read_only_acknowledged: elegooAcknowledged, is_enabled: elegooEnabled }); }}>
-              <p className="text-sm text-bambu-gray">Centauri/OpenCentauri support is opt-in. Monitoring is passive; only capability- and permission-gated pause, resume, and cancel requests can be sent. Goo Buddy never sends G-code or discovery traffic.</p>
+              <p className="text-sm text-bambu-gray">Centauri/OpenCentauri support is opt-in and read-only. Registration remains separate from discovery; Goo Buddy does not expose printer controls, files, or camera streams.</p>
               <div><label htmlFor="elegoo-display-name" className="block text-sm text-bambu-gray mb-1">Display name</label><input id="elegoo-display-name" required value={elegooName} onChange={(e) => setElegooName(e.target.value)} className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" /></div>
               <div><label htmlFor="elegoo-private-ipv4" className="block text-sm text-bambu-gray mb-1">Private IPv4 address</label><input id="elegoo-private-ipv4" required inputMode="numeric" value={elegooAddress} onChange={(e) => setElegooAddress(e.target.value)} placeholder="192.168.1.50" className="w-full px-3 py-2 bg-bambu-dark border border-bambu-dark-tertiary rounded-lg text-white" aria-describedby="elegoo-address-help" /><p id="elegoo-address-help" className="mt-1 text-xs text-bambu-gray">RFC1918 IPv4 only. The fixed SDCP v3 endpoint is used internally and is never shown on the dashboard.</p></div>
-              <label htmlFor="elegoo-read-only-ack" className="flex gap-2 text-sm text-bambu-gray"><input id="elegoo-read-only-ack" required type="checkbox" checked={elegooAcknowledged} onChange={(e) => setElegooAcknowledged(e.target.checked)} />I understand only supported, capability-gated job controls may be available.</label>
-              <label className="flex gap-2 text-sm text-bambu-gray"><input type="checkbox" checked={elegooEnabled} onChange={(e) => setElegooEnabled(e.target.checked)} />Enable the passive connection after saving</label>
+              <label htmlFor="elegoo-read-only-ack" className="flex gap-2 text-sm text-bambu-gray"><input id="elegoo-read-only-ack" required type="checkbox" checked={elegooAcknowledged} onChange={(e) => setElegooAcknowledged(e.target.checked)} />I confirm this source is read-only and has no printer-control capability.</label>
+              <label className="flex gap-2 text-sm text-bambu-gray"><input type="checkbox" checked={elegooEnabled} onChange={(e) => setElegooEnabled(e.target.checked)} />Enable read-only monitoring after saving</label>
               <div className="flex gap-3 pt-2"><Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t('common.cancel')}</Button><Button type="submit" disabled={!validPrivateIPv4 || !elegooAcknowledged || !elegooName.trim()} className="flex-1">Add printer</Button></div>
             </form>
           </CardContent>

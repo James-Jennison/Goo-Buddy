@@ -70,6 +70,37 @@ def canonical_rfc1918_ipv4(value: str) -> str:
     return str(address)
 
 
+def canonical_private_discovery_cidr(value: str) -> str:
+    """Accept one bounded RFC1918 broadcast domain selected by its owner.
+
+    A /24 is the largest permitted network.  This is deliberately stricter
+    than a generic private-network check: an owner cannot accidentally turn a
+    discovery setting into a large network scan, and /31-/32 have no useful
+    IPv4 broadcast address for this protocol.
+    """
+
+    if not isinstance(value, str) or value != value.strip() or not value:
+        raise ValueError("A bounded private IPv4 CIDR is required")
+    try:
+        network = ipaddress.IPv4Network(value, strict=True)
+    except (ipaddress.AddressValueError, ipaddress.NetmaskValueError, ValueError) as exc:
+        raise ValueError("A bounded private IPv4 CIDR is required") from exc
+    private_networks = (
+        ipaddress.IPv4Network("10.0.0.0/8"),
+        ipaddress.IPv4Network("172.16.0.0/12"),
+        ipaddress.IPv4Network("192.168.0.0/16"),
+    )
+    if (
+        network.prefixlen < 24
+        or network.prefixlen > 30
+        or not any(network.subnet_of(item) for item in private_networks)
+    ):
+        raise ValueError("A bounded private IPv4 CIDR is required")
+    if str(network) != value:
+        raise ValueError("Use canonical network-address CIDR notation")
+    return str(network)
+
+
 class ElegooSDCPSourceCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     private_ipv4: str = Field(..., min_length=7, max_length=15)
@@ -116,6 +147,48 @@ class ElegooSDCPSourceUpdate(BaseModel):
         if not value:
             raise ValueError("A display name is required")
         return value
+
+
+class ElegooSDCPDiscoveryConfigurationUpdate(BaseModel):
+    """Explicit owner boundary for the otherwise-disabled UDP broadcast."""
+
+    private_ipv4_cidr: str = Field(..., min_length=9, max_length=18)
+    is_enabled: bool = False
+    owner_acknowledged: bool
+
+    @field_validator("private_ipv4_cidr")
+    @classmethod
+    def validate_private_ipv4_cidr(cls, value: str) -> str:
+        return canonical_private_discovery_cidr(value)
+
+    @model_validator(mode="after")
+    def require_owner_acknowledgement_when_enabled(self):
+        if self.is_enabled and not self.owner_acknowledged:
+            raise ValueError("Owner acknowledgement is required to enable discovery")
+        return self
+
+
+class ElegooSDCPDiscoveryConfigurationResponse(BaseModel):
+    private_ipv4_cidr: str | None = None
+    is_enabled: bool = False
+    owner_acknowledged: bool = False
+
+
+class ElegooSDCPDiscoveryCandidateResponse(BaseModel):
+    """Ephemeral discovery metadata; a candidate is never an enabled source."""
+
+    private_ipv4: str
+    mainboard_id: str
+    name: str | None = None
+    model: str | None = None
+    protocol_version: str | None = None
+    firmware: str | None = None
+    registration_state: str = "owner-acknowledgement-required"
+    observation_state: str = "not-observed"
+
+
+class ElegooSDCPDiscoveryScanResponse(BaseModel):
+    candidates: list[ElegooSDCPDiscoveryCandidateResponse]
 
 
 class ElegooDashboardStatus(BaseModel):

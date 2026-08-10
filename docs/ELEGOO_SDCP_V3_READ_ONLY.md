@@ -1,8 +1,8 @@
 # Elegoo SDCP v3 read-only connection
 
-This is Goo Buddy's first usable Centauri/OpenCentauri integration. It is
-opt-in, supports one source in this release, and exposes monitoring plus the
-three explicitly capability-gated print-job controls described below.
+This is Goo Buddy's opt-in Centauri/OpenCentauri monitoring integration. It
+supports one explicitly registered source in this release and exposes only
+evidence-backed read-only telemetry. It does not advertise printer controls.
 
 ## Confirmed protocol surface
 
@@ -36,18 +36,7 @@ outer/request UUIDs, empty `Data`, Unix-seconds `TimeStamp`, `From: 0`, and
 Buddy first obtains it through one exact-address UDP/3000 unicast `M99999`
 identity lookup per explicitly enabled source before opening the fixed
 WebSocket endpoint. It can also validate a matching identity from a pushed
-status, attributes, or response topic. It never broadcasts, enumerates,
-resolves names, or probes a subnet.
-
-The separate closed control adapter serializes only Cmd `129` pause, Cmd `130`
-cancel, and Cmd `131` resume, each with an empty payload and only after the
-dashboard has a fresh compatible job observation and the operator confirms the
-named action. After a control write it requests Cmd `0` and reports success
-only when a fresh status observation confirms the expected state within its
-bounded wait; a write alone is never an acknowledgement. No other SDCP command,
-request payload, G-code, credential, file, history, video, configuration,
-motion, lighting, fan, temperature, print, or maintenance operation is
-serializable. Each connection makes one bounded
+status, attributes, or response topic. Each connection makes one bounded
 initial liveness exchange. An exact text `pong` or a structurally valid inbound
 status, attributes, or Cmd 0/Cmd 1 response establishes liveness; no other
 topic, command, or malformed envelope does. After that, Goo Buddy sends the
@@ -60,10 +49,38 @@ session.
 
 Only fresh, complete status plus attributes data is current. Stale,
 disconnected, and invalid states retain the last valid snapshot separately and
-the UI labels it as retained, never live. Camera, CANVAS, files, console, and
-maintenance are unavailable. The three job controls are unavailable unless a
-fresh parsed job observation makes the specific operation safe; no capability
-is inferred from an advertised protocol field alone.
+the UI labels it as retained, never live. SDCP may retain prior job counters
+while its authoritative state is idle or otherwise non-printing; Goo Buddy
+projects those only as `stale_job`, never as a current print. Tick fields have
+no approved time conversion, so elapsed and remaining time are unsupported.
+Observed fan and chamber-light fields remain telemetry only. Camera, CANVAS,
+files, console, media, maintenance, and all printer controls are unavailable
+or not evidenced; no capability is inferred from metadata alone.
+
+## Owner-configured discovery boundary
+
+Discovery is separately disabled by default. An owner with printer-management
+authority must save and acknowledge exactly one canonical RFC1918 IPv4 CIDR.
+Only `/24` through `/30` are accepted; public, loopback, link-local,
+multicast, malformed, non-canonical, and broader networks are rejected.
+
+An explicitly enabled scan sends exactly `M99999` to that CIDR's calculated
+IPv4 broadcast address on UDP port `3000`, with two bounded receive windows,
+an 8 KiB response cap, response validation, and identity deduplication. It
+does not enumerate hosts, select interfaces, resolve names, use ARP, scan
+ports, or contact an address that did not respond. Each valid responder may
+receive one bounded WebSocket observation using only `ping`, Cmd `0`, and Cmd
+`1`; it is classified as observed, unavailable, or error without persistence
+or a reconnect loop. Candidates are never enabled automatically. The existing
+manual source creation and acknowledgement step is required before any
+candidate becomes a source.
+
+This limited broadcast exception does not authorize HTTP/media probing,
+directory or file operations, RTSP/MJPEG negotiation, camera activation or
+frame retrieval, credentials, cloud APIs, or any control command. Future
+file/media, video, and control work requires a separately approved milestone
+with an exact documented contract, fixture coverage, and hardware evidence
+that does not exercise an unsafe operation.
 
 ## Lifecycle and persistence
 
@@ -84,11 +101,13 @@ text.
 
 ## Known limits and non-assumptions
 
-- No broadcast discovery, automatic discovery, or unbounded physical-printer
-  probing is performed.
-- Only the explicitly documented ping/Cmd 0/Cmd 1 operations and the three
-  closed, empty-payload job operations above are implemented; arbitrary SDCP
-  commands are rejected before sending.
+- No automatic discovery or unbounded physical-printer probing is performed.
+  The only broadcast is the separately enabled, owner-bounded UDP/3000
+  discovery exchange described above; only validated responders receive the
+  one bounded SDCP observation exchange.
+- Only the explicitly documented ping/Cmd 0/Cmd 1 observation operations are
+  used by the monitoring transport; arbitrary SDCP commands are rejected
+  before sending.
 - CANVAS is unavailable. There is no tested authoritative mapping here.
 - Printer tick units are not interpreted. Progress is only a bounded ratio of
   observed current/total values; freshness uses local arrival time.

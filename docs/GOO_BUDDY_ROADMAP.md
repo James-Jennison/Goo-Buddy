@@ -155,8 +155,10 @@ stores and distributes the packaged image.
   caches, credentials, printer addresses, and raw captures from production
   images.
 - Preserve Bambu behavior and existing data. Normal installation must not
-  discover or automatically contact printers; Elegoo and Moonraker sources
-  remain manual opt-in configuration.
+  discover or automatically contact printers. Elegoo's separately enabled,
+  owner-acknowledged, bounded RFC1918 UDP/3000 broadcast is the sole exception:
+  it yields ephemeral candidates only, with manual registration still required.
+  Moonraker remains manual opt-in configuration.
 
 ### Upgrade compatibility gate
 

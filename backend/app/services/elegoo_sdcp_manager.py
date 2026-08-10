@@ -73,6 +73,7 @@ class _LiveSource:
     pong_received: asyncio.Event = field(default_factory=asyncio.Event)
     liveness_received: asyncio.Event = field(default_factory=asyncio.Event)
     status_received: asyncio.Event = field(default_factory=asyncio.Event)
+    attributes_received: asyncio.Event = field(default_factory=asyncio.Event)
     last_liveness_at: float | None = None
     websocket: aiohttp.ClientWebSocketResponse | None = None
     control_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
@@ -112,6 +113,94 @@ class ElegooSDCPManager:
                 await live.task
             except asyncio.CancelledError:
                 pass
+
+    async def observe_discovery_candidate(self, private_ipv4: str, mainboard_id: str) -> str:
+        """Perform one ephemeral Cmd 0/Cmd 1 observation of a responder only.
+
+        Discovery calls this only after its UDP response validation.  The
+        temporary driver is never placed in ``_sources`` and therefore cannot
+        become an enabled source or acquire a reconnect loop.  The returned
+        classification intentionally exposes no raw response or endpoint.
+        """
+
+        private_ipv4 = canonical_rfc1918_ipv4(private_ipv4)
+        mainboard_id = validate_mainboard_id(mainboard_id)
+        session_id = str(uuid.uuid4())
+        live = _LiveSource(0, private_ipv4, SyntheticElegooSdcpV3Driver("elegoo-discovery"))
+        live.mainboard_id = mainboard_id
+        live.identity_ready.set()
+        live.driver.start_session(session_id)
+        try:
+            timeout = aiohttp.ClientTimeout(total=HANDSHAKE_TIMEOUT_SECONDS, sock_connect=CONNECT_TIMEOUT_SECONDS)
+            connector = aiohttp.TCPConnector(family=socket.AF_INET, use_dns_cache=False)
+            async with (
+                aiohttp.ClientSession(timeout=timeout, connector=connector) as session,
+                session.ws_connect(
+                    f"ws://{private_ipv4}:3030/websocket",
+                    heartbeat=None,
+                    autoping=False,
+                    max_msg_size=MAX_FRAME_BYTES,
+                ) as websocket,
+            ):
+                live.connected = True
+                await self._observe_candidate_connection(websocket, live, session_id)
+                if live.driver.observation(datetime.now(timezone.utc)).current is not None:
+                    return "observed"
+        except asyncio.TimeoutError:
+            return "unavailable"
+        except (aiohttp.ClientError, aiohttp.WSServerHandshakeError):
+            return "unavailable"
+        except Exception:
+            # Do not leak endpoint or payload details from an ephemeral probe.
+            return "error"
+        finally:
+            live.connected = False
+            live.driver.disconnect(session_id)
+        return "error" if live.error else "unavailable"
+
+    async def _observe_candidate_connection(
+        self, websocket: aiohttp.ClientWebSocketResponse, live: _LiveSource, session_id: str
+    ) -> None:
+        """Use the persistent client's parser for one bounded candidate read."""
+
+        live.websocket = websocket
+        consume_task = asyncio.create_task(self._consume(websocket, live, session_id))
+        try:
+            if not await self._send_heartbeat(websocket, live):
+                return
+            mainboard_id = live.mainboard_id
+            if mainboard_id is None:
+                live.error = "identity_unavailable"
+                return
+            await self._send_information_request(
+                websocket, live, ReadOnlyInformationOperation.STATUS_REFRESH, mainboard_id
+            )
+            await self._send_information_request(websocket, live, ReadOnlyInformationOperation.ATTRIBUTES, mainboard_id)
+            if not await self._await_initial_liveness(websocket, live, PONG_TIMEOUT_SECONDS):
+                return
+            status_wait = asyncio.create_task(live.status_received.wait())
+            attributes_wait = asyncio.create_task(live.attributes_received.wait())
+            try:
+                await asyncio.wait_for(asyncio.gather(status_wait, attributes_wait), timeout=HANDSHAKE_TIMEOUT_SECONDS)
+            except asyncio.TimeoutError:
+                live.error = live.error or "observation_timeout"
+            finally:
+                for wait in (status_wait, attributes_wait):
+                    if not wait.done():
+                        wait.cancel()
+                        try:
+                            await wait
+                        except asyncio.CancelledError:
+                            pass
+        finally:
+            if live.websocket is websocket:
+                live.websocket = None
+            if not consume_task.done():
+                consume_task.cancel()
+                try:
+                    await consume_task
+                except asyncio.CancelledError:
+                    pass
 
     async def shutdown(self) -> None:
         await asyncio.gather(*(self.disable(source_id) for source_id in list(self._sources)), return_exceptions=True)
@@ -517,6 +606,7 @@ class ElegooSDCPManager:
             live.status_received.set()
         else:
             live.driver.observe_attributes(session_id, envelope, observed_at)
+            live.attributes_received.set()
         self._mark_liveness(live)
 
     @staticmethod
