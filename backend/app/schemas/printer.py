@@ -130,7 +130,6 @@ class ElegooDashboardStatus(BaseModel):
     temperatures: dict[str, dict[str, float | None]] | None = None
     job: dict[str, str | float | int | None] | None = None
     capabilities: list[str] = []
-    files: list[dict[str, str | int | float]] | None = None
 
 
 class PlatformControlCommandResponse(BaseModel):
@@ -363,6 +362,7 @@ class MoonrakerDashboardStatus(BaseModel):
     temperatures: dict[str, dict[str, float | None]] | None = None
     job: dict[str, str | float | int | None] | None = None
     capabilities: list[str] = []
+    files: list[dict[str, str | int | float]] | None = None
 
 
 class PlateDetectionROI(BaseModel):
