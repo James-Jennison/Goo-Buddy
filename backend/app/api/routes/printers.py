@@ -415,6 +415,7 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
     job = None
     files = None
     console_history = None
+    toolhead = None
     if snapshot:
         temperatures = {
             name: {"current_c": value.current_c, "target_c": value.target_c}
@@ -429,6 +430,11 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
                 "total_layers": snapshot.job.total_layers,
                 "elapsed_seconds": snapshot.job.elapsed_seconds,
                 "estimated_remaining_seconds": snapshot.job.estimated_remaining_seconds,
+            }
+        if snapshot.toolhead:
+            toolhead = {
+                "active_extruder": snapshot.toolhead.active_extruder,
+                "homed_axes": snapshot.toolhead.homed_axes,
             }
     if observation.current and Capability.FILES in observation.capabilities:
         inventory = moonraker_manager.gcode_inventory(source.id)
@@ -455,6 +461,7 @@ def _moonraker_dashboard_status(source: MoonrakerSource) -> dict:
         capabilities=sorted(cap.value for cap in observation.capabilities),
         files=files,
         console_history=console_history,
+        toolhead=toolhead,
     ).model_dump(mode="json")
 
 

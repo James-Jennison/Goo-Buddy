@@ -18,6 +18,7 @@ def _status():
         "virtual_sdcard": {"progress": 0.25},
         "extruder": {"temperature": 210, "target": 215},
         "heater_bed": {"temperature": 60, "target": 60},
+        "toolhead": {"extruder": "extruder", "homed_axes": "xyz"},
     }
 
 
@@ -37,6 +38,20 @@ def test_normalizes_observed_moonraker_monitoring_values_only():
     assert Capability.LAYERS in snapshot.capabilities
     assert Capability.JOB_CONTROL in snapshot.capabilities
     assert Capability.FILES not in snapshot.capabilities
+    assert snapshot.toolhead and snapshot.toolhead.active_extruder == "extruder"
+    assert snapshot.toolhead.homed_axes == "xyz"
+    assert Capability.TOOLHEAD_TELEMETRY in snapshot.capabilities
+
+
+def test_normalizer_withholds_malformed_toolhead_telemetry():
+    status = _status()
+    status["toolhead"] = {"extruder": "extruder\x00secret", "homed_axes": "xyza"}
+    snapshot = normalize_moonraker_observation(
+        local_id="moon-1", display_name="Synthetic Klipper", observed_at=NOW, status=status, server=_server()
+    )
+
+    assert snapshot.toolhead is None
+    assert Capability.TOOLHEAD_TELEMETRY not in snapshot.capabilities
 
 
 def test_normalizer_withholds_job_control_when_no_active_job_can_be_observed():

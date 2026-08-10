@@ -15,8 +15,13 @@ from backend.app.services.moonraker_read_only import (
 
 
 def test_only_allowlisted_read_only_methods_are_serialized():
-    objects = select_monitored_objects(["webhooks", "extruder", "gcode", "heater_bed"])
-    assert objects == {"extruder": None, "heater_bed": None, "webhooks": None}
+    objects = select_monitored_objects(["webhooks", "extruder", "gcode", "heater_bed", "toolhead"])
+    assert objects == {
+        "extruder": ["temperature", "target"],
+        "heater_bed": ["temperature", "target"],
+        "toolhead": ["extruder", "homed_axes"],
+        "webhooks": ["state"],
+    }
     for method in MoonrakerReadOnlyMethod:
         request = json.loads(serialize_read_only_request(method, objects))
         assert request["method"] in {"printer.objects.query", "printer.objects.subscribe"}
@@ -40,7 +45,7 @@ def test_object_selection_cannot_request_fields_or_arbitrary_objects(objects):
 def test_status_parser_ignores_unknown_or_malformed_payloads():
     from backend.app.services.moonraker_manager import MoonrakerManager
 
-    selection = {"extruder": None, "webhooks": None}
+    selection = {"extruder": ["temperature", "target"], "webhooks": ["state"]}
     assert (
         MoonrakerManager._validated_status_message(
             '{"method":"notify_status_update","params":[{"gcode":{}}]}', selection
@@ -51,6 +56,12 @@ def test_status_parser_ignores_unknown_or_malformed_payloads():
     assert MoonrakerManager._validated_status_message(
         '{"id":1,"result":{"status":{"extruder":{"temperature":210}}}}', selection, {1}
     ) == {"extruder": {"temperature": 210}}
+    assert (
+        MoonrakerManager._validated_status_message(
+            '{"id":1,"result":{"status":{"extruder":{"temperature":210,"unsafe":"discard"}}}}', selection, {1}
+        )
+        is None
+    )
     assert (
         MoonrakerManager._validated_status_message(
             '{"id":2,"result":{"status":{"extruder":{"temperature":210}}}}', selection, {1}
@@ -518,7 +529,16 @@ async def test_fixture_server_receives_only_query_and_subscription_and_yields_va
     )
     live.driver.start_session("fixture")
     socket = _FixtureMoonrakerSocket()
-    await manager._serve(socket, live, "fixture", {"webhooks": None, "print_stats": None, "extruder": None})
+    await manager._serve(
+        socket,
+        live,
+        "fixture",
+        {
+            "webhooks": ["state"],
+            "print_stats": ["state", "filename", "print_duration", "current_layer", "total_layer"],
+            "extruder": ["temperature", "target"],
+        },
+    )
     assert [item["method"] for item in socket.sent] == ["printer.objects.query", "printer.objects.subscribe"]
     assert live.driver.observation(datetime.now(timezone.utc)).phase.value == "ready"
 

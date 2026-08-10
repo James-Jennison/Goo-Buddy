@@ -1,8 +1,8 @@
 # Proposed Moonraker workspace capability milestone
 
-**Status:** M0–M2 are implementation-complete and fixture-validated.
-Hardware validation and release remain separate approvals. M3–M4 retain their
-individual gates below.
+**Status:** M0–M3 are implementation-complete and fixture-validated.
+Hardware validation and release remain separate approvals. M4 retains its
+individual gate below.
 
 ## Outcome
 
@@ -72,12 +72,13 @@ safe error model for untrusted file content.
 
 ### M3 — read-only tool telemetry
 
-Propose a new fixed object subset only after documented API and synthetic
-fixture evidence identifies display-only fields. Each object and field must be
-named in the allowlist; object discovery must be intersected locally; unknown
-objects and fields must be discarded. The first candidate is `toolhead` status
-and homed-axis information, with no position-changing or configuration
-operation.
+Completed with the documented `toolhead.extruder` and `toolhead.homed_axes`
+fields from Moonraker's [Printer Objects](https://moonraker.readthedocs.io/en/latest/printer_objects/)
+reference. The WebSocket query/subscription now names every field used by Goo
+Buddy, object discovery intersects locally, and status messages containing
+unknown objects or fields are discarded before status normalization. The
+workspace shows the active configured tool and homed axes only; it exposes no
+position, motion, homing, configuration, or physical operation.
 
 ### M4 — closed job controls in the workspace
 
@@ -118,10 +119,10 @@ temperatures, or a method/path from the browser to Moonraker.
 
 ## Approval record and remaining decisions
 
-M0–M2 were approved for staged implementation and have completed automated
+M0–M3 were approved for staged implementation and have completed automated
 fixture validation. M2 accepts only a metadata-derived, fixed-root thumbnail
 reference; it proxies bounded PNG, JPEG, or WebP bytes through Goo Buddy with
 no redirects and a browser image-stream token. This is not approval to contact
 a physical printer, release, or represent the feature as hardware-validated.
-M3–M4, and the deferred physical-action milestone, retain their individual
-approval and evidence gates.
+M4 and the deferred physical-action milestone retain their individual approval
+and evidence gates.

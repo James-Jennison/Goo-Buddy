@@ -11,8 +11,10 @@ from __future__ import annotations
 import itertools
 import json
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
+from types import MappingProxyType
 from typing import Final
 
 
@@ -21,11 +23,21 @@ class MoonrakerReadOnlyMethod(str, Enum):
     OBJECTS_SUBSCRIBE = "printer.objects.subscribe"
 
 
-# Object names are selected locally; config-defined macros and arbitrary
-# object names are never reflected into a request.
-MONITORED_OBJECTS: Final[frozenset[str]] = frozenset(
-    {"webhooks", "print_stats", "virtual_sdcard", "display_status", "toolhead", "extruder", "heater_bed", "chamber"}
+# Object names and fields are selected locally; config-defined macros,
+# arbitrary object names, and unreviewed fields are never reflected into a
+# request.  M3 adds only active tool and homed-axis telemetry from ``toolhead``.
+MONITORED_OBJECT_FIELDS: Final[Mapping[str, tuple[str, ...]]] = MappingProxyType(
+    {
+        "webhooks": ("state",),
+        "print_stats": ("state", "filename", "print_duration", "current_layer", "total_layer"),
+        "virtual_sdcard": ("progress",),
+        "toolhead": ("extruder", "homed_axes"),
+        "extruder": ("temperature", "target"),
+        "heater_bed": ("temperature", "target"),
+        "chamber": ("temperature", "target"),
+    }
 )
+MONITORED_OBJECTS: Final[frozenset[str]] = frozenset(MONITORED_OBJECT_FIELDS)
 _request_ids = itertools.count(1)
 MAX_GCODE_FILES: Final = 100
 MAX_GCODE_PATH_LENGTH: Final = 240
@@ -255,12 +267,12 @@ def parse_console_history(payload: object) -> tuple[MoonrakerConsoleEntry, ...]:
     return tuple(entries)
 
 
-def select_monitored_objects(available: object) -> dict[str, list[str] | None]:
-    """Intersect a server-provided list with the fixed monitorable objects."""
+def select_monitored_objects(available: object) -> dict[str, list[str]]:
+    """Intersect a server-provided list with the fixed monitorable fields."""
 
     if not isinstance(available, list) or not all(isinstance(item, str) for item in available):
         raise ValueError("invalid object list")
-    return dict.fromkeys(sorted(MONITORED_OBJECTS.intersection(available)))
+    return {name: list(MONITORED_OBJECT_FIELDS[name]) for name in sorted(MONITORED_OBJECTS.intersection(available))}
 
 
 def serialize_read_only_request(method: object, objects: object | None = None) -> str:
@@ -270,7 +282,7 @@ def serialize_read_only_request(method: object, objects: object | None = None) -
         raise ValueError("unsupported Moonraker read-only method")
     if not isinstance(objects, dict) or set(objects) - MONITORED_OBJECTS:
         raise ValueError("invalid monitored object selection")
-    if not all(value is None or value == [] for value in objects.values()):
+    if any(value != list(MONITORED_OBJECT_FIELDS[name]) for name, value in objects.items()):
         raise ValueError("invalid monitored object selection")
     params: dict[str, object] = {"objects": objects}
     return json.dumps(

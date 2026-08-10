@@ -650,7 +650,7 @@ class MoonrakerManager:
         websocket: aiohttp.ClientWebSocketResponse,
         live: _LiveMoonraker,
         session_id: str,
-        objects: dict[str, list[str] | None],
+        objects: dict[str, list[str]],
     ) -> None:
         # This fixed sequence is the complete outbound WebSocket vocabulary.
         query = serialize_read_only_request(MoonrakerReadOnlyMethod.OBJECTS_QUERY, objects)
@@ -698,9 +698,9 @@ class MoonrakerManager:
 
     @staticmethod
     def _validated_status_message(
-        raw: str, objects: dict[str, list[str] | None], expected_ids: set[int] | None = None
+        raw: str, objects: dict[str, list[str]], expected_ids: set[int] | None = None
     ) -> dict[str, object] | None:
-        """Accept only status result/notifications for the local fixed object set."""
+        """Accept only the fixed local object-and-field status projection."""
         try:
             message = json.loads(raw)
         except json.JSONDecodeError:
@@ -717,7 +717,12 @@ class MoonrakerManager:
             candidate = result.get("status") if isinstance(result, dict) else None
         if not isinstance(candidate, dict) or set(candidate) - set(objects):
             return None
-        return candidate
+        projection: dict[str, object] = {}
+        for object_name, value in candidate.items():
+            if not isinstance(value, dict) or set(value) - set(objects[object_name]):
+                return None
+            projection[object_name] = dict(value)
+        return projection
 
 
 moonraker_manager = MoonrakerManager()

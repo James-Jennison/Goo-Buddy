@@ -121,7 +121,7 @@ async def info(_: web.Request) -> web.Response:
 
 
 async def objects(_: web.Request) -> web.Response:
-    return web.json_response({"result": {"objects": ["webhooks", "extruder", "heater_bed", "print_stats"]}})
+    return web.json_response({"result": {"objects": ["webhooks", "extruder", "heater_bed", "print_stats", "toolhead"]}})
 
 
 async def webcams(request: web.Request) -> web.Response:
@@ -200,6 +200,17 @@ async def ws(request: web.Request) -> web.WebSocketResponse:
             if payload.get("method") not in {"printer.objects.query", "printer.objects.subscribe"}:
                 await socket.close(code=1008)
                 break
+            expected = {
+                "webhooks": ["state"],
+                "extruder": ["temperature", "target"],
+                "heater_bed": ["temperature", "target"],
+                "print_stats": ["state", "filename", "print_duration", "current_layer", "total_layer"],
+                "toolhead": ["extruder", "homed_axes"],
+            }
+            params = payload.get("params")
+            if not isinstance(params, dict) or params.get("objects") != expected:
+                await socket.close(code=1008)
+                break
             await socket.send_json(
                 {
                     "id": payload.get("id"),
@@ -209,6 +220,7 @@ async def ws(request: web.Request) -> web.WebSocketResponse:
                             "extruder": {"temperature": 25.0},
                             "heater_bed": {"temperature": 25.0},
                             "print_stats": {"state": "standby"},
+                            "toolhead": {"extruder": "extruder", "homed_axes": "xyz"},
                         }
                     },
                 }

@@ -416,6 +416,7 @@ export interface ElegooDashboardStatus {
   capabilities: string[];
   files?: Array<{ path: string; size: number; modified: number }> | null;
   console_history?: Array<{ message: string; timestamp: number; kind: 'command' | 'response' }> | null;
+  toolhead?: { active_extruder: string | null; homed_axes: string | null } | null;
 }
 
 export type MoonrakerDashboardStatus = ElegooDashboardStatus;

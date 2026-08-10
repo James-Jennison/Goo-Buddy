@@ -30,6 +30,7 @@ class Capability(str, Enum):
     CAMERA = "camera"
     FILES = "files"
     CONSOLE_HISTORY = "console-history"
+    TOOLHEAD_TELEMETRY = "toolhead-telemetry"
     JOB_CONTROL = "job-control"
     MOTION = "motion"
     MULTI_MATERIAL = "multi-material"
@@ -79,6 +80,14 @@ class JobProgress:
 
 
 @dataclass(frozen=True)
+class ToolheadTelemetry:
+    """Small, display-only state projection for the configured toolhead."""
+
+    active_extruder: str | None = None
+    homed_axes: str | None = None
+
+
+@dataclass(frozen=True)
 class NormalizedPrinterSnapshot:
     identity: PrinterIdentity
     driver: DriverKind
@@ -87,6 +96,7 @@ class NormalizedPrinterSnapshot:
     capabilities: frozenset[Capability]
     temperatures: Mapping[str, TemperatureReading] = field(default_factory=lambda: MappingProxyType({}))
     job: JobProgress | None = None
+    toolhead: ToolheadTelemetry | None = None
 
 
 def freeze_temperatures(values: Mapping[str, TemperatureReading]) -> Mapping[str, TemperatureReading]:

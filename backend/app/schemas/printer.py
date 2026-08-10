@@ -364,6 +364,7 @@ class MoonrakerDashboardStatus(BaseModel):
     capabilities: list[str] = []
     files: list[dict[str, str | int | float]] | None = None
     console_history: list[dict[str, str | float]] | None = None
+    toolhead: dict[str, str | None] | None = None
 
 
 class MoonrakerGcodeMetadataResponse(BaseModel):

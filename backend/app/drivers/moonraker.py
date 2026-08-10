@@ -17,6 +17,7 @@ from backend.app.drivers.contract import (
     RetainedSnapshot,
     RetentionReason,
     TemperatureReading,
+    ToolheadTelemetry,
     freeze_temperatures,
 )
 
@@ -27,6 +28,14 @@ class MoonrakerNormalizationError(ValueError):
 
 def _number(value: object) -> float | None:
     return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+
+def _bounded_text(value: object, *, allowed: frozenset[str] | None = None) -> str | None:
+    if not isinstance(value, str) or len(value) > 80 or "\x00" in value:
+        return None
+    if allowed is not None and any(character not in allowed for character in value):
+        return None
+    return value
 
 
 def _record(value: object) -> dict[str, Any]:
@@ -80,6 +89,16 @@ def normalize_moonraker_observation(
             if current is not None:
                 temperatures[label] = TemperatureReading(current, target)
     caps: set[Capability] = {Capability.TEMPERATURES} if temperatures else set()
+    toolhead_state = state.get("toolhead") if isinstance(state.get("toolhead"), dict) else {}
+    active_extruder = _bounded_text(toolhead_state.get("extruder"))
+    homed_axes = _bounded_text(toolhead_state.get("homed_axes"), allowed=frozenset("xyz"))
+    toolhead = (
+        ToolheadTelemetry(active_extruder=active_extruder, homed_axes=homed_axes)
+        if (active_extruder is not None or homed_axes is not None)
+        else None
+    )
+    if toolhead is not None:
+        caps.add(Capability.TOOLHEAD_TELEMETRY)
     if camera_available:
         caps.add(Capability.CAMERA)
     if files_available:
@@ -137,6 +156,7 @@ def normalize_moonraker_observation(
         capabilities=frozenset(caps),
         temperatures=freeze_temperatures(temperatures),
         job=job,
+        toolhead=toolhead,
     )
 
 
