@@ -24,6 +24,10 @@ class ElegooSDCPSource(Base):
     private_ipv4: Mapped[str] = mapped_column(String(15), unique=True)
     is_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     read_only_acknowledged: Mapped[bool] = mapped_column(Boolean, default=False)
+    # C4 starts fail-closed. This is intentionally not exposed through the
+    # read-only source API; a later, evidence-backed owner-acknowledgement
+    # milestone may enable it for an approved source/revision.
+    control_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     configuration_revision: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

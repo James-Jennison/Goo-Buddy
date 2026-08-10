@@ -31,6 +31,9 @@ class MoonrakerSource(Base):
     _api_key_enc: Mapped[str | None] = mapped_column("api_key", String(2048), nullable=True)
     is_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     read_only_acknowledged: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Kept separate from monitoring acknowledgement. C4 has no public
+    # activation path until the platform-specific validation gates are met.
+    control_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     configuration_revision: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

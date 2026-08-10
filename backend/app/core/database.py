@@ -503,10 +503,14 @@ async def _migrate_elegoo_sdcp_sources(conn) -> None:
         f"id {source_id_column}, display_name VARCHAR(100) NOT NULL, "
         "private_ipv4 VARCHAR(15) NOT NULL UNIQUE, is_enabled BOOLEAN DEFAULT 0 NOT NULL, "
         "read_only_acknowledged BOOLEAN DEFAULT 0 NOT NULL, "
+        "control_enabled BOOLEAN DEFAULT 0 NOT NULL, "
         "configuration_revision INTEGER DEFAULT 1 NOT NULL, "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
         ")",
     )
+    # Existing read-only sources must never become control-capable through an
+    # upgrade. The additive default deliberately keeps every row disabled.
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN control_enabled BOOLEAN DEFAULT 0 NOT NULL")
 
 
 async def _migrate_elegoo_sdcp_discovery_configuration(conn) -> None:
@@ -538,7 +542,8 @@ async def _migrate_moonraker_sources(conn) -> None:
         "port INTEGER NOT NULL DEFAULT 7125, scheme VARCHAR(5) NOT NULL DEFAULT 'http', "
         "camera_proxy_port INTEGER, camera_proxy_scheme VARCHAR(5), camera_proxy_path VARCHAR(512), "
         "api_key VARCHAR(2048), is_enabled BOOLEAN NOT NULL DEFAULT FALSE, "
-        "read_only_acknowledged BOOLEAN NOT NULL DEFAULT FALSE, configuration_revision INTEGER NOT NULL DEFAULT 1, "
+        "read_only_acknowledged BOOLEAN NOT NULL DEFAULT FALSE, control_enabled BOOLEAN NOT NULL DEFAULT FALSE, "
+        "configuration_revision INTEGER NOT NULL DEFAULT 1, "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
     )
     # A Mainsail webcam proxy may be on a different local port than Moonraker.
@@ -547,6 +552,7 @@ async def _migrate_moonraker_sources(conn) -> None:
     await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_port INTEGER")
     await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_scheme VARCHAR(5)")
     await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_path VARCHAR(512)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN control_enabled BOOLEAN DEFAULT 0 NOT NULL")
 
 
 async def _migrate_platform_control_commands(conn) -> None:

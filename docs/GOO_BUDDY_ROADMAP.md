@@ -44,7 +44,9 @@ release, deployment, image publication, printer contact, or upstream sync.
      status-reconciliation rules, permission and audit review, then separately
      approved supervised hardware validation. Existing Bambu behavior remains
      governed by its inherited regression contract; Elegoo and Moonraker must
-     not advertise or exercise a control until their own gates are met.
+     not advertise or exercise a control until their own gates are met. The
+     staged, all-platform activation plan is recorded in
+     [C4 job lifecycle controls](C4_JOB_LIFECYCLE_CONTROLS_PLAN.md).
    - **C5: Managed print submission** — a platform-specific file-transfer and
      job-start capability for every supported printer type. Each adapter needs
      an exact documented transport contract, bounded upload and integrity

@@ -15,6 +15,7 @@ from backend.app.control.contract import (
     PlatformControlCommand,
     PlatformControlOperation,
     PlatformControlState,
+    PlatformControlUnconfirmed,
     new_platform_control_command,
 )
 from backend.app.core import database
@@ -79,7 +80,7 @@ from backend.app.services.bambu_ftp import (
     list_files_async,
 )
 from backend.app.services.elegoo_sdcp_discovery import elegoo_sdcp_discovery
-from backend.app.services.elegoo_sdcp_manager import ElegooControlUnconfirmed, elegoo_sdcp_manager
+from backend.app.services.elegoo_sdcp_manager import elegoo_sdcp_manager
 from backend.app.services.moonraker_manager import moonraker_manager
 from backend.app.services.printer_diagnostic import run_connection_diagnostic
 from backend.app.services.printer_manager import (
@@ -228,6 +229,7 @@ async def _dispatch_platform_control(
     driver: DriverKind,
     source_id: int,
     configuration_revision: int,
+    control_enabled: bool,
     operation: PlatformControlOperation,
     dispatch: object,
 ) -> PlatformControlCommandResponse:
@@ -238,6 +240,10 @@ async def _dispatch_platform_control(
     persisted operation-only contract.
     """
 
+    if not control_enabled:
+        # C4.0 intentionally has no owner-facing activation route. Do not
+        # create an audit row or touch a transport for a monitoring source.
+        raise HTTPException(409, "Job lifecycle controls are not enabled for this source")
     await _require_empty_platform_control_body(request)
     command = new_platform_control_command(
         driver,
@@ -291,7 +297,7 @@ async def _dispatch_platform_control(
     except asyncio.TimeoutError:
         record.status = PlatformControlState.FAILED.value
         record.error_code = "dispatch_timeout"
-    except ElegooControlUnconfirmed:
+    except PlatformControlUnconfirmed:
         record.status = PlatformControlState.FAILED.value
         record.error_code = "unconfirmed"
     except Exception:
@@ -758,7 +764,9 @@ async def create_elegoo_source(
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
-        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4, source.configuration_revision)
+        await elegoo_sdcp_manager.enable(
+            source.id, source.private_ipv4, source.configuration_revision, source.control_enabled
+        )
     return _serialize_elegoo_source(source)
 
 
@@ -877,6 +885,7 @@ async def update_elegoo_source(
         # A later, separate enable action is required from the owner.
         changes.pop("is_enabled", None)
         source.is_enabled = False
+        source.control_enabled = False
         source.configuration_revision += 1
     if "name" in changes:
         source.display_name = changes["name"].strip()
@@ -888,10 +897,14 @@ async def update_elegoo_source(
         if changes["is_enabled"] and not source.read_only_acknowledged:
             raise HTTPException(422, "Read-only acknowledgement is required")
         source.is_enabled = changes["is_enabled"]
+        if not source.is_enabled:
+            source.control_enabled = False
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
-        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4, source.configuration_revision)
+        await elegoo_sdcp_manager.enable(
+            source.id, source.private_ipv4, source.configuration_revision, source.control_enabled
+        )
     else:
         await elegoo_sdcp_manager.disable(source.id)
     return _serialize_elegoo_source(source)
@@ -926,6 +939,7 @@ async def pause_elegoo_job(
         driver=DriverKind.ELEGOO_SDCP_V3,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
+        control_enabled=source.control_enabled,
         operation=PlatformControlOperation.PAUSE_JOB,
         dispatch=elegoo_sdcp_manager.dispatch_command,
     )
@@ -948,6 +962,7 @@ async def resume_elegoo_job(
         driver=DriverKind.ELEGOO_SDCP_V3,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
+        control_enabled=source.control_enabled,
         operation=PlatformControlOperation.RESUME_JOB,
         dispatch=elegoo_sdcp_manager.dispatch_command,
     )
@@ -970,6 +985,7 @@ async def cancel_elegoo_job(
         driver=DriverKind.ELEGOO_SDCP_V3,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
+        control_enabled=source.control_enabled,
         operation=PlatformControlOperation.CANCEL_JOB,
         dispatch=elegoo_sdcp_manager.dispatch_command,
     )
@@ -1030,6 +1046,7 @@ async def create_moonraker_source(
             source.camera_proxy_port,
             source.camera_proxy_scheme,
             source.camera_proxy_path,
+            source.control_enabled,
         )
     return _serialize_moonraker_source(source)
 
@@ -1085,6 +1102,7 @@ async def update_moonraker_source(
             setattr(source, field, value or None if field == "api_key" else value)
         changes.pop("is_enabled", None)
         source.is_enabled = False
+        source.control_enabled = False
         source.configuration_revision += 1
     if "name" in changes:
         source.display_name = changes.pop("name")
@@ -1092,6 +1110,8 @@ async def update_moonraker_source(
         raise HTTPException(422, "Read-only acknowledgement is required")
     if "is_enabled" in changes:
         source.is_enabled = changes["is_enabled"]
+        if not source.is_enabled:
+            source.control_enabled = False
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
@@ -1106,6 +1126,7 @@ async def update_moonraker_source(
             source.camera_proxy_port,
             source.camera_proxy_scheme,
             source.camera_proxy_path,
+            source.control_enabled,
         )
     elif not transport_cancelled:
         await moonraker_manager.disable(source.id)
@@ -1196,6 +1217,7 @@ async def pause_moonraker_job(
         driver=DriverKind.MOONRAKER,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
+        control_enabled=source.control_enabled,
         operation=PlatformControlOperation.PAUSE_JOB,
         dispatch=moonraker_manager.dispatch_command,
     )
@@ -1218,6 +1240,7 @@ async def resume_moonraker_job(
         driver=DriverKind.MOONRAKER,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
+        control_enabled=source.control_enabled,
         operation=PlatformControlOperation.RESUME_JOB,
         dispatch=moonraker_manager.dispatch_command,
     )
@@ -1240,6 +1263,7 @@ async def cancel_moonraker_job(
         driver=DriverKind.MOONRAKER,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
+        control_enabled=source.control_enabled,
         operation=PlatformControlOperation.CANCEL_JOB,
         dispatch=moonraker_manager.dispatch_command,
     )

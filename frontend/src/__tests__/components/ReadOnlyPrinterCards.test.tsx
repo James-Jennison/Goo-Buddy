@@ -60,7 +60,7 @@ describe('read-only printer cards', () => {
     expect(screen.getByTestId('current-location')).toHaveTextContent('/printers/-101');
   });
 
-  it('explains Moonraker authorization without exposing configuration and disables controls', async () => {
+  it('explains Moonraker authorization without exposing configuration or a dormant control surface', async () => {
     const publicId = -1_000_201;
     server.use(http.get('/api/v1/printers/moonraker/201/status', () => HttpResponse.json({
       phase: 'unauthorized', freshness: 'unavailable', retained: false, last_observation_at: null, error: 'unauthorized',
@@ -71,7 +71,8 @@ describe('read-only printer cards', () => {
     await waitFor(() => expect(screen.getByText(/Moonraker authentication needs attention/i)).toBeInTheDocument());
     expect(screen.getByText(/never displays the key/i)).toBeInTheDocument();
     expect(screen.getByText(/camera proxy, files, console, maintenance, and upload remain unavailable/i)).toBeInTheDocument();
-    expect(screen.getByText(/Wait for a fresh, ready printer observation/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Print controls for/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
     expect(screen.queryByText(/Synthetic preview only/i)).not.toBeInTheDocument();
   });
 

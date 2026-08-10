@@ -14,14 +14,19 @@ import re
 import socket
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from urllib.parse import quote, urlsplit
 
 import aiohttp
 
-from backend.app.control.contract import PlatformControlCommand, control_operation_is_available
-from backend.app.drivers.contract import ConnectionPhase, DriverKind, DriverObservation
+from backend.app.control.contract import (
+    PlatformControlCommand,
+    PlatformControlUnconfirmed,
+    control_operation_is_available,
+)
+from backend.app.control.reconciliation import observation_satisfies_reconciliation
+from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.moonraker import MoonrakerDriver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4, normalize_mainsail_camera_proxy_path
 from backend.app.services.moonraker_control import request_for_control_operation
@@ -49,6 +54,10 @@ MAX_GCODE_THUMBNAIL_RESPONSE_BYTES = 1 * 1024 * 1024
 MAX_MJPEG_HEADERS_BYTES = 32 * 1024
 MAX_MJPEG_RESPONSE_BYTES = MAX_CAMERA_SNAPSHOT_BYTES + (2 * MAX_MJPEG_HEADERS_BYTES)
 MJPEG_READ_CHUNK_BYTES = 16 * 1024
+# A successful fixed HTTP response only acknowledges receipt. A future control
+# activation must also observe the expected state through the existing
+# read-only WebSocket subscription before it can report success.
+CONTROL_CONFIRMATION_TIMEOUT_SECONDS = 20
 
 
 @dataclass(frozen=True)
@@ -69,6 +78,7 @@ class _LiveMoonraker:
     api_key: str | None
     driver: MoonrakerDriver
     configuration_revision: int = 1
+    control_enabled: bool = False
     camera_proxy_port: int | None = None
     camera_proxy_scheme: str | None = None
     camera_proxy_path: str | None = None
@@ -81,6 +91,7 @@ class _LiveMoonraker:
     last_liveness: float | None = None
     client: aiohttp.ClientSession | None = None
     control_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    status_received: asyncio.Event = field(default_factory=asyncio.Event)
     camera_snapshot_path: str | None = None
     camera_stream_path: str | None = None
     camera_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
@@ -106,12 +117,15 @@ class MoonrakerManager:
         camera_proxy_port: int | None = None,
         camera_proxy_scheme: str | None = None,
         camera_proxy_path: str | None = None,
+        control_enabled: bool = False,
     ) -> None:
         private_ipv4 = canonical_rfc1918_ipv4(private_ipv4)
         if type(port) is not int or isinstance(port, bool) or not 1 <= port <= 65535 or scheme not in {"http", "https"}:
             raise ValueError("invalid Moonraker transport")
         if type(configuration_revision) is not int or configuration_revision < 1:
             raise ValueError("invalid platform control configuration revision")
+        if type(control_enabled) is not bool:
+            raise ValueError("invalid platform control activation")
         proxy_values = (camera_proxy_port, camera_proxy_scheme, camera_proxy_path)
         if any(value is not None for value in proxy_values):
             if (
@@ -133,6 +147,7 @@ class MoonrakerManager:
             api_key,
             MoonrakerDriver(f"moonraker-{source_id}", display_name),
             configuration_revision=configuration_revision,
+            control_enabled=control_enabled,
             camera_proxy_port=camera_proxy_port,
             camera_proxy_scheme=camera_proxy_scheme,
             camera_proxy_path=camera_proxy_path,
@@ -161,29 +176,63 @@ class MoonrakerManager:
             return DriverObservation(ConnectionPhase.DISCONNECTED, frozenset())
         observed = live.driver.observation(now or datetime.now(timezone.utc))
         if live.error in {"invalid_response", "no_supported_objects", "oversized_frame"}:
-            return DriverObservation(
-                ConnectionPhase.INVALID,
-                observed.capabilities,
-                retained=observed.retained,
-                error=live.error,
-                session_id=observed.session_id,
+            return self._with_control_gate(
+                live,
+                DriverObservation(
+                    ConnectionPhase.INVALID,
+                    observed.capabilities,
+                    retained=observed.retained,
+                    error=live.error,
+                    session_id=observed.session_id,
+                ),
             )
         if live.connected and observed.phase is ConnectionPhase.WAITING:
-            return observed
+            return self._with_control_gate(live, observed)
         if live.reconnecting and observed.phase is ConnectionPhase.DISCONNECTED:
-            return DriverObservation(
-                ConnectionPhase.RECONNECTING, observed.capabilities, retained=observed.retained, error=live.error
+            return self._with_control_gate(
+                live,
+                DriverObservation(
+                    ConnectionPhase.RECONNECTING, observed.capabilities, retained=observed.retained, error=live.error
+                ),
             )
         if live.error and observed.phase not in {ConnectionPhase.READY, ConnectionPhase.STALE}:
-            return DriverObservation(
-                observed.phase,
-                observed.capabilities,
-                current=observed.current,
-                retained=observed.retained,
-                error=live.error,
-                session_id=observed.session_id,
+            return self._with_control_gate(
+                live,
+                DriverObservation(
+                    observed.phase,
+                    observed.capabilities,
+                    current=observed.current,
+                    retained=observed.retained,
+                    error=live.error,
+                    session_id=observed.session_id,
+                ),
             )
-        return observed
+        return self._with_control_gate(live, observed)
+
+    @staticmethod
+    def _with_control_gate(live: _LiveMoonraker, observation: DriverObservation) -> DriverObservation:
+        """Keep the monitoring contract free of dormant control capability."""
+
+        if live.control_enabled or Capability.JOB_CONTROL not in observation.capabilities:
+            return observation
+        capabilities = frozenset(
+            capability for capability in observation.capabilities if capability is not Capability.JOB_CONTROL
+        )
+        current = replace(observation.current, capabilities=capabilities) if observation.current is not None else None
+        retained = (
+            replace(
+                observation.retained,
+                snapshot=replace(observation.retained.snapshot, capabilities=capabilities),
+            )
+            if observation.retained is not None
+            else None
+        )
+        return replace(
+            observation,
+            capabilities=capabilities,
+            current=current,
+            retained=retained,
+        )
 
     def gcode_inventory(self, source_id: int) -> tuple[MoonrakerGcodeFile, ...] | None:
         """Return the fixed-root inventory only while its observation is fresh.
@@ -309,12 +358,16 @@ class MoonrakerManager:
 
         The operation-only command contract and the private adapter together
         leave no call path for JSON-RPC methods, G-code, HTTP paths, or bodies.
+        A 2xx response is not treated as success without a fresh matching
+        status notification from the existing read-only subscription.
         """
 
         if type(command) is not PlatformControlCommand or command.driver is not DriverKind.MOONRAKER:
             raise ValueError("unsupported Moonraker control command")
         live = self._sources.get(command.source_id)
         if live is None or command.configuration_revision != live.configuration_revision:
+            return False
+        if not live.control_enabled:
             return False
         observation = self.observation(command.source_id)
         if not control_operation_is_available(command.operation, observation):
@@ -325,8 +378,40 @@ class MoonrakerManager:
         async with live.control_lock:
             if live.client is None or live.stop.is_set():
                 return False
+            # A status that predates the fixed request cannot reconcile it.
+            live.status_received.clear()
             async with live.client.post(f"{self._base_url(live)}{request.path}", allow_redirects=False) as response:
-                return 200 <= response.status < 300
+                if not 200 <= response.status < 300:
+                    return False
+        if await self._await_control_confirmation(live, command.operation):
+            return True
+        raise PlatformControlUnconfirmed
+
+    async def _await_control_confirmation(self, live: _LiveMoonraker, operation: object) -> bool:
+        """Require a post-request state from the read-only status subscription."""
+
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + CONTROL_CONFIRMATION_TIMEOUT_SECONDS
+        while not live.stop.is_set() and live.client is not None:
+            if observation_satisfies_reconciliation(operation, self.observation(live.source_id)):
+                return True
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                return False
+            status_wait = asyncio.create_task(live.status_received.wait())
+            try:
+                await asyncio.wait_for(status_wait, timeout=remaining)
+            except asyncio.TimeoutError:
+                return False
+            finally:
+                if not status_wait.done():
+                    status_wait.cancel()
+                    try:
+                        await status_wait
+                    except asyncio.CancelledError:
+                        pass
+            live.status_received.clear()
+        return False
 
     async def camera_snapshot(self, source_id: int) -> bytes | None:
         """Fetch one bounded JPEG through a discovered or owner-configured path.
@@ -474,6 +559,7 @@ class MoonrakerManager:
             session_id = uuid.uuid4().hex
             live.driver.start_session(session_id)
             live.connected, live.reconnecting, live.last_liveness = False, attempt > 0, None
+            live.status_received.clear()
             live.gcode_files = None
             live.console_history = None
             live.driver.set_files_available(False)
@@ -690,6 +776,7 @@ class MoonrakerManager:
                     session_id, status, live.server, datetime.now(timezone.utc)
                 ):
                     live.last_liveness = time.monotonic()
+                    live.status_received.set()
             elif message.type in {aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING}:
                 return
             elif message.type is aiohttp.WSMsgType.ERROR:

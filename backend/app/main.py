@@ -6459,7 +6459,9 @@ async def lifespan(app: FastAPI):
             (await db.execute(select(ElegooSDCPSource).where(ElegooSDCPSource.is_enabled.is_(True)))).scalars().all()
         )
     for source in enabled_sdcp_sources:
-        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4, source.configuration_revision)
+        await elegoo_sdcp_manager.enable(
+            source.id, source.private_ipv4, source.configuration_revision, source.control_enabled
+        )
 
     # Moonraker is equally manual and opt-in. Restoring a saved enabled source
     # is the only startup path that can create its fixed monitoring session.
@@ -6479,6 +6481,7 @@ async def lifespan(app: FastAPI):
                 source.camera_proxy_port,
                 source.camera_proxy_scheme,
                 source.camera_proxy_path,
+                source.control_enabled,
             )
 
     # Auto-connect to Spoolman if enabled

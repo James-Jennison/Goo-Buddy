@@ -19,10 +19,13 @@ async def test_moonraker_migration_is_idempotent_and_preserves_existing_bambu_ro
                 text("INSERT INTO moonraker_sources (display_name, private_ipv4) VALUES ('Synthetic', '192.168.1.44')")
             )
             assert (await conn.execute(text("SELECT name FROM printers"))).one() == ("Existing Bambu",)
-            assert (await conn.execute(text("SELECT id, port, scheme FROM moonraker_sources"))).one() == (
+            assert (
+                await conn.execute(text("SELECT id, port, scheme, control_enabled FROM moonraker_sources"))
+            ).one() == (
                 1,
                 7125,
                 "http",
+                0,
             )
     finally:
         await engine.dispose()
