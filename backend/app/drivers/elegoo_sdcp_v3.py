@@ -14,14 +14,18 @@ from typing import Any
 
 from backend.app.drivers.contract import (
     Capability,
+    ChamberLightTelemetry,
     ConnectionPhase,
     DriverKind,
     DriverObservation,
+    EnvironmentTelemetry,
+    FanTelemetry,
     JobProgress,
     NormalizedPrinterSnapshot,
     PrinterIdentity,
     RetainedSnapshot,
     RetentionReason,
+    TelemetryAvailability,
     TemperatureReading,
     freeze_temperatures,
 )
@@ -111,6 +115,43 @@ def _temperature(status: dict[str, Any], current_key: str, target_key: str) -> T
     return TemperatureReading(current_c=current, target_c=_number(status.get(target_key)))
 
 
+def _fan_telemetry(status: dict[str, Any]) -> FanTelemetry:
+    """Normalize the observed ``CurrentFanSpeed`` field without guessing units."""
+
+    if "CurrentFanSpeed" not in status:
+        return FanTelemetry()
+    raw = status["CurrentFanSpeed"]
+    if raw is None:
+        return FanTelemetry(availability=TelemetryAvailability.UNKNOWN)
+    speed = _number(raw)
+    if speed is None or not 0 <= speed <= 100:
+        return FanTelemetry(availability=TelemetryAvailability.UNSUPPORTED)
+    return FanTelemetry(availability=TelemetryAvailability.OBSERVED, speed_percent=speed)
+
+
+def _chamber_light_telemetry(status: dict[str, Any]) -> ChamberLightTelemetry:
+    """Normalize only the observed ``LightStatus.SecondLight`` indication.
+
+    It is deliberately a monitoring value rather than a claim that the light
+    can be toggled. Any other light shape remains unsupported until it has its
+    own evidence-backed contract.
+    """
+
+    if "LightStatus" not in status:
+        return ChamberLightTelemetry()
+    light_status = _record(status.get("LightStatus"))
+    if light_status is None or "SecondLight" not in light_status:
+        return ChamberLightTelemetry(availability=TelemetryAvailability.UNSUPPORTED)
+    raw = light_status["SecondLight"]
+    if raw is None:
+        return ChamberLightTelemetry(availability=TelemetryAvailability.UNKNOWN)
+    if isinstance(raw, bool):
+        return ChamberLightTelemetry(availability=TelemetryAvailability.OBSERVED, is_on=raw)
+    if type(raw) is int and raw in {0, 1}:
+        return ChamberLightTelemetry(availability=TelemetryAvailability.OBSERVED, is_on=bool(raw))
+    return ChamberLightTelemetry(availability=TelemetryAvailability.UNSUPPORTED)
+
+
 def normalize_synthetic_sdcp_v3(
     *, local_id: str, observed_at: datetime, status_payload: object, attributes_payload: object
 ) -> NormalizedPrinterSnapshot:
@@ -132,9 +173,8 @@ def normalize_synthetic_sdcp_v3(
         raise SdcpNormalizationError("incomplete printer identity")
 
     # Declared protocol capabilities are not a safe UI claim by themselves.
-    # This driver exposes only data it has actually parsed.  Its three fixed
-    # SDCP v3 job commands are available only for a fresh, active print state;
-    # CANVAS or other declared capabilities never become action capabilities.
+    # This driver exposes only data it has actually parsed. CANVAS and other
+    # declarations never become action capabilities.
     capabilities: set[Capability] = set()
     temperatures: dict[str, TemperatureReading] = {}
     for key, current, target in (
@@ -159,10 +199,11 @@ def normalize_synthetic_sdcp_v3(
     state = _state(status)
     print_info = _record(status.get("PrintInfo"))
     job = None
-    # Printers can retain a completed job's final progress and layer values in
-    # PrintInfo after returning to idle. Those fields are history, not a live
-    # job, and must not make the dashboard present a finished print as active.
-    if print_info is not None and state in {"printing", "paused"}:
+    stale_job = None
+    # Printers can retain a completed or paused job's progress and layer values
+    # in PrintInfo. Only an authoritative ``printing`` state makes those
+    # counters current. Every other state projects them explicitly as stale.
+    if print_info is not None:
         current_ticks = _number(print_info.get("CurrentTicks"))
         total_ticks = _number(print_info.get("TotalTicks"))
         current_layer = _non_negative_int(print_info.get("CurrentLayer"))
@@ -183,7 +224,7 @@ def normalize_synthetic_sdcp_v3(
         ):
             progress = current_layer / total_layers * 100
         if progress is not None or current_layer is not None or total_layers is not None:
-            job = JobProgress(
+            candidate = JobProgress(
                 # G-code filenames are intentionally never retained or
                 # projected through the ordinary dashboard API.
                 name=None,
@@ -191,14 +232,19 @@ def normalize_synthetic_sdcp_v3(
                 progress_percent=progress,
                 current_layer=current_layer,
                 total_layers=total_layers,
+                # SDCP tick values have no evidence-backed time conversion.
+                elapsed_seconds=None,
+                estimated_remaining_seconds=None,
             )
-            capabilities.add(Capability.JOB_STATUS)
-            if job.state in {"printing", "paused"}:
-                capabilities.add(Capability.JOB_CONTROL)
-            if progress is not None:
-                capabilities.add(Capability.JOB_PROGRESS)
-            if current_layer is not None or total_layers is not None:
-                capabilities.add(Capability.LAYERS)
+            if state != "printing":
+                stale_job = candidate
+            else:
+                job = candidate
+                capabilities.add(Capability.JOB_STATUS)
+                if progress is not None:
+                    capabilities.add(Capability.JOB_PROGRESS)
+                if current_layer is not None or total_layers is not None:
+                    capabilities.add(Capability.LAYERS)
 
     return NormalizedPrinterSnapshot(
         identity=PrinterIdentity(
@@ -213,6 +259,11 @@ def normalize_synthetic_sdcp_v3(
         capabilities=frozenset(capabilities),
         temperatures=freeze_temperatures(temperatures),
         job=job,
+        stale_job=stale_job,
+        environment=EnvironmentTelemetry(
+            fan=_fan_telemetry(status),
+            chamber_light=_chamber_light_telemetry(status),
+        ),
     )
 
 

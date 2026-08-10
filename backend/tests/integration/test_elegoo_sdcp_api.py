@@ -8,7 +8,7 @@ from httpx import AsyncClient
 
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.services.elegoo_sdcp_manager import _LiveSource, elegoo_sdcp_manager
-from backend.tests._fixtures.elegoo_sdcp_v3 import attributes, status
+from backend.tests._fixtures.elegoo_sdcp_v3 import attributes, cc1_idle_after_job_status, status
 
 
 @pytest.mark.asyncio
@@ -61,6 +61,46 @@ async def test_elegoo_job_filename_is_not_exposed_by_any_ordinary_status_view(as
         assert response.status_code == 200
         assert "synthetic-cube.gcode" not in response.text
         assert response.json()["current_print"] is None
+    finally:
+        await elegoo_sdcp_manager.disable(source_id)
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_elegoo_idle_retained_job_is_stale_not_current_and_environment_is_read_only(async_client: AsyncClient):
+    with patch("backend.app.api.routes.printers.elegoo_sdcp_manager.enable", new=AsyncMock()):
+        created = await async_client.post(
+            "/api/v1/printers/elegoo",
+            json={"name": "Test", "private_ipv4": "192.168.50.23", "read_only_acknowledged": True, "is_enabled": True},
+        )
+    source_id = -created.json()["id"]
+    live = _LiveSource(source_id, "192.168.50.23", SyntheticElegooSdcpV3Driver(f"elegoo-{source_id}"))
+    elegoo_sdcp_manager._sources[source_id] = live
+    live.driver.start_session("synthetic-session")
+    observed_at = datetime.now(timezone.utc)
+    live.driver.observe_status("synthetic-session", cc1_idle_after_job_status(), observed_at)
+    live.driver.observe_attributes("synthetic-session", attributes(), observed_at)
+    try:
+        dashboard = await async_client.get(f"/api/v1/printers/elegoo/{source_id}/status")
+        assert dashboard.status_code == 200
+        body = dashboard.json()
+        assert body["state"] == "idle"
+        assert body["job"] is None
+        assert body["stale_job"]["progress_percent"] == pytest.approx(97.65625)
+        assert body["stale_job"]["current_layer"] == 126
+        assert body["stale_job"]["elapsed_seconds"] is None
+        assert body["stale_job"]["estimated_remaining_seconds"] is None
+        assert body["environment"] == {
+            "fan": {"availability": "observed", "speed_percent": 42.0},
+            "chamber_light": {"availability": "observed", "is_on": True},
+        }
+        assert "job-control" not in body["capabilities"]
+
+        generic = await async_client.get(f"/api/v1/printers/{-source_id}/status")
+        assert generic.status_code == 200
+        assert generic.json()["progress"] is None
+        assert generic.json()["layer_num"] is None
+        assert generic.json()["total_layers"] is None
     finally:
         await elegoo_sdcp_manager.disable(source_id)
 

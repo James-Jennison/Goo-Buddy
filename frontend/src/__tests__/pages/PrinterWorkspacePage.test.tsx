@@ -147,4 +147,31 @@ describe('PrinterWorkspacePage', () => {
     expect(screen.getByText('8 / 25')).toBeInTheDocument();
     expect(screen.queryByText('No current read-only job observation available.')).not.toBeInTheDocument();
   });
+
+  it('labels CC1 idle counters as stale and shows telemetry without controls', async () => {
+    server.use(
+      http.get('/api/v1/printers/', () => HttpResponse.json([{ ...printer, id: -1, name: 'CC1', platform: 'elegoo' }])),
+      http.get('/api/v1/printers/elegoo/:id/status', () => HttpResponse.json({
+        ...status,
+        state: 'idle',
+        capabilities: ['temperatures'],
+        temperatures: { nozzle: { current_c: 30, target_c: 0 }, bed: { current_c: 29, target_c: 0 } },
+        stale_job: { state: 'idle', progress_percent: 97.65625, current_layer: 126, total_layers: 128, elapsed_seconds: null, estimated_remaining_seconds: null },
+        environment: {
+          fan: { availability: 'observed', speed_percent: 42 },
+          chamber_light: { availability: 'observed', is_on: true },
+        },
+      })),
+    );
+    renderWorkspace(-1);
+
+    await waitFor(() => expect(screen.getByText('Stale retained data — not a live print')).toBeInTheDocument());
+    expect(screen.getByText('Previous progress')).toBeInTheDocument();
+    expect(screen.getByText('98%')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Print progress 98 percent/i)).not.toBeInTheDocument();
+    expect(screen.getByText('42%')).toBeInTheDocument();
+    expect(screen.getByText('On')).toBeInTheDocument();
+    expect(screen.getByText('Unsupported')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /pause|resume|cancel/i })).not.toBeInTheDocument();
+  });
 });

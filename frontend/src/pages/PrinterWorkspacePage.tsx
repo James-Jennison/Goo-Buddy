@@ -84,11 +84,18 @@ function ToolheadPanel({ status, dragProps }: { status?: MoonrakerDashboardStatu
 
 function JobStatusPanel({ status, dragProps }: { status?: MoonrakerDashboardStatus; dragProps?: WorkspacePanelDragProps }) {
   const job = status?.capabilities?.includes('job-status') ? status.job : undefined;
+  const staleJob = status?.stale_job;
   return <WorkspacePanel title="Job status" icon={FileText} dragProps={dragProps}>
     {job ? <dl className="moonraker-toolhead-telemetry">
       <div><dt>State</dt><dd>{job.state ?? 'Unavailable'}</dd></div>
       <div><dt>Progress</dt><dd>{job.progress_percent != null ? `${Math.round(job.progress_percent)}%` : 'Unavailable'}</dd></div>
       <div><dt>Layer</dt><dd>{job.current_layer != null ? `${job.current_layer}${job.total_layers != null ? ` / ${job.total_layers}` : ''}` : 'Unavailable'}</dd></div>
+    </dl> : staleJob ? <dl className="moonraker-toolhead-telemetry" aria-label="Stale retained job data">
+      <div><dt>State</dt><dd>{staleJob.state ?? 'Unavailable'}</dd></div>
+      <div><dt>Freshness</dt><dd>Stale retained data — not a live print</dd></div>
+      <div><dt>Previous progress</dt><dd>{staleJob.progress_percent != null ? `${Math.round(staleJob.progress_percent)}%` : 'Unavailable'}</dd></div>
+      <div><dt>Previous layer</dt><dd>{staleJob.current_layer != null ? `${staleJob.current_layer}${staleJob.total_layers != null ? ` / ${staleJob.total_layers}` : ''}` : 'Unavailable'}</dd></div>
+      <div><dt>Timing</dt><dd>Unsupported</dd></div>
     </dl> : <p className="moonraker-workspace-panel__empty">No current read-only job observation available.</p>}
   </WorkspacePanel>;
 }

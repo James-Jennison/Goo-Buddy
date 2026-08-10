@@ -1,16 +1,16 @@
 # Elegoo CC1 workspace capability milestone
 
-**Status:** M0 is ready for implementation. The CC1 has a current,
-read-only temperature observation; print-job telemetry remains conditional on
-a future fresh job observation and fixture evidence.
+**Status:** M1 read-only telemetry mapping is implemented with deterministic,
+redacted fixtures. No additional hardware contact is part of this milestone.
 
 ## Evidence recorded 2026-08-09
 
-The configured Centauri Carbon source was read through Goo Buddy's local,
-redacted dashboard projection only. It was enabled, `ready`, and `current`;
-its live state was idle and its normalized capability set contained only
-`temperatures`. No raw SDCP frames, endpoint address, mainboard identity,
-filename, or camera URL was collected or retained for this review.
+The configured Centauri Carbon source was observed through one bounded,
+read-only session using only the existing exact-host SDCP identity lookup,
+WebSocket `ping`, Cmd 0, and Cmd 1. It was idle and returned nozzle, bed, and
+chamber temperatures plus `CurrentFanSpeed` and `LightStatus.SecondLight`.
+No raw SDCP frames, endpoint address, mainboard identity, filename, or camera
+URL is retained by this adapter or recorded here.
 
 The [OpenCentauri SDCP v3 reference](https://docs.opencentauri.cc/software/api/)
 documents pushed status and attributes data, the FDM nozzle/bed/chamber
@@ -23,9 +23,10 @@ evidence that Goo Buddy can safely present or use them.
 | Area | Evidence-backed status | Workspace decision |
 | --- | --- | --- |
 | Connection, model, firmware, and temperature readings | Current CC1 observation and the fixed status/attributes adapter. | Show in a read-only thermals panel. |
-| Job state, progress, and layers | Normalizer and deterministic fixtures support a bounded projection, but the CC1 has no current job observation. | Reserve a read-only job panel that truthfully states unavailable until a fresh valid job exists. |
-| Pause, resume, cancel | Not part of this workspace increment. The current CC1 observation is idle. | Do not surface a control here. |
-| Camera/video, files, history, CANVAS, position, fans, lights, maintenance, configuration, motion, or G-code | The protocol documentation mentions some of these, but this review provides no Goo Buddy capability evidence for them. | Explicitly unavailable; no request or UI route is added. |
+| Job state, progress, and layers | An idle CC1 retained prior-job counters despite not printing. | Project these only as `stale_job`; live progress/layers exist only for authoritative `printing` state. Tick values never become elapsed or remaining time. |
+| Fan and chamber-light telemetry | The CC1 status shape included `CurrentFanSpeed` and `LightStatus.SecondLight`. | Show their observed, missing, unknown, or unsupported monitoring state without a control affordance. |
+| Pause, resume, cancel | Not observed or exercised. | Do not advertise or surface a control. |
+| Camera/video, files, history, CANVAS, position, UV LED, maintenance, configuration, motion, HTTP/media, RTSP, or G-code | No Goo Buddy evidence-backed read-only contract exists for these. | Explicitly unavailable; no request or UI route is added. |
 
 ## M0 — shared read-only workspace frame
 
@@ -35,16 +36,17 @@ reset. The initial panels are Thermals and Job status only. This uses the
 existing local dashboard projection; it sends no additional SDCP command,
 does not change the source configuration, and adds no printer action.
 
-## M1 — conditional job projection validation
+## M1 — stale job and environmental telemetry mapping
 
-Before representing a live CC1 job as supported, add or confirm deterministic
-fixtures for printing, paused, malformed, retained, and idle-after-completion
-states. The UI must distinguish current from retained data and must never show
-a filename or completed-job values as a current job. Hardware validation is a
-separate, explicit approval.
+Deterministic fixtures cover the observed idle-after-job shape, active
+printing, missing/unknown/unsupported environmental values, and unsupported
+time estimates. The UI and API distinguish `job` from `stale_job`; a filename
+is never retained. A paused, idle, finished, error, unavailable, or otherwise
+non-printing state cannot render retained progress as current.
 
 ## Deferred work
 
-Any camera, file, history, CANVAS, temperature target, motion, maintenance,
-or control capability needs its own approved milestone, closed protocol
-adapter, deterministic negative coverage, and supervised hardware evidence.
+Any camera, file, history, CANVAS, UV LED, HTTP/media, RTSP, temperature
+target, motion, maintenance, or control capability needs its own approved
+milestone, closed protocol adapter, deterministic negative coverage, and
+supervised hardware evidence.

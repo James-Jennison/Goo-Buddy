@@ -413,6 +413,11 @@ export interface ElegooDashboardStatus {
   firmware: string | null;
   temperatures: Record<string, { current_c: number | null; target_c: number | null }> | null;
   job: { name?: string | null; state: string | null; progress_percent: number | null; current_layer: number | null; total_layers: number | null; elapsed_seconds?: number | null; estimated_remaining_seconds?: number | null } | null;
+  stale_job?: { name?: string | null; state: string | null; progress_percent: number | null; current_layer: number | null; total_layers: number | null; elapsed_seconds?: number | null; estimated_remaining_seconds?: number | null } | null;
+  environment?: {
+    fan: { availability: 'observed' | 'missing' | 'unknown' | 'unsupported'; speed_percent: number | null };
+    chamber_light: { availability: 'observed' | 'missing' | 'unknown' | 'unsupported'; is_on: boolean | null };
+  } | null;
   capabilities: string[];
   files?: Array<{ path: string; size: number; modified: number }> | null;
   console_history?: Array<{ message: string; timestamp: number; kind: 'command' | 'response' }> | null;

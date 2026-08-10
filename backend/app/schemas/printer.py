@@ -129,6 +129,8 @@ class ElegooDashboardStatus(BaseModel):
     firmware: str | None = None
     temperatures: dict[str, dict[str, float | None]] | None = None
     job: dict[str, str | float | int | None] | None = None
+    stale_job: dict[str, str | float | int | None] | None = None
+    environment: dict[str, dict[str, str | float | bool | None]] | None = None
     capabilities: list[str] = []
 
 

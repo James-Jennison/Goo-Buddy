@@ -68,6 +68,39 @@ class TemperatureReading:
     target_c: float | None = None
 
 
+class TelemetryAvailability(str, Enum):
+    """Truthful state for a bounded, read-only telemetry value."""
+
+    OBSERVED = "observed"
+    MISSING = "missing"
+    UNKNOWN = "unknown"
+    UNSUPPORTED = "unsupported"
+
+
+@dataclass(frozen=True)
+class FanTelemetry:
+    """Read-only fan speed when the protocol supplied a safe numeric value."""
+
+    availability: TelemetryAvailability = TelemetryAvailability.MISSING
+    speed_percent: float | None = None
+
+
+@dataclass(frozen=True)
+class ChamberLightTelemetry:
+    """Read-only chamber-light state; this is never a light-control claim."""
+
+    availability: TelemetryAvailability = TelemetryAvailability.MISSING
+    is_on: bool | None = None
+
+
+@dataclass(frozen=True)
+class EnvironmentTelemetry:
+    """Observed environmental telemetry without any corresponding action surface."""
+
+    fan: FanTelemetry = field(default_factory=FanTelemetry)
+    chamber_light: ChamberLightTelemetry = field(default_factory=ChamberLightTelemetry)
+
+
 @dataclass(frozen=True)
 class JobProgress:
     name: str | None
@@ -96,6 +129,10 @@ class NormalizedPrinterSnapshot:
     capabilities: frozenset[Capability]
     temperatures: Mapping[str, TemperatureReading] = field(default_factory=lambda: MappingProxyType({}))
     job: JobProgress | None = None
+    # A printer can retain completed-job counters after returning to idle. This
+    # distinct field prevents those values from being rendered as current work.
+    stale_job: JobProgress | None = None
+    environment: EnvironmentTelemetry = field(default_factory=EnvironmentTelemetry)
     toolhead: ToolheadTelemetry | None = None
 
 

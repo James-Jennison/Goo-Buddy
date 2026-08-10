@@ -342,6 +342,8 @@ def _elegoo_dashboard_status(source: ElegooSDCPSource) -> dict:
     snapshot = observation.current or (observation.retained.snapshot if observation.retained else None)
     temperatures = None
     job = None
+    stale_job = None
+    environment = None
     if snapshot is not None:
         temperatures = {
             name: {"current_c": reading.current_c, "target_c": reading.target_c}
@@ -357,6 +359,27 @@ def _elegoo_dashboard_status(source: ElegooSDCPSource) -> dict:
                 "elapsed_seconds": snapshot.job.elapsed_seconds,
                 "estimated_remaining_seconds": snapshot.job.estimated_remaining_seconds,
             }
+        if snapshot.stale_job is not None:
+            stale_job = {
+                "name": snapshot.stale_job.name,
+                "state": snapshot.stale_job.state,
+                "progress_percent": snapshot.stale_job.progress_percent,
+                "current_layer": snapshot.stale_job.current_layer,
+                "total_layers": snapshot.stale_job.total_layers,
+                # SDCP tick units are not time values under this contract.
+                "elapsed_seconds": None,
+                "estimated_remaining_seconds": None,
+            }
+        environment = {
+            "fan": {
+                "availability": snapshot.environment.fan.availability.value,
+                "speed_percent": snapshot.environment.fan.speed_percent,
+            },
+            "chamber_light": {
+                "availability": snapshot.environment.chamber_light.availability.value,
+                "is_on": snapshot.environment.chamber_light.is_on,
+            },
+        }
     return ElegooDashboardStatus(
         phase=observation.phase.value,
         freshness="current" if observation.current else ("retained" if snapshot else "unavailable"),
@@ -368,6 +391,8 @@ def _elegoo_dashboard_status(source: ElegooSDCPSource) -> dict:
         firmware=snapshot.identity.firmware if snapshot else None,
         temperatures=temperatures,
         job=job,
+        stale_job=stale_job,
+        environment=environment,
         capabilities=sorted(capability.value for capability in observation.capabilities),
     ).model_dump(mode="json")
 

@@ -31,6 +31,19 @@ export interface WorkshopSnapshot {
     elapsed_seconds?: number | null;
     estimated_remaining_seconds?: number | null;
   } | null;
+  stale_job?: {
+    name?: string | null;
+    state?: string | null;
+    progress_percent?: number | null;
+    current_layer?: number | null;
+    total_layers?: number | null;
+    elapsed_seconds?: number | null;
+    estimated_remaining_seconds?: number | null;
+  } | null;
+  environment?: {
+    fan?: { availability?: 'observed' | 'missing' | 'unknown' | 'unsupported' | string; speed_percent?: number | null } | null;
+    chamber_light?: { availability?: 'observed' | 'missing' | 'unknown' | 'unsupported' | string; is_on?: boolean | null } | null;
+  } | null;
   capabilities?: string[];
 }
 
@@ -96,6 +109,10 @@ function TemperatureTile({ label, value }: { label: string; value?: WorkshopTemp
       <span className="sr-only">{label} {displayTemperature(value.current_c)}°C</span>
     </div>
   );
+}
+
+function environmentalValue(availability: string | undefined, value: string): string {
+  return availability === 'observed' ? value : availability === 'unknown' ? 'Unknown' : availability === 'unsupported' ? 'Unsupported' : 'Unavailable';
 }
 
 type TemperatureSeries = { label: string; values: Array<number | null>; dash: string };
@@ -206,6 +223,13 @@ export function WorkshopReadOnlyPresentation({ platform, snapshot, cameraSnapsho
           </div>
           <LiveTemperatureChart temperatures={snapshot.temperatures} />
         </>
+      )}
+
+      {platform === 'elegoo' && snapshot?.environment && (
+        <dl className="moonraker-toolhead-telemetry" aria-label="Read-only environmental telemetry">
+          <div><dt>Fan</dt><dd>{environmentalValue(snapshot.environment.fan?.availability, snapshot.environment.fan?.speed_percent != null ? `${Math.round(snapshot.environment.fan.speed_percent)}%` : 'Unknown')}</dd></div>
+          <div><dt>Chamber light</dt><dd>{environmentalValue(snapshot.environment.chamber_light?.availability, snapshot.environment.chamber_light?.is_on === true ? 'On' : snapshot.environment.chamber_light?.is_on === false ? 'Off' : 'Unknown')}</dd></div>
+        </dl>
       )}
 
       {typeof progress === 'number' && (
