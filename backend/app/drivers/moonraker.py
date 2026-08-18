@@ -75,6 +75,10 @@ def normalize_moonraker_observation(
         "paused": "paused",
         "complete": "idle",
         "standby": "idle",
+        # This is an observed terminal print state, distinct from an idle
+        # printer. Keeping it distinct prevents a cancelled job from being
+        # rewritten as a healthy idle state or from becoming control-eligible.
+        "cancelled": "cancelled",
         "error": "error",
     }.get(print_state.lower())
     if normalized_state is None:

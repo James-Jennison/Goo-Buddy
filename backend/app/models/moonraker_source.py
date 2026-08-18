@@ -34,6 +34,17 @@ class MoonrakerSource(Base):
     # Kept separate from monitoring acknowledgement. C4 has no public
     # activation path until the platform-specific validation gates are met.
     control_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    control_acknowledged_revision: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    control_acknowledged_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    control_acknowledged_firmware: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    control_acknowledged_operations: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # C5 acknowledgement has its own source revision and exact contract
+    # identity. It does not make the manager upload-capable.
+    submission_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    submission_acknowledged_revision: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    submission_acknowledged_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    submission_acknowledged_firmware: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    submission_acknowledged_contract: Mapped[str | None] = mapped_column(String(64), nullable=True)
     configuration_revision: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

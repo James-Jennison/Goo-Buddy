@@ -32,6 +32,7 @@ class Capability(str, Enum):
     CONSOLE_HISTORY = "console-history"
     TOOLHEAD_TELEMETRY = "toolhead-telemetry"
     JOB_CONTROL = "job-control"
+    JOB_SUBMISSION = "job-submission"
     MOTION = "motion"
     MULTI_MATERIAL = "multi-material"
 

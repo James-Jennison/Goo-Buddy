@@ -24,6 +24,7 @@ from backend.app.control.contract import (
     PlatformControlUnconfirmed,
     control_operation_is_available,
 )
+from backend.app.control.evidence import ControlAcknowledgement, acknowledgement_matches_observation
 from backend.app.control.reconciliation import observation_satisfies_reconciliation
 from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
@@ -64,6 +65,7 @@ class _LiveSource:
     driver: SyntheticElegooSdcpV3Driver
     configuration_revision: int = 1
     control_enabled: bool = False
+    control_acknowledgement: ControlAcknowledgement | None = None
     task: asyncio.Task[None] | None = None
     stop: asyncio.Event = field(default_factory=asyncio.Event)
     connected: bool = False
@@ -93,6 +95,7 @@ class ElegooSDCPManager:
         private_ipv4: str,
         configuration_revision: int = 1,
         control_enabled: bool = False,
+        control_acknowledgement: ControlAcknowledgement | None = None,
     ) -> None:
         # This is intentionally repeated at the I/O boundary. Callers outside
         # the API (including boot restoration) must not be able to direct the
@@ -102,6 +105,15 @@ class ElegooSDCPManager:
             raise ValueError("invalid platform control configuration revision")
         if type(control_enabled) is not bool:
             raise ValueError("invalid platform control activation")
+        # A restart or legacy caller with no acknowledgement must fail closed,
+        # never restore a formerly enabled writer from a boolean alone.
+        if control_acknowledgement is None:
+            control_enabled = False
+        if (
+            control_acknowledgement is not None
+            and control_acknowledgement.configuration_revision != configuration_revision
+        ):
+            raise ValueError("invalid platform control acknowledgement revision")
         await self.disable(source_id)
         live = _LiveSource(
             source_id=source_id,
@@ -109,6 +121,7 @@ class ElegooSDCPManager:
             driver=SyntheticElegooSdcpV3Driver(f"elegoo-{source_id}", stale_after=STALE_AFTER),
             configuration_revision=configuration_revision,
             control_enabled=control_enabled,
+            control_acknowledgement=control_acknowledgement,
         )
         self._sources[source_id] = live
         live.task = asyncio.create_task(self._run(live), name=f"elegoo-sdcp-{source_id}")
@@ -265,7 +278,18 @@ class ElegooSDCPManager:
         remains unavailable.
         """
 
-        if live.control_enabled:
+        acknowledgement = live.control_acknowledgement
+        if (
+            live.control_enabled
+            and acknowledgement is not None
+            and acknowledgement_matches_observation(
+                driver=DriverKind.ELEGOO_SDCP_V3,
+                model=acknowledgement.model,
+                firmware=acknowledgement.firmware,
+                operations=acknowledgement.operations,
+                observation=observation,
+            )
+        ):
             current = observation.current
             if (
                 observation.phase is ConnectionPhase.READY
@@ -313,9 +337,18 @@ class ElegooSDCPManager:
         live = self._sources.get(command.source_id)
         if live is None or command.configuration_revision != live.configuration_revision:
             return False
-        if not live.control_enabled:
+        acknowledgement = live.control_acknowledgement
+        if not live.control_enabled or acknowledgement is None:
             return False
         observation = self.observation(command.source_id)
+        if not acknowledgement_matches_observation(
+            driver=DriverKind.ELEGOO_SDCP_V3,
+            model=acknowledgement.model,
+            firmware=acknowledgement.firmware,
+            operations=acknowledgement.operations,
+            observation=observation,
+        ):
+            return False
         if not control_operation_is_available(command.operation, observation):
             return False
         if live.mainboard_id is None or live.websocket is None or live.stop.is_set():

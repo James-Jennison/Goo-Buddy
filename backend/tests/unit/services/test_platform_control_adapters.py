@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from backend.app.control.contract import PlatformControlCommand, PlatformControlOperation, PlatformControlUnconfirmed
+from backend.app.control.evidence import ControlAcknowledgement
 from backend.app.drivers.contract import (
     Capability,
     ConnectionPhase,
@@ -42,7 +43,9 @@ def _command(driver: DriverKind, operation: PlatformControlOperation, revision: 
 def _ready_observation(operation: PlatformControlOperation) -> DriverObservation:
     state = "paused" if operation is PlatformControlOperation.RESUME_JOB else "printing"
     snapshot = NormalizedPrinterSnapshot(
-        identity=PrinterIdentity("fixture-printer", "Fixture printer"),
+        identity=PrinterIdentity(
+            "fixture-printer", "Fixture printer", model="fixture-model", firmware="fixture-firmware"
+        ),
         driver=DriverKind.ELEGOO_SDCP_V3,
         observed_at=datetime.now(timezone.utc),
         state=state,
@@ -54,7 +57,9 @@ def _ready_observation(operation: PlatformControlOperation) -> DriverObservation
 
 def _ready_moonraker_observation(state: str) -> DriverObservation:
     snapshot = NormalizedPrinterSnapshot(
-        identity=PrinterIdentity("moonraker-fixture", "Moonraker fixture"),
+        identity=PrinterIdentity(
+            "moonraker-fixture", "Moonraker fixture", model="fixture-model", firmware="fixture-firmware"
+        ),
         driver=DriverKind.MOONRAKER,
         observed_at=datetime.now(timezone.utc),
         state=state,
@@ -62,6 +67,45 @@ def _ready_moonraker_observation(state: str) -> DriverObservation:
         job=JobProgress(name=None, state=state),
     )
     return DriverObservation(ConnectionPhase.READY, snapshot.capabilities, current=snapshot)
+
+
+def _acknowledgement(driver: DriverKind, revision: int = 3) -> ControlAcknowledgement:
+    return ControlAcknowledgement(
+        configuration_revision=revision,
+        model="fixture-model",
+        firmware="fixture-firmware",
+        operations=frozenset(PlatformControlOperation),
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("manager_kind", ["elegoo", "moonraker"])
+async def test_non_bambu_manager_enable_never_restores_control_from_a_boolean(
+    monkeypatch: pytest.MonkeyPatch, manager_kind: str
+) -> None:
+    """A startup caller must supply fresh acknowledgement, not a persisted flag."""
+
+    if manager_kind == "elegoo":
+        manager = ElegooSDCPManager()
+        monkeypatch.setattr(manager, "_run", AsyncMock())
+        await manager.enable(7, "192.168.1.40", configuration_revision=3, control_enabled=True)
+    else:
+        manager = MoonrakerManager()
+        monkeypatch.setattr(manager, "_run", AsyncMock())
+        await manager.enable(
+            7,
+            "Synthetic",
+            "192.168.1.44",
+            7125,
+            "http",
+            None,
+            configuration_revision=3,
+            control_enabled=True,
+        )
+
+    assert manager._sources[7].control_enabled is False
+    assert manager._sources[7].control_acknowledgement is None
+    await manager.disable(7)
 
 
 @pytest.mark.asyncio
@@ -92,6 +136,7 @@ async def test_elegoo_dispatch_uses_only_the_closed_sdcp_operation_map(
         SyntheticElegooSdcpV3Driver("elegoo-7"),
         configuration_revision=3,
         control_enabled=True,
+        control_acknowledgement=_acknowledgement(DriverKind.ELEGOO_SDCP_V3),
     )
     live.mainboard_id = MAINBOARD_ID
     live.websocket = socket  # type: ignore[assignment]
@@ -123,6 +168,7 @@ async def test_elegoo_dispatch_never_reports_success_without_a_fresh_expected_st
         SyntheticElegooSdcpV3Driver("elegoo-7"),
         configuration_revision=3,
         control_enabled=True,
+        control_acknowledgement=_acknowledgement(DriverKind.ELEGOO_SDCP_V3),
     )
     live.mainboard_id = MAINBOARD_ID
     live.websocket = RecordingSocket()  # type: ignore[assignment]
@@ -200,10 +246,12 @@ async def test_moonraker_dispatch_uses_only_the_closed_bodyless_operation_map(
         MoonrakerDriver("moonraker-7", "Synthetic"),
         configuration_revision=3,
         control_enabled=True,
+        control_acknowledgement=_acknowledgement(DriverKind.MOONRAKER),
     )
     live.client = client  # type: ignore[assignment]
     manager._sources[7] = live
-    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_observation(operation))
+    state = "paused" if operation is PlatformControlOperation.RESUME_JOB else "printing"
+    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_moonraker_observation(state))
     confirmation = AsyncMock(return_value=True)
     monkeypatch.setattr(manager, "_await_control_confirmation", confirmation)
 
@@ -229,12 +277,11 @@ async def test_moonraker_dispatch_never_reports_success_without_a_fresh_expected
         MoonrakerDriver("moonraker-7", "Synthetic"),
         configuration_revision=3,
         control_enabled=True,
+        control_acknowledgement=_acknowledgement(DriverKind.MOONRAKER),
     )
     live.client = client  # type: ignore[assignment]
     manager._sources[7] = live
-    monkeypatch.setattr(
-        manager, "observation", lambda _source_id: _ready_observation(PlatformControlOperation.PAUSE_JOB)
-    )
+    monkeypatch.setattr(manager, "observation", lambda _source_id: _ready_moonraker_observation("printing"))
     monkeypatch.setattr(manager, "_await_control_confirmation", AsyncMock(return_value=False))
 
     with pytest.raises(PlatformControlUnconfirmed):
@@ -333,19 +380,21 @@ async def test_dispatch_fails_closed_for_an_unavailable_capability_or_stale_conf
 ) -> None:
     if manager_kind == "elegoo":
         manager = ElegooSDCPManager()
+        driver = DriverKind.ELEGOO_SDCP_V3
         live = _LiveSource(
             7,
             "192.168.1.40",
             SyntheticElegooSdcpV3Driver("elegoo-7"),
             configuration_revision=3,
             control_enabled=True,
+            control_acknowledgement=_acknowledgement(driver),
         )
         live.mainboard_id = MAINBOARD_ID
         live.websocket = StrictSdcpControlPeer()  # type: ignore[assignment]
         manager._sources[7] = live
-        driver = DriverKind.ELEGOO_SDCP_V3
     else:
         manager = MoonrakerManager()
+        driver = DriverKind.MOONRAKER
         live = _LiveMoonraker(
             7,
             "Synthetic",
@@ -356,10 +405,10 @@ async def test_dispatch_fails_closed_for_an_unavailable_capability_or_stale_conf
             MoonrakerDriver("moonraker-7", "Synthetic"),
             configuration_revision=3,
             control_enabled=True,
+            control_acknowledgement=_acknowledgement(driver),
         )
         live.client = StrictMoonrakerControlPeer("http://192.168.1.44:7125")  # type: ignore[assignment]
         manager._sources[7] = live
-        driver = DriverKind.MOONRAKER
     monkeypatch.setattr(
         manager, "observation", lambda _source_id: DriverObservation(ConnectionPhase.READY, frozenset())
     )
@@ -456,6 +505,7 @@ def test_enabled_elegoo_source_projects_job_control_only_for_a_fresh_consistent_
         "192.168.1.40",
         SyntheticElegooSdcpV3Driver("elegoo-7"),
         control_enabled=True,
+        control_acknowledgement=_acknowledgement(DriverKind.ELEGOO_SDCP_V3, 1),
     )
 
     active = manager._with_control_gate(live, _ready_observation(PlatformControlOperation.PAUSE_JOB))
@@ -464,7 +514,9 @@ def test_enabled_elegoo_source_projects_job_control_only_for_a_fresh_consistent_
     assert Capability.JOB_CONTROL in active.current.capabilities
 
     paused_without_print_info = NormalizedPrinterSnapshot(
-        identity=PrinterIdentity("fixture-printer", "Fixture printer"),
+        identity=PrinterIdentity(
+            "fixture-printer", "Fixture printer", model="fixture-model", firmware="fixture-firmware"
+        ),
         driver=DriverKind.ELEGOO_SDCP_V3,
         observed_at=datetime.now(timezone.utc),
         state="paused",
@@ -482,7 +534,9 @@ def test_enabled_elegoo_source_projects_job_control_only_for_a_fresh_consistent_
     assert Capability.JOB_CONTROL in paused.capabilities
 
     idle_snapshot = NormalizedPrinterSnapshot(
-        identity=PrinterIdentity("fixture-printer", "Fixture printer"),
+        identity=PrinterIdentity(
+            "fixture-printer", "Fixture printer", model="fixture-model", firmware="fixture-firmware"
+        ),
         driver=DriverKind.ELEGOO_SDCP_V3,
         observed_at=datetime.now(timezone.utc),
         state="idle",

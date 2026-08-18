@@ -2,7 +2,7 @@ import ipaddress
 from datetime import datetime
 from urllib.parse import parse_qsl, urlsplit
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class PrinterBase(BaseModel):
@@ -220,6 +220,43 @@ class PlatformControlCommandResponse(BaseModel):
     error_code: str | None = None
 
 
+class PlatformControlAcknowledgementRequest(BaseModel):
+    """Owner confirmation for the exact already-validated operation set."""
+
+    acknowledged: bool
+
+    @model_validator(mode="after")
+    def require_acknowledgement(self):
+        if not self.acknowledged:
+            raise ValueError("Owner acknowledgement is required")
+        return self
+
+
+class PlatformControlAcknowledgementResponse(BaseModel):
+    status: str
+    configuration_revision: int
+    operations: list[str] = []
+
+
+class PlatformSubmissionAcknowledgementRequest(BaseModel):
+    """Owner confirmation for a future exact submission contract only."""
+
+    model_config = ConfigDict(extra="forbid")
+    acknowledged: bool
+
+    @model_validator(mode="after")
+    def require_acknowledgement(self):
+        if not self.acknowledged:
+            raise ValueError("Owner acknowledgement is required")
+        return self
+
+
+class PlatformSubmissionAcknowledgementResponse(BaseModel):
+    status: str
+    configuration_revision: int
+    contract_id: str | None = None
+
+
 class ElegooSDCPSourceResponse(BaseModel):
     # Negative public IDs occupy no Bambu primary-key space. The raw address
     # is intentionally never returned by list/detail dashboard endpoints.
@@ -233,6 +270,8 @@ class ElegooSDCPSourceResponse(BaseModel):
     endpoint_hint: str
     model: str | None = None
     firmware: str | None = None
+    control_acknowledgement: PlatformControlAcknowledgementResponse
+    submission_acknowledgement: PlatformSubmissionAcknowledgementResponse
     created_at: datetime
     updated_at: datetime
 
@@ -418,6 +457,8 @@ class MoonrakerSourceResponse(BaseModel):
     port: int
     scheme: str
     api_key_configured: bool = False
+    control_acknowledgement: PlatformControlAcknowledgementResponse
+    submission_acknowledgement: PlatformSubmissionAcknowledgementResponse
     camera_proxy_configured: bool = False
     model: str | None = None
     firmware: str | None = None

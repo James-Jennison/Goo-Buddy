@@ -10,6 +10,8 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
+from backend.app.models.platform_control_command import PlatformControlCommand as PlatformControlCommandRecord
+
 
 @pytest.fixture(autouse=True)
 def _mock_printer_test_connection():
@@ -902,8 +904,8 @@ class TestPrintControlAPI:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
-    async def test_pause_print_success(self, async_client: AsyncClient, printer_factory):
-        """Verify successful pause print request."""
+    async def test_pause_print_success(self, async_client: AsyncClient, printer_factory, db_session):
+        """Verify a legacy pause remains fixed while receiving a C4 audit row."""
         printer = await printer_factory(name="Printing Printer")
 
         mock_client = MagicMock()
@@ -912,11 +914,30 @@ class TestPrintControlAPI:
         with patch("backend.app.api.routes.printers.printer_manager") as mock_pm:
             mock_pm.get_client.return_value = mock_client
 
-            response = await async_client.post(f"/api/v1/printers/{printer.id}/print/pause")
+            response = await async_client.post(
+                f"/api/v1/printers/{printer.id}/print/pause",
+                headers={"Idempotency-Key": "a" * 32},
+            )
+            replay = await async_client.post(
+                f"/api/v1/printers/{printer.id}/print/pause",
+                headers={"Idempotency-Key": "a" * 32},
+            )
 
             assert response.status_code == 200
             assert response.json()["success"] is True
+            assert replay.status_code == 200
+            assert replay.json() == response.json()
             mock_client.pause_print.assert_called_once()
+
+        rows = (await db_session.execute(select(PlatformControlCommandRecord))).scalars().all()
+        assert len(rows) == 1
+        row = rows[0]
+        assert row.driver == "bambu"
+        assert row.source_id == printer.id
+        assert row.configuration_revision == 1
+        assert row.operation == "pause_job"
+        assert row.status == "acknowledged"
+        assert row.idempotency_key == "a" * 32
 
     # ========================================================================
     # Resume print endpoint

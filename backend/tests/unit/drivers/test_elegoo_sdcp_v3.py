@@ -34,6 +34,7 @@ def test_normalizes_only_observed_sdcp_fields_and_advertised_capabilities():
     assert Capability.TEMPERATURES in snapshot.capabilities
     assert Capability.JOB_STATUS in snapshot.capabilities
     assert Capability.JOB_CONTROL not in snapshot.capabilities
+    assert Capability.JOB_SUBMISSION not in snapshot.capabilities
     assert Capability.MULTI_MATERIAL not in snapshot.capabilities
 
 

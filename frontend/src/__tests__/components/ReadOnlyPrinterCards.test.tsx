@@ -100,4 +100,40 @@ describe('read-only printer cards', () => {
     fireEvent.click(screen.getByText('Synthetic printer'));
     expect(screen.getByTestId('current-location')).toHaveTextContent(`/printers/${publicId}`);
   });
+
+  it('requires owner confirmation before activating an exact validated Moonraker control set', async () => {
+    const publicId = -1_000_201;
+    let activationRequested = false;
+    server.use(
+      http.get('/api/v1/printers/moonraker/201/status', () => HttpResponse.json({
+        phase: 'ready', freshness: 'current', retained: false, last_observation_at: '2030-01-02T03:04:05Z', error: null,
+        state: 'cancelled', model: 'Klipper', firmware: 'v0.10.0-31-gd5ee171', temperatures: null,
+        job: { state: 'cancelled' }, capabilities: [],
+      })),
+      http.post('/api/v1/printers/moonraker/201/control/acknowledgement', () => {
+        activationRequested = true;
+        return HttpResponse.json({
+          status: 'acknowledged', configuration_revision: 1,
+          operations: ['cancel_job', 'pause_job', 'resume_job'],
+        });
+      }),
+    );
+
+    renderCard(<MoonrakerPrinterCard printer={readOnlyPrinter({
+      id: publicId,
+      platform: 'moonraker',
+      control_acknowledgement: {
+        status: 'owner-acknowledgement-required', configuration_revision: 1,
+        operations: ['cancel_job', 'pause_job', 'resume_job'],
+      },
+    })} />);
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Activate job controls' })).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Activate job controls' }));
+    expect(screen.getByText('Activate job controls for Synthetic printer?')).toBeInTheDocument();
+    expect(screen.getByText(/does not enable print start, files, camera, motion/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Activate controls' }));
+    await waitFor(() => expect(activationRequested).toBe(true));
+  });
 });

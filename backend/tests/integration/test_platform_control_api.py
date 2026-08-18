@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -10,7 +11,14 @@ from httpx import AsyncClient
 from sqlalchemy import select
 
 from backend.app.control.contract import PlatformControlOperation, PlatformControlUnconfirmed
-from backend.app.drivers.contract import DriverKind
+from backend.app.drivers.contract import (
+    ConnectionPhase,
+    DriverKind,
+    DriverObservation,
+    JobProgress,
+    NormalizedPrinterSnapshot,
+    PrinterIdentity,
+)
 from backend.app.models.elegoo_sdcp_source import ElegooSDCPSource
 from backend.app.models.moonraker_source import MoonrakerSource
 from backend.app.models.platform_control_command import PlatformControlCommand as PlatformControlCommandRecord
@@ -18,6 +26,40 @@ from backend.app.models.platform_control_command import PlatformControlCommand a
 
 def _control_headers(key: str = "0123456789abcdef0123456789abcdef") -> dict[str, str]:
     return {"Idempotency-Key": key}
+
+
+def _validated_cc1_observation() -> DriverObservation:
+    snapshot = NormalizedPrinterSnapshot(
+        identity=PrinterIdentity(
+            "fixture-cc1",
+            "Synthetic CC1",
+            model="Centauri Carbon",
+            firmware="V0.4.0-o",
+        ),
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        observed_at=datetime.now(timezone.utc),
+        state="idle",
+        capabilities=frozenset(),
+        job=JobProgress(name=None, state="idle"),
+    )
+    return DriverObservation(ConnectionPhase.READY, snapshot.capabilities, current=snapshot)
+
+
+def _validated_moonraker_observation() -> DriverObservation:
+    snapshot = NormalizedPrinterSnapshot(
+        identity=PrinterIdentity(
+            "fixture-moonraker",
+            "Synthetic Klipper",
+            model="Klipper",
+            firmware="v0.10.0-31-gd5ee171",
+        ),
+        driver=DriverKind.MOONRAKER,
+        observed_at=datetime.now(timezone.utc),
+        state="cancelled",
+        capabilities=frozenset(),
+        job=JobProgress(name=None, state="cancelled"),
+    )
+    return DriverObservation(ConnectionPhase.READY, snapshot.capabilities, current=snapshot)
 
 
 async def _create_source(async_client: AsyncClient, db_session, platform: str, *, control_enabled: bool = False) -> int:
@@ -54,6 +96,10 @@ async def _create_source(async_client: AsyncClient, db_session, platform: str, *
         source = await db_session.get(source_model, stored_id)
         assert source is not None
         source.control_enabled = True
+        source.control_acknowledged_revision = source.configuration_revision
+        source.control_acknowledged_model = "fixture-model"
+        source.control_acknowledged_firmware = "fixture-firmware"
+        source.control_acknowledged_operations = "cancel_job,pause_job,resume_job"
         await db_session.commit()
     return source_id
 
@@ -97,6 +143,148 @@ async def test_endpoint_replacement_revokes_fixture_control_activation(
     assert source is not None
     assert source.is_enabled is False
     assert source.control_enabled is False
+    assert source.control_acknowledged_revision is None
+    assert source.control_acknowledged_operations is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_elegoo_owner_acknowledgement_requires_exact_current_validated_evidence(
+    async_client: AsyncClient, db_session
+) -> None:
+    source_id = await _create_source(async_client, db_session, "elegoo")
+    with patch(
+        "backend.app.api.routes.printers.elegoo_sdcp_manager.observation",
+        return_value=_validated_cc1_observation(),
+    ):
+        response = await async_client.post(
+            f"/api/v1/printers/elegoo/{source_id}/control/acknowledgement", json={"acknowledged": True}
+        )
+
+    assert response.status_code == 200, response.text
+    assert response.json() == {
+        "status": "acknowledged",
+        "configuration_revision": 1,
+        "operations": ["cancel_job", "pause_job", "resume_job"],
+    }
+    await db_session.rollback()
+    source = await db_session.get(ElegooSDCPSource, source_id)
+    assert source is not None
+    assert source.control_enabled is True
+    assert source.control_acknowledged_model == "Centauri Carbon"
+    assert source.control_acknowledged_firmware == "V0.4.0-o"
+    assert source.control_acknowledged_operations == "cancel_job,pause_job,resume_job"
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_moonraker_owner_acknowledgement_requires_exact_current_validated_evidence(
+    async_client: AsyncClient, db_session
+) -> None:
+    source_id = await _create_source(async_client, db_session, "moonraker")
+    with patch(
+        "backend.app.api.routes.printers.moonraker_manager.observation",
+        return_value=_validated_moonraker_observation(),
+    ):
+        response = await async_client.post(
+            f"/api/v1/printers/moonraker/{source_id}/control/acknowledgement", json={"acknowledged": True}
+        )
+
+    assert response.status_code == 200, response.text
+    assert response.json() == {
+        "status": "acknowledged",
+        "configuration_revision": 1,
+        "operations": ["cancel_job", "pause_job", "resume_job"],
+    }
+    await db_session.rollback()
+    source = await db_session.get(MoonrakerSource, source_id)
+    assert source is not None
+    assert source.control_enabled is True
+    assert source.control_acknowledged_model == "Klipper"
+    assert source.control_acknowledged_firmware == "v0.10.0-31-gd5ee171"
+    assert source.control_acknowledged_operations == "cancel_job,pause_job,resume_job"
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.parametrize("platform", ["elegoo", "moonraker"])
+async def test_submission_acknowledgement_is_source_scoped_but_fails_closed_without_c5_hardware_evidence(
+    async_client: AsyncClient, db_session, platform: str
+) -> None:
+    source_id = await _create_source(async_client, db_session, platform)
+    response = await async_client.post(
+        f"/api/v1/printers/{platform}/{source_id}/submission/acknowledgement",
+        json={"acknowledged": True},
+    )
+
+    assert response.status_code == 409
+    assert "job-submission" in response.json()["detail"]
+    source_model = ElegooSDCPSource if platform == "elegoo" else MoonrakerSource
+    await db_session.rollback()
+    source = await db_session.get(source_model, source_id)
+    assert source is not None
+    await db_session.refresh(source)
+    assert source.submission_enabled is False
+    assert source.submission_acknowledged_revision is None
+    assert source.submission_acknowledged_model is None
+    assert source.submission_acknowledged_firmware is None
+    assert source.submission_acknowledged_contract is None
+    projection = await async_client.get(f"/api/v1/printers/{platform}/{source_id}")
+    assert projection.status_code == 200
+    assert projection.json()["submission_acknowledgement"] == {
+        "status": "not-evidenced",
+        "configuration_revision": 1,
+        "contract_id": None,
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.parametrize("platform", ["elegoo", "moonraker"])
+async def test_submission_acknowledgement_rejects_artifact_or_transport_data(
+    async_client: AsyncClient, platform: str
+) -> None:
+    source_id = await _create_source(async_client, None, platform)
+    response = await async_client.post(
+        f"/api/v1/printers/{platform}/{source_id}/submission/acknowledgement",
+        json={"acknowledged": True, "filename": "unsafe.gcode"},
+    )
+
+    assert response.status_code == 422
+    assert "unsafe.gcode" not in response.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.parametrize("platform", ["elegoo", "moonraker"])
+async def test_source_change_revokes_any_persisted_submission_acknowledgement(
+    async_client: AsyncClient, db_session, platform: str
+) -> None:
+    source_id = await _create_source(async_client, db_session, platform)
+    source_model = ElegooSDCPSource if platform == "elegoo" else MoonrakerSource
+    await db_session.rollback()
+    source = await db_session.get(source_model, source_id)
+    assert source is not None
+    source.submission_enabled = True
+    source.submission_acknowledged_revision = source.configuration_revision
+    source.submission_acknowledged_model = "fixture-model"
+    source.submission_acknowledged_firmware = "fixture-firmware"
+    source.submission_acknowledged_contract = "fixture-contract"
+    await db_session.commit()
+
+    replacement = "192.168.50.32" if platform == "elegoo" else "192.168.50.33"
+    response = await async_client.patch(f"/api/v1/printers/{platform}/{source_id}", json={"private_ipv4": replacement})
+
+    assert response.status_code == 200, response.text
+    await db_session.rollback()
+    source = await db_session.get(source_model, source_id)
+    assert source is not None
+    await db_session.refresh(source)
+    assert source.submission_enabled is False
+    assert source.submission_acknowledged_revision is None
+    assert source.submission_acknowledged_model is None
+    assert source.submission_acknowledged_firmware is None
+    assert source.submission_acknowledged_contract is None
 
 
 @pytest.mark.asyncio

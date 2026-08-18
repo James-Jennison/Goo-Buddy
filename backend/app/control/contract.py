@@ -1,4 +1,4 @@
-"""Closed, auditable control commands for non-Bambu printer sources.
+"""Closed, auditable lifecycle control commands for supported printers.
 
 This is intentionally not a transport abstraction.  It models only the small
 set of user-visible print-job operations that future protocol adapters may
@@ -39,7 +39,7 @@ class PlatformControlUnconfirmed(Exception):
     """A fixed command was sent but no fresh expected state confirmed it."""
 
 
-_SUPPORTED_DRIVERS = frozenset({DriverKind.ELEGOO_SDCP_V3, DriverKind.MOONRAKER})
+_SUPPORTED_DRIVERS = frozenset({DriverKind.BAMBU, DriverKind.ELEGOO_SDCP_V3, DriverKind.MOONRAKER})
 _IDEMPOTENCY_KEY = re.compile(r"^[a-f0-9]{32}$")
 
 

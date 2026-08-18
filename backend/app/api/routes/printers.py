@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import uuid
 import zipfile
 from datetime import datetime, timezone
 
@@ -17,6 +18,12 @@ from backend.app.control.contract import (
     PlatformControlState,
     PlatformControlUnconfirmed,
     new_platform_control_command,
+)
+from backend.app.control.evidence import (
+    ControlAcknowledgement,
+    decode_acknowledged_operations,
+    encode_acknowledged_operations,
+    validated_control_evidence,
 )
 from backend.app.core import database
 from backend.app.core.auth import (
@@ -61,7 +68,11 @@ from backend.app.schemas.printer import (
     MoonrakerSourceUpdate,
     NozzleInfoResponse,
     NozzleRackSlot,
+    PlatformControlAcknowledgementRequest,
+    PlatformControlAcknowledgementResponse,
     PlatformControlCommandResponse,
+    PlatformSubmissionAcknowledgementRequest,
+    PlatformSubmissionAcknowledgementResponse,
     PrinterCreate,
     PrinterDiagnosticResult,
     PrinterResponse,
@@ -93,6 +104,10 @@ from backend.app.services.printer_manager import (
     supports_chamber_temp,
     supports_drying,
     supports_drying_while_printing,
+)
+from backend.app.submission.evidence import (
+    SubmissionAcknowledgement,
+    validated_submission_evidence,
 )
 from backend.app.utils.filament_ids import filament_id_to_setting_id
 from backend.app.utils.http import build_content_disposition
@@ -187,10 +202,174 @@ async def _require_empty_platform_control_body(request: Request) -> None:
         raise HTTPException(422, "Platform control operations do not accept a payload")
 
 
-def _platform_control_idempotency_key(request: Request) -> str:
-    """Read one opaque, bounded retry key without accepting control data."""
+async def _parse_platform_control_acknowledgement(request: Request) -> PlatformControlAcknowledgementRequest:
+    """Accept only the owner acknowledgement boolean, never command data."""
+
+    try:
+        return PlatformControlAcknowledgementRequest.model_validate(await request.json())
+    except (TypeError, ValueError, ValidationError):
+        raise HTTPException(422, "A valid owner acknowledgement is required") from None
+
+
+async def _parse_platform_submission_acknowledgement(request: Request) -> PlatformSubmissionAcknowledgementRequest:
+    """Accept consent only; artifact and transport values have no API path."""
+
+    try:
+        return PlatformSubmissionAcknowledgementRequest.model_validate(await request.json())
+    except (TypeError, ValueError, ValidationError):
+        raise HTTPException(422, "A valid owner acknowledgement is required") from None
+
+
+def _source_control_acknowledgement(source: ElegooSDCPSource | MoonrakerSource) -> ControlAcknowledgement | None:
+    """Return a complete, revision-bound acknowledgement or fail closed."""
+
+    operations = decode_acknowledged_operations(source.control_acknowledged_operations)
+    if (
+        not source.control_enabled
+        or source.control_acknowledged_revision != source.configuration_revision
+        or not source.control_acknowledged_model
+        or not source.control_acknowledged_firmware
+        or not operations
+    ):
+        return None
+    return ControlAcknowledgement(
+        configuration_revision=source.configuration_revision,
+        model=source.control_acknowledged_model,
+        firmware=source.control_acknowledged_firmware,
+        operations=operations,
+    )
+
+
+def _control_acknowledgement_response(
+    *,
+    driver: DriverKind,
+    source: ElegooSDCPSource | MoonrakerSource,
+    observation,
+) -> PlatformControlAcknowledgementResponse:
+    acknowledgement = _source_control_acknowledgement(source)
+    evidence = validated_control_evidence(driver, observation)
+    if (
+        acknowledgement is not None
+        and evidence is not None
+        and acknowledgement
+        == ControlAcknowledgement(
+            configuration_revision=source.configuration_revision,
+            model=evidence.model,
+            firmware=evidence.firmware,
+            operations=evidence.operations,
+        )
+    ):
+        return PlatformControlAcknowledgementResponse(
+            status="acknowledged",
+            configuration_revision=source.configuration_revision,
+            operations=sorted(operation.value for operation in acknowledgement.operations),
+        )
+    if evidence is not None:
+        return PlatformControlAcknowledgementResponse(
+            status="owner-acknowledgement-required",
+            configuration_revision=source.configuration_revision,
+            operations=sorted(operation.value for operation in evidence.operations),
+        )
+    if acknowledgement is not None:
+        return PlatformControlAcknowledgementResponse(
+            status="evidence-no-longer-current",
+            configuration_revision=source.configuration_revision,
+        )
+    return PlatformControlAcknowledgementResponse(
+        status="not-evidenced",
+        configuration_revision=source.configuration_revision,
+    )
+
+
+def _revoke_source_control_acknowledgement(source: ElegooSDCPSource | MoonrakerSource) -> None:
+    """Clear the separate control authority without changing monitoring consent."""
+
+    source.control_enabled = False
+    source.control_acknowledged_revision = None
+    source.control_acknowledged_model = None
+    source.control_acknowledged_firmware = None
+    source.control_acknowledged_operations = None
+
+
+def _source_submission_acknowledgement(source: ElegooSDCPSource | MoonrakerSource) -> SubmissionAcknowledgement | None:
+    """Return only a complete, revision-bound C5 acknowledgement."""
+
+    if (
+        not source.submission_enabled
+        or source.submission_acknowledged_revision != source.configuration_revision
+        or not source.submission_acknowledged_model
+        or not source.submission_acknowledged_firmware
+        or not source.submission_acknowledged_contract
+    ):
+        return None
+    return SubmissionAcknowledgement(
+        configuration_revision=source.configuration_revision,
+        model=source.submission_acknowledged_model,
+        firmware=source.submission_acknowledged_firmware,
+        contract_id=source.submission_acknowledged_contract,
+    )
+
+
+def _submission_acknowledgement_response(
+    *, driver: DriverKind, source: ElegooSDCPSource | MoonrakerSource, observation
+) -> PlatformSubmissionAcknowledgementResponse:
+    acknowledgement = _source_submission_acknowledgement(source)
+    evidence = validated_submission_evidence(driver, observation)
+    if (
+        acknowledgement is not None
+        and evidence is not None
+        and acknowledgement
+        == SubmissionAcknowledgement(
+            configuration_revision=source.configuration_revision,
+            model=evidence.model,
+            firmware=evidence.firmware,
+            contract_id=evidence.contract_id,
+        )
+    ):
+        return PlatformSubmissionAcknowledgementResponse(
+            status="acknowledged",
+            configuration_revision=source.configuration_revision,
+            contract_id=acknowledgement.contract_id,
+        )
+    if evidence is not None:
+        return PlatformSubmissionAcknowledgementResponse(
+            status="owner-acknowledgement-required",
+            configuration_revision=source.configuration_revision,
+            contract_id=evidence.contract_id,
+        )
+    if acknowledgement is not None:
+        return PlatformSubmissionAcknowledgementResponse(
+            status="evidence-no-longer-current",
+            configuration_revision=source.configuration_revision,
+        )
+    return PlatformSubmissionAcknowledgementResponse(
+        status="not-evidenced",
+        configuration_revision=source.configuration_revision,
+    )
+
+
+def _revoke_source_submission_acknowledgement(source: ElegooSDCPSource | MoonrakerSource) -> None:
+    """Remove C5 consent without altering monitoring or lifecycle controls."""
+
+    source.submission_enabled = False
+    source.submission_acknowledged_revision = None
+    source.submission_acknowledged_model = None
+    source.submission_acknowledged_firmware = None
+    source.submission_acknowledged_contract = None
+
+
+def _platform_control_idempotency_key(request: Request, *, required: bool = True) -> str:
+    """Read one opaque, bounded retry key without accepting control data.
+
+    The inherited Bambu routes predate C4 and do not require this header. They
+    receive a server-generated key for an audit-only entry when omitted, while
+    callers that supply one gain the same bounded replay protection as the
+    non-Bambu control routes.
+    """
 
     key = request.headers.get("Idempotency-Key")
+    if key is None and not required:
+        return uuid.uuid4().hex
     if key is None or not _PLATFORM_CONTROL_IDEMPOTENCY_KEY.fullmatch(key):
         raise HTTPException(422, "A valid Idempotency-Key is required")
     return key
@@ -232,6 +411,8 @@ async def _dispatch_platform_control(
     control_enabled: bool,
     operation: PlatformControlOperation,
     dispatch: object,
+    require_idempotency_key: bool = True,
+    reject_body: bool = True,
 ) -> PlatformControlCommandResponse:
     """Audit and dispatch one fixed operation through its matching adapter.
 
@@ -244,13 +425,14 @@ async def _dispatch_platform_control(
         # C4.0 intentionally has no owner-facing activation route. Do not
         # create an audit row or touch a transport for a monitoring source.
         raise HTTPException(409, "Job lifecycle controls are not enabled for this source")
-    await _require_empty_platform_control_body(request)
+    if reject_body:
+        await _require_empty_platform_control_body(request)
     command = new_platform_control_command(
         driver,
         source_id,
         configuration_revision,
         operation,
-        _platform_control_idempotency_key(request),
+        _platform_control_idempotency_key(request, required=require_idempotency_key),
     )
     requested_by = user.id if user is not None else None
     existing = await db.scalar(
@@ -318,6 +500,75 @@ async def _dispatch_platform_control(
     return _platform_control_response(record)
 
 
+async def _dispatch_bambu_inherited_lifecycle_control(
+    *,
+    request: Request,
+    db: AsyncSession,
+    user: User | None,
+    printer_id: int,
+    client: object,
+    operation: PlatformControlOperation,
+    legacy_message: str,
+) -> dict[str, object]:
+    """Audit one inherited fixed Bambu lifecycle request without changing it.
+
+    Bambu's established endpoints intentionally retain their legacy response
+    body and do not require a new header. The shared C4 ledger records only
+    the fixed operation; the callback cannot receive a payload, topic, or
+    arbitrary method. A successful return still means the inherited MQTT
+    client accepted its fixed publish, not a newly invented control surface.
+    """
+
+    method_name = {
+        PlatformControlOperation.PAUSE_JOB: "pause_print",
+        PlatformControlOperation.RESUME_JOB: "resume_print",
+        PlatformControlOperation.CANCEL_JOB: "stop_print",
+    }[operation]
+
+    async def dispatch(_command: PlatformControlCommand) -> bool:
+        method = getattr(client, method_name, None)
+        if not callable(method) or not method():
+            return False
+        if operation is PlatformControlOperation.CANCEL_JOB:
+            # Preserve the existing archive classification behavior, but only
+            # after the fixed inherited stop method accepted the publish.
+            try:
+                from backend.app.main import mark_printer_stopped_by_user
+
+                mark_printer_stopped_by_user(printer_id)
+            except Exception as mark_error:
+                logger.warning("Failed to mark printer %s as user-stopped: %s", printer_id, mark_error)
+        return True
+
+    result = await _dispatch_platform_control(
+        request=request,
+        db=db,
+        user=user,
+        driver=DriverKind.BAMBU,
+        source_id=printer_id,
+        # Inherited Bambu sources do not yet persist the isolated-source
+        # configuration revision. Keep the legacy route on one fixed revision
+        # rather than silently widening its source configuration contract.
+        configuration_revision=1,
+        control_enabled=True,
+        operation=operation,
+        dispatch=dispatch,
+        require_idempotency_key=False,
+        # Existing callers could send a body that this route has always
+        # ignored. Preserve that compatibility; it is never parsed or passed
+        # to the fixed MQTT method.
+        reject_body=False,
+    )
+    if result.status != PlatformControlState.ACKNOWLEDGED.value:
+        failure_detail = {
+            PlatformControlOperation.PAUSE_JOB: "pause print",
+            PlatformControlOperation.RESUME_JOB: "resume print",
+            PlatformControlOperation.CANCEL_JOB: "stop print",
+        }[operation]
+        raise HTTPException(500, f"Failed to {failure_detail}")
+    return {"success": True, "message": legacy_message}
+
+
 def _serialize_elegoo_source(source: ElegooSDCPSource) -> dict:
     """Public projection deliberately omits the source IPv4 address."""
 
@@ -330,6 +581,12 @@ def _serialize_elegoo_source(source: ElegooSDCPSource) -> dict:
         endpoint_hint="Private IPv4 configured",
         model=snapshot.identity.model if snapshot else None,
         firmware=snapshot.identity.firmware if snapshot else None,
+        control_acknowledgement=_control_acknowledgement_response(
+            driver=DriverKind.ELEGOO_SDCP_V3, source=source, observation=observation
+        ),
+        submission_acknowledgement=_submission_acknowledgement_response(
+            driver=DriverKind.ELEGOO_SDCP_V3, source=source, observation=observation
+        ),
         created_at=source.created_at,
         updated_at=source.updated_at,
     ).model_dump(mode="json")
@@ -432,6 +689,12 @@ def _serialize_moonraker_source(source: MoonrakerSource) -> dict:
         camera_proxy_configured=source.camera_proxy_path is not None,
         model=snapshot.identity.model if snapshot else None,
         firmware=snapshot.identity.firmware if snapshot else None,
+        control_acknowledgement=_control_acknowledgement_response(
+            driver=DriverKind.MOONRAKER, source=source, observation=observation
+        ),
+        submission_acknowledgement=_submission_acknowledgement_response(
+            driver=DriverKind.MOONRAKER, source=source, observation=observation
+        ),
         created_at=source.created_at,
         updated_at=source.updated_at,
     ).model_dump(mode="json")
@@ -764,8 +1027,9 @@ async def create_elegoo_source(
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
+        acknowledgement = _source_control_acknowledgement(source)
         await elegoo_sdcp_manager.enable(
-            source.id, source.private_ipv4, source.configuration_revision, source.control_enabled
+            source.id, source.private_ipv4, source.configuration_revision, acknowledgement is not None, acknowledgement
         )
     return _serialize_elegoo_source(source)
 
@@ -885,7 +1149,8 @@ async def update_elegoo_source(
         # A later, separate enable action is required from the owner.
         changes.pop("is_enabled", None)
         source.is_enabled = False
-        source.control_enabled = False
+        _revoke_source_control_acknowledgement(source)
+        _revoke_source_submission_acknowledgement(source)
         source.configuration_revision += 1
     if "name" in changes:
         source.display_name = changes["name"].strip()
@@ -898,12 +1163,14 @@ async def update_elegoo_source(
             raise HTTPException(422, "Read-only acknowledgement is required")
         source.is_enabled = changes["is_enabled"]
         if not source.is_enabled:
-            source.control_enabled = False
+            _revoke_source_control_acknowledgement(source)
+            _revoke_source_submission_acknowledgement(source)
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
+        acknowledgement = _source_control_acknowledgement(source)
         await elegoo_sdcp_manager.enable(
-            source.id, source.private_ipv4, source.configuration_revision, source.control_enabled
+            source.id, source.private_ipv4, source.configuration_revision, acknowledgement is not None, acknowledgement
         )
     else:
         await elegoo_sdcp_manager.disable(source.id)
@@ -920,6 +1187,83 @@ async def get_elegoo_status(
     if source is None:
         raise HTTPException(404, "Printer not found")
     return _elegoo_dashboard_status(source)
+
+
+@router.post(
+    "/elegoo/{source_id}/control/acknowledgement",
+    response_model=PlatformControlAcknowledgementResponse,
+)
+async def acknowledge_elegoo_job_controls(
+    source_id: int,
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Persist owner consent only for the current CC1-validated evidence."""
+
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    await _parse_platform_control_acknowledgement(request)
+    evidence = validated_control_evidence(DriverKind.ELEGOO_SDCP_V3, elegoo_sdcp_manager.observation(source.id))
+    if evidence is None:
+        raise HTTPException(409, "No current validated job-control evidence is available for this source")
+    source.control_enabled = True
+    source.control_acknowledged_revision = source.configuration_revision
+    source.control_acknowledged_model = evidence.model
+    source.control_acknowledged_firmware = evidence.firmware
+    source.control_acknowledged_operations = encode_acknowledged_operations(evidence.operations)
+    await db.commit()
+    await db.refresh(source)
+    acknowledgement = _source_control_acknowledgement(source)
+    assert acknowledgement is not None
+    response = _control_acknowledgement_response(
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        source=source,
+        observation=elegoo_sdcp_manager.observation(source.id),
+    )
+    if source.is_enabled:
+        await elegoo_sdcp_manager.enable(
+            source.id,
+            source.private_ipv4,
+            source.configuration_revision,
+            True,
+            acknowledgement,
+        )
+    return response
+
+
+@router.post(
+    "/elegoo/{source_id}/submission/acknowledgement",
+    response_model=PlatformSubmissionAcknowledgementResponse,
+)
+async def acknowledge_elegoo_submission(
+    source_id: int,
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Fail closed: CC1 has no compatible C5 evidence to acknowledge."""
+
+    source = await db.get(ElegooSDCPSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    await _parse_platform_submission_acknowledgement(request)
+    evidence = validated_submission_evidence(DriverKind.ELEGOO_SDCP_V3, elegoo_sdcp_manager.observation(source.id))
+    if evidence is None:
+        raise HTTPException(409, "No current validated job-submission evidence is available for this source")
+    source.submission_enabled = True
+    source.submission_acknowledged_revision = source.configuration_revision
+    source.submission_acknowledged_model = evidence.model
+    source.submission_acknowledged_firmware = evidence.firmware
+    source.submission_acknowledged_contract = evidence.contract_id
+    await db.commit()
+    await db.refresh(source)
+    return _submission_acknowledgement_response(
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        source=source,
+        observation=elegoo_sdcp_manager.observation(source.id),
+    )
 
 
 @router.post("/elegoo/{source_id}/control/pause", response_model=PlatformControlCommandResponse)
@@ -939,7 +1283,7 @@ async def pause_elegoo_job(
         driver=DriverKind.ELEGOO_SDCP_V3,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
-        control_enabled=source.control_enabled,
+        control_enabled=_source_control_acknowledgement(source) is not None,
         operation=PlatformControlOperation.PAUSE_JOB,
         dispatch=elegoo_sdcp_manager.dispatch_command,
     )
@@ -962,7 +1306,7 @@ async def resume_elegoo_job(
         driver=DriverKind.ELEGOO_SDCP_V3,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
-        control_enabled=source.control_enabled,
+        control_enabled=_source_control_acknowledgement(source) is not None,
         operation=PlatformControlOperation.RESUME_JOB,
         dispatch=elegoo_sdcp_manager.dispatch_command,
     )
@@ -985,7 +1329,7 @@ async def cancel_elegoo_job(
         driver=DriverKind.ELEGOO_SDCP_V3,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
-        control_enabled=source.control_enabled,
+        control_enabled=_source_control_acknowledgement(source) is not None,
         operation=PlatformControlOperation.CANCEL_JOB,
         dispatch=elegoo_sdcp_manager.dispatch_command,
     )
@@ -1035,6 +1379,7 @@ async def create_moonraker_source(
         raise HTTPException(409, "A Moonraker source already uses that private address") from None
     await db.refresh(source)
     if source.is_enabled:
+        acknowledgement = _source_control_acknowledgement(source)
         await moonraker_manager.enable(
             source.id,
             source.display_name,
@@ -1046,7 +1391,8 @@ async def create_moonraker_source(
             source.camera_proxy_port,
             source.camera_proxy_scheme,
             source.camera_proxy_path,
-            source.control_enabled,
+            acknowledgement is not None,
+            acknowledgement,
         )
     return _serialize_moonraker_source(source)
 
@@ -1102,7 +1448,8 @@ async def update_moonraker_source(
             setattr(source, field, value or None if field == "api_key" else value)
         changes.pop("is_enabled", None)
         source.is_enabled = False
-        source.control_enabled = False
+        _revoke_source_control_acknowledgement(source)
+        _revoke_source_submission_acknowledgement(source)
         source.configuration_revision += 1
     if "name" in changes:
         source.display_name = changes.pop("name")
@@ -1111,10 +1458,12 @@ async def update_moonraker_source(
     if "is_enabled" in changes:
         source.is_enabled = changes["is_enabled"]
         if not source.is_enabled:
-            source.control_enabled = False
+            _revoke_source_control_acknowledgement(source)
+            _revoke_source_submission_acknowledgement(source)
     await db.commit()
     await db.refresh(source)
     if source.is_enabled:
+        acknowledgement = _source_control_acknowledgement(source)
         await moonraker_manager.enable(
             source.id,
             source.display_name,
@@ -1126,7 +1475,8 @@ async def update_moonraker_source(
             source.camera_proxy_port,
             source.camera_proxy_scheme,
             source.camera_proxy_path,
-            source.control_enabled,
+            acknowledgement is not None,
+            acknowledgement,
         )
     elif not transport_cancelled:
         await moonraker_manager.disable(source.id)
@@ -1141,6 +1491,90 @@ async def get_moonraker_status(
     if source is None:
         raise HTTPException(404, "Printer not found")
     return _moonraker_dashboard_status(source)
+
+
+@router.post(
+    "/moonraker/{source_id}/control/acknowledgement",
+    response_model=PlatformControlAcknowledgementResponse,
+)
+async def acknowledge_moonraker_job_controls(
+    source_id: int,
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Fail closed until Moonraker receives its own supervised evidence."""
+
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    await _parse_platform_control_acknowledgement(request)
+    evidence = validated_control_evidence(DriverKind.MOONRAKER, moonraker_manager.observation(source.id))
+    if evidence is None:
+        raise HTTPException(409, "No current validated job-control evidence is available for this source")
+    source.control_enabled = True
+    source.control_acknowledged_revision = source.configuration_revision
+    source.control_acknowledged_model = evidence.model
+    source.control_acknowledged_firmware = evidence.firmware
+    source.control_acknowledged_operations = encode_acknowledged_operations(evidence.operations)
+    await db.commit()
+    await db.refresh(source)
+    acknowledgement = _source_control_acknowledgement(source)
+    assert acknowledgement is not None
+    response = _control_acknowledgement_response(
+        driver=DriverKind.MOONRAKER,
+        source=source,
+        observation=moonraker_manager.observation(source.id),
+    )
+    if source.is_enabled:
+        await moonraker_manager.enable(
+            source.id,
+            source.display_name,
+            source.private_ipv4,
+            source.port,
+            source.scheme,
+            source.api_key,
+            source.configuration_revision,
+            source.camera_proxy_port,
+            source.camera_proxy_scheme,
+            source.camera_proxy_path,
+            True,
+            acknowledgement,
+        )
+    return response
+
+
+@router.post(
+    "/moonraker/{source_id}/submission/acknowledgement",
+    response_model=PlatformSubmissionAcknowledgementResponse,
+)
+async def acknowledge_moonraker_submission(
+    source_id: int,
+    request: Request,
+    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_UPDATE),
+    db: AsyncSession = Depends(get_db),
+):
+    """Fail closed until C5.3 supplies exact supervised source evidence."""
+
+    source = await db.get(MoonrakerSource, source_id)
+    if source is None:
+        raise HTTPException(404, "Printer not found")
+    await _parse_platform_submission_acknowledgement(request)
+    evidence = validated_submission_evidence(DriverKind.MOONRAKER, moonraker_manager.observation(source.id))
+    if evidence is None:
+        raise HTTPException(409, "No current validated job-submission evidence is available for this source")
+    source.submission_enabled = True
+    source.submission_acknowledged_revision = source.configuration_revision
+    source.submission_acknowledged_model = evidence.model
+    source.submission_acknowledged_firmware = evidence.firmware
+    source.submission_acknowledged_contract = evidence.contract_id
+    await db.commit()
+    await db.refresh(source)
+    return _submission_acknowledgement_response(
+        driver=DriverKind.MOONRAKER,
+        source=source,
+        observation=moonraker_manager.observation(source.id),
+    )
 
 
 @router.get("/moonraker/{source_id}/files/metadata", response_model=MoonrakerGcodeMetadataResponse)
@@ -1217,7 +1651,7 @@ async def pause_moonraker_job(
         driver=DriverKind.MOONRAKER,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
-        control_enabled=source.control_enabled,
+        control_enabled=_source_control_acknowledgement(source) is not None,
         operation=PlatformControlOperation.PAUSE_JOB,
         dispatch=moonraker_manager.dispatch_command,
     )
@@ -1240,7 +1674,7 @@ async def resume_moonraker_job(
         driver=DriverKind.MOONRAKER,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
-        control_enabled=source.control_enabled,
+        control_enabled=_source_control_acknowledgement(source) is not None,
         operation=PlatformControlOperation.RESUME_JOB,
         dispatch=moonraker_manager.dispatch_command,
     )
@@ -1263,7 +1697,7 @@ async def cancel_moonraker_job(
         driver=DriverKind.MOONRAKER,
         source_id=source.id,
         configuration_revision=source.configuration_revision,
-        control_enabled=source.control_enabled,
+        control_enabled=_source_control_acknowledgement(source) is not None,
         operation=PlatformControlOperation.CANCEL_JOB,
         dispatch=moonraker_manager.dispatch_command,
     )
@@ -4000,7 +4434,8 @@ async def debug_simulate_print_complete(
 @router.post("/{printer_id}/print/stop")
 async def stop_print(
     printer_id: int,
-    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
     db: AsyncSession = Depends(get_db),
 ):
     """Stop/cancel the current print job."""
@@ -4013,22 +4448,15 @@ async def stop_print(
     if not client:
         raise HTTPException(400, "Printer not connected")
 
-    success = client.stop_print()
-    if not success:
-        raise HTTPException(500, "Failed to stop print")
-
-    # Mark this printer as user-stopped so on_print_complete reclassifies
-    # the resulting "failed"/"aborted" MQTT status as "cancelled" — otherwise
-    # the HMS heuristic in _dispatch_archive_update mislabels user-cancels
-    # (e.g. the H2D's cancel-sequence module-0x0C HMS) as "Layer shift".
-    try:
-        from backend.app.main import mark_printer_stopped_by_user
-
-        mark_printer_stopped_by_user(printer_id)
-    except Exception as _mark_err:
-        logger.warning("Failed to mark printer %s as user-stopped: %s", printer_id, _mark_err)
-
-    return {"success": True, "message": "Print stop command sent"}
+    return await _dispatch_bambu_inherited_lifecycle_control(
+        request=request,
+        db=db,
+        user=user,
+        printer_id=printer_id,
+        client=client,
+        operation=PlatformControlOperation.CANCEL_JOB,
+        legacy_message="Print stop command sent",
+    )
 
 
 @router.post("/{printer_id}/clear-plate")
@@ -4070,7 +4498,8 @@ async def clear_plate(
 @router.post("/{printer_id}/print/pause")
 async def pause_print(
     printer_id: int,
-    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
     db: AsyncSession = Depends(get_db),
 ):
     """Pause the current print job."""
@@ -4083,17 +4512,22 @@ async def pause_print(
     if not client:
         raise HTTPException(400, "Printer not connected")
 
-    success = client.pause_print()
-    if not success:
-        raise HTTPException(500, "Failed to pause print")
-
-    return {"success": True, "message": "Print pause command sent"}
+    return await _dispatch_bambu_inherited_lifecycle_control(
+        request=request,
+        db=db,
+        user=user,
+        printer_id=printer_id,
+        client=client,
+        operation=PlatformControlOperation.PAUSE_JOB,
+        legacy_message="Print pause command sent",
+    )
 
 
 @router.post("/{printer_id}/print/resume")
 async def resume_print(
     printer_id: int,
-    _=RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
+    request: Request,
+    user: User | None = RequirePermissionIfAuthEnabled(Permission.PRINTERS_CONTROL),
     db: AsyncSession = Depends(get_db),
 ):
     """Resume a paused print job."""
@@ -4106,11 +4540,15 @@ async def resume_print(
     if not client:
         raise HTTPException(400, "Printer not connected")
 
-    success = client.resume_print()
-    if not success:
-        raise HTTPException(500, "Failed to resume print")
-
-    return {"success": True, "message": "Print resume command sent"}
+    return await _dispatch_bambu_inherited_lifecycle_control(
+        request=request,
+        db=db,
+        user=user,
+        printer_id=printer_id,
+        client=client,
+        operation=PlatformControlOperation.RESUME_JOB,
+        legacy_message="Print resume command sent",
+    )
 
 
 @router.post("/{printer_id}/print-speed")

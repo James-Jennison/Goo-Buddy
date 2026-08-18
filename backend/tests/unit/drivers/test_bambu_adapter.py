@@ -30,6 +30,7 @@ def test_bambu_adapter_passively_projects_existing_cached_state():
         Capability.JOB_PROGRESS,
         Capability.LAYERS,
     } <= observation.capabilities
+    assert Capability.JOB_SUBMISSION not in observation.capabilities
 
 
 def test_bambu_adapter_does_not_create_or_connect_a_client():

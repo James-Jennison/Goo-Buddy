@@ -6453,22 +6453,39 @@ async def lifespan(app: FastAPI):
         await init_printer_connections(db)
 
     # SDCP has no discovery or implicit activation. Only sources whose owner
-    # explicitly enabled the read-only connection are started at boot.
+    # explicitly enabled the read-only connection are started at boot. A
+    # process restart cannot silently restore the separate C4 control grant:
+    # the owner must review fresh identity evidence in the new monitoring
+    # session before job controls can become available again.
     async with async_session() as db:
         enabled_sdcp_sources = (
             (await db.execute(select(ElegooSDCPSource).where(ElegooSDCPSource.is_enabled.is_(True)))).scalars().all()
         )
+        for source in enabled_sdcp_sources:
+            source.control_enabled = False
+            source.control_acknowledged_revision = None
+            source.control_acknowledged_model = None
+            source.control_acknowledged_firmware = None
+            source.control_acknowledged_operations = None
+        await db.commit()
     for source in enabled_sdcp_sources:
-        await elegoo_sdcp_manager.enable(
-            source.id, source.private_ipv4, source.configuration_revision, source.control_enabled
-        )
+        await elegoo_sdcp_manager.enable(source.id, source.private_ipv4, source.configuration_revision, False)
 
     # Moonraker is equally manual and opt-in. Restoring a saved enabled source
     # is the only startup path that can create its fixed monitoring session.
+    # As with SDCP, only monitoring consent survives the restart; control
+    # acknowledgement is intentionally one-session authority.
     async with async_session() as db:
         enabled_moonraker_sources = (
             (await db.execute(select(MoonrakerSource).where(MoonrakerSource.is_enabled.is_(True)))).scalars().all()
         )
+        for source in enabled_moonraker_sources:
+            source.control_enabled = False
+            source.control_acknowledged_revision = None
+            source.control_acknowledged_model = None
+            source.control_acknowledged_firmware = None
+            source.control_acknowledged_operations = None
+        await db.commit()
         for source in enabled_moonraker_sources:
             await moonraker_manager.enable(
                 source.id,
@@ -6481,7 +6498,7 @@ async def lifespan(app: FastAPI):
                 source.camera_proxy_port,
                 source.camera_proxy_scheme,
                 source.camera_proxy_path,
-                source.control_enabled,
+                False,
             )
 
     # Auto-connect to Spoolman if enabled

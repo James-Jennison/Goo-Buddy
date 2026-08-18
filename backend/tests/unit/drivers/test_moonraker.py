@@ -37,6 +37,7 @@ def test_normalizes_observed_moonraker_monitoring_values_only():
     assert snapshot.job.elapsed_seconds == 120 and snapshot.job.estimated_remaining_seconds == 360
     assert Capability.LAYERS in snapshot.capabilities
     assert Capability.JOB_CONTROL in snapshot.capabilities
+    assert Capability.JOB_SUBMISSION not in snapshot.capabilities
     assert Capability.FILES not in snapshot.capabilities
     assert snapshot.toolhead and snapshot.toolhead.active_extruder == "extruder"
     assert snapshot.toolhead.homed_axes == "xyz"
@@ -61,6 +62,18 @@ def test_normalizer_withholds_job_control_when_no_active_job_can_be_observed():
         local_id="moon-1", display_name="Synthetic Klipper", observed_at=NOW, status=status, server=_server()
     )
 
+    assert Capability.JOB_CONTROL not in snapshot.capabilities
+
+
+def test_normalizer_preserves_observed_cancelled_as_a_terminal_job_state():
+    status = _status()
+    status["print_stats"]["state"] = "cancelled"
+    snapshot = normalize_moonraker_observation(
+        local_id="moon-1", display_name="Synthetic Klipper", observed_at=NOW, status=status, server=_server()
+    )
+
+    assert snapshot.state == "cancelled"
+    assert snapshot.job and snapshot.job.state == "cancelled"
     assert Capability.JOB_CONTROL not in snapshot.capabilities
 
 

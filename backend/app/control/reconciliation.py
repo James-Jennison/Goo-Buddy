@@ -43,7 +43,8 @@ class LifecycleReconciliationContract:
 _BAMBU_ACTIVE_STATES = frozenset({"PREPARE", "SLICING", "RUNNING", "PAUSE"})
 _BAMBU_TERMINAL_STATES = frozenset({"IDLE", "FINISH", "FAILED"})
 _NORMALIZED_ACTIVE_STATES = frozenset({"printing", "paused"})
-_NORMALIZED_TERMINAL_STATES = frozenset({"idle", "finished", "error"})
+_ELEGEO_SDCP_TERMINAL_STATES = frozenset({"idle", "finished", "error"})
+_MOONRAKER_TERMINAL_STATES = frozenset({"idle", "finished", "error", "cancelled"})
 
 
 def _contracts_for(
@@ -89,7 +90,7 @@ _CONTRACTS = MappingProxyType(
             resume_source=frozenset({"paused"}),
             resume_success=frozenset({"printing"}),
             cancel_source=_NORMALIZED_ACTIVE_STATES,
-            cancel_success=_NORMALIZED_TERMINAL_STATES,
+            cancel_success=_ELEGEO_SDCP_TERMINAL_STATES,
             evidence_status="dormant-adapter-only",
         ),
         **_contracts_for(
@@ -99,7 +100,7 @@ _CONTRACTS = MappingProxyType(
             resume_source=frozenset({"paused"}),
             resume_success=frozenset({"printing"}),
             cancel_source=_NORMALIZED_ACTIVE_STATES,
-            cancel_success=_NORMALIZED_TERMINAL_STATES,
+            cancel_success=_MOONRAKER_TERMINAL_STATES,
             evidence_status="dormant-adapter-only",
         ),
     }
