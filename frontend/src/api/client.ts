@@ -380,6 +380,7 @@ export interface Printer {
   api_key_configured?: boolean;
   camera_proxy_configured?: boolean;
   firmware?: string | null;
+  control_acknowledgement?: PlatformControlAcknowledgement;
 }
 
 export interface ElegooSourceCreate {
@@ -460,6 +461,12 @@ export interface PlatformControlCommandResponse {
   operation: 'pause_job' | 'resume_job' | 'cancel_job';
   status: 'acknowledged' | 'failed';
   error_code?: 'unconfirmed' | 'unavailable' | 'dispatch_timeout' | 'dispatch_failed' | null;
+}
+
+export interface PlatformControlAcknowledgement {
+  status: 'acknowledged' | 'owner-acknowledgement-required' | 'evidence-no-longer-current' | 'not-evidenced';
+  configuration_revision: number;
+  operations: Array<'pause_job' | 'resume_job' | 'cancel_job'>;
 }
 
 function platformControlRequestOptions(): RequestInit {
@@ -3946,6 +3953,11 @@ export const api = {
       body: JSON.stringify(data),
     }),
   getElegooStatus: (id: number) => request<ElegooDashboardStatus>(`/printers/elegoo/${id}/status`),
+  acknowledgeElegooJobControls: (id: number) =>
+    request<PlatformControlAcknowledgement>(`/printers/elegoo/${id}/control/acknowledgement`, {
+      method: 'POST',
+      body: JSON.stringify({ acknowledged: true }),
+    }),
   pauseElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/pause`, platformControlRequestOptions()),
   resumeElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/resume`, platformControlRequestOptions()),
   cancelElegooJob: (id: number) => request<PlatformControlCommandResponse>(`/printers/elegoo/${id}/control/cancel`, platformControlRequestOptions()),
@@ -3956,6 +3968,11 @@ export const api = {
   updateMoonrakerSource: (id: number, data: Partial<MoonrakerSourceCreate>) =>
     request<Printer>(`/printers/moonraker/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getMoonrakerStatus: (id: number) => request<MoonrakerDashboardStatus>(`/printers/moonraker/${id}/status`),
+  acknowledgeMoonrakerJobControls: (id: number) =>
+    request<PlatformControlAcknowledgement>(`/printers/moonraker/${id}/control/acknowledgement`, {
+      method: 'POST',
+      body: JSON.stringify({ acknowledged: true }),
+    }),
   getMoonrakerGcodeMetadata: (id: number, filename: string) =>
     request<MoonrakerGcodeMetadata>(`/printers/moonraker/${id}/files/metadata?filename=${encodeURIComponent(filename)}`),
   getMoonrakerGcodeThumbnailUrl: (id: number, filename: string) =>

@@ -17,7 +17,7 @@ function renderControls(overrides: Partial<React.ComponentProps<typeof PlatformJ
       phase="ready"
       freshness="current"
       state="printing"
-      capabilities={['job_control']}
+      capabilities={['job-control']}
       canControl
       submit={submit}
       {...overrides}

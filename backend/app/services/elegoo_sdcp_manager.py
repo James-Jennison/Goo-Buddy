@@ -13,7 +13,7 @@ import random
 import socket
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 
 import aiohttp
@@ -21,9 +21,12 @@ import aiohttp
 from backend.app.control.contract import (
     PlatformControlCommand,
     PlatformControlOperation,
+    PlatformControlUnconfirmed,
     control_operation_is_available,
 )
-from backend.app.drivers.contract import ConnectionPhase, DriverKind, DriverObservation
+from backend.app.control.evidence import ControlAcknowledgement, acknowledgement_matches_observation
+from backend.app.control.reconciliation import observation_satisfies_reconciliation
+from backend.app.drivers.contract import Capability, ConnectionPhase, DriverKind, DriverObservation
 from backend.app.drivers.elegoo_sdcp_v3 import SyntheticElegooSdcpV3Driver
 from backend.app.schemas.printer import canonical_rfc1918_ipv4
 from backend.app.services.elegoo_sdcp_control import serialize_control_request
@@ -52,8 +55,7 @@ CONTROL_CONFIRMATION_TIMEOUT_SECONDS = 20
 _IDENTITY_DISCOVERY_MESSAGE = b"M99999"
 
 
-class ElegooControlUnconfirmed(Exception):
-    """A closed control request was written but no fresh expected state arrived."""
+ElegooControlUnconfirmed = PlatformControlUnconfirmed
 
 
 @dataclass
@@ -62,6 +64,8 @@ class _LiveSource:
     private_ipv4: str
     driver: SyntheticElegooSdcpV3Driver
     configuration_revision: int = 1
+    control_enabled: bool = False
+    control_acknowledgement: ControlAcknowledgement | None = None
     task: asyncio.Task[None] | None = None
     stop: asyncio.Event = field(default_factory=asyncio.Event)
     connected: bool = False
@@ -85,19 +89,39 @@ class ElegooSDCPManager:
     def __init__(self) -> None:
         self._sources: dict[int, _LiveSource] = {}
 
-    async def enable(self, source_id: int, private_ipv4: str, configuration_revision: int = 1) -> None:
+    async def enable(
+        self,
+        source_id: int,
+        private_ipv4: str,
+        configuration_revision: int = 1,
+        control_enabled: bool = False,
+        control_acknowledgement: ControlAcknowledgement | None = None,
+    ) -> None:
         # This is intentionally repeated at the I/O boundary. Callers outside
         # the API (including boot restoration) must not be able to direct the
         # transport to a hostname, public address, URL, or alternate endpoint.
         private_ipv4 = canonical_rfc1918_ipv4(private_ipv4)
         if type(configuration_revision) is not int or configuration_revision < 1:
             raise ValueError("invalid platform control configuration revision")
+        if type(control_enabled) is not bool:
+            raise ValueError("invalid platform control activation")
+        # A restart or legacy caller with no acknowledgement must fail closed,
+        # never restore a formerly enabled writer from a boolean alone.
+        if control_acknowledgement is None:
+            control_enabled = False
+        if (
+            control_acknowledgement is not None
+            and control_acknowledgement.configuration_revision != configuration_revision
+        ):
+            raise ValueError("invalid platform control acknowledgement revision")
         await self.disable(source_id)
         live = _LiveSource(
             source_id=source_id,
             private_ipv4=private_ipv4,
             driver=SyntheticElegooSdcpV3Driver(f"elegoo-{source_id}", stale_after=STALE_AFTER),
             configuration_revision=configuration_revision,
+            control_enabled=control_enabled,
+            control_acknowledgement=control_acknowledgement,
         )
         self._sources[source_id] = live
         live.task = asyncio.create_task(self._run(live), name=f"elegoo-sdcp-{source_id}")
@@ -211,28 +235,94 @@ class ElegooSDCPManager:
             return DriverObservation(phase=ConnectionPhase.DISCONNECTED, capabilities=frozenset())
         observation = live.driver.observation(now or datetime.now(timezone.utc))
         if live.connected and observation.phase is ConnectionPhase.CONNECTING:
-            return DriverObservation(
-                phase=ConnectionPhase.WAITING,
-                capabilities=frozenset(),
-                session_id=observation.session_id,
+            return self._with_control_gate(
+                live,
+                DriverObservation(
+                    phase=ConnectionPhase.WAITING,
+                    capabilities=frozenset(),
+                    session_id=observation.session_id,
+                ),
             )
         if live.reconnecting and observation.phase is ConnectionPhase.DISCONNECTED:
-            return DriverObservation(
-                phase=ConnectionPhase.RECONNECTING,
-                capabilities=observation.capabilities,
-                retained=observation.retained,
-                error=live.error,
+            return self._with_control_gate(
+                live,
+                DriverObservation(
+                    phase=ConnectionPhase.RECONNECTING,
+                    capabilities=observation.capabilities,
+                    retained=observation.retained,
+                    error=live.error,
+                ),
             )
         if live.error and observation.error is None and observation.phase is not ConnectionPhase.READY:
-            return DriverObservation(
-                phase=observation.phase,
-                capabilities=observation.capabilities,
-                current=observation.current,
-                retained=observation.retained,
-                error=live.error,
-                session_id=observation.session_id,
+            return self._with_control_gate(
+                live,
+                DriverObservation(
+                    phase=observation.phase,
+                    capabilities=observation.capabilities,
+                    current=observation.current,
+                    retained=observation.retained,
+                    error=live.error,
+                    session_id=observation.session_id,
+                ),
             )
-        return observation
+        return self._with_control_gate(live, observation)
+
+    @staticmethod
+    def _with_control_gate(live: _LiveSource, observation: DriverObservation) -> DriverObservation:
+        """Project control only for an explicitly enabled, fresh active job.
+
+        The SDCP normalizer deliberately never infers a control capability from
+        an attributes declaration.  The manager is the sole activation
+        boundary: an explicit per-source gate may add the capability only to a
+        ready current printing/paused observation; every other observation
+        remains unavailable.
+        """
+
+        acknowledgement = live.control_acknowledgement
+        if (
+            live.control_enabled
+            and acknowledgement is not None
+            and acknowledgement_matches_observation(
+                driver=DriverKind.ELEGOO_SDCP_V3,
+                model=acknowledgement.model,
+                firmware=acknowledgement.firmware,
+                operations=acknowledgement.operations,
+                observation=observation,
+            )
+        ):
+            current = observation.current
+            if (
+                observation.phase is ConnectionPhase.READY
+                and current is not None
+                and current.state in {"printing", "paused"}
+                and (current.job is None or current.state == current.job.state)
+                and Capability.JOB_CONTROL not in observation.capabilities
+            ):
+                capabilities = frozenset({*observation.capabilities, Capability.JOB_CONTROL})
+                return replace(
+                    observation, capabilities=capabilities, current=replace(current, capabilities=capabilities)
+                )
+            return observation
+        if Capability.JOB_CONTROL not in observation.capabilities:
+            return observation
+        capabilities = frozenset(
+            capability for capability in observation.capabilities if capability is not Capability.JOB_CONTROL
+        )
+        current = replace(observation.current, capabilities=capabilities) if observation.current is not None else None
+        retained = (
+            replace(
+                observation.retained,
+                snapshot=replace(observation.retained.snapshot, capabilities=capabilities),
+            )
+            if observation.retained is not None
+            else None
+        )
+        return replace(
+            observation,
+            capabilities=capabilities,
+            current=current,
+            retained=retained,
+        )
 
     async def dispatch_command(self, command: object) -> bool:
         """Send one capability-gated SDCP job command through the active session.
@@ -247,7 +337,18 @@ class ElegooSDCPManager:
         live = self._sources.get(command.source_id)
         if live is None or command.configuration_revision != live.configuration_revision:
             return False
+        acknowledgement = live.control_acknowledgement
+        if not live.control_enabled or acknowledgement is None:
+            return False
         observation = self.observation(command.source_id)
+        if not acknowledgement_matches_observation(
+            driver=DriverKind.ELEGOO_SDCP_V3,
+            model=acknowledgement.model,
+            firmware=acknowledgement.firmware,
+            operations=acknowledgement.operations,
+            observation=observation,
+        ):
+            return False
         if not control_operation_is_available(command.operation, observation):
             return False
         if live.mainboard_id is None or live.websocket is None or live.stop.is_set():
@@ -611,14 +712,7 @@ class ElegooSDCPManager:
 
     @staticmethod
     def _control_state_matches(operation: PlatformControlOperation, observation: DriverObservation) -> bool:
-        if observation.phase is not ConnectionPhase.READY or observation.current is None:
-            return False
-        job = observation.current.job
-        if operation is PlatformControlOperation.PAUSE_JOB:
-            return job is not None and job.state == "paused"
-        if operation is PlatformControlOperation.RESUME_JOB:
-            return job is not None and job.state == "printing"
-        return job is None or job.state not in {"printing", "paused"}
+        return observation_satisfies_reconciliation(operation, observation)
 
     @staticmethod
     def _set_mainboard_id(live: _LiveSource, candidate: object) -> bool:

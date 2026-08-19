@@ -36,22 +36,44 @@ release, deployment, image publication, printer contact, or upstream sync.
    supervised hardware validation are recorded in
    [the multi-platform control maturity gate](MULTI_PLATFORM_MATURITY.md).
 
-   **Deferred cross-platform milestones — not current capability claims:**
+   **Cross-platform milestones — not general capability claims:**
 
    - **C4: Job lifecycle controls** — pause, resume, and cancel across every
      supported printer type. Each platform/operation requires its own protocol
      evidence, deterministic adapter/API/UI coverage, idempotency and
      status-reconciliation rules, permission and audit review, then separately
-     approved supervised hardware validation. Existing Bambu behavior remains
-     governed by its inherited regression contract; Elegoo and Moonraker must
-     not advertise or exercise a control until their own gates are met.
-   - **C5: Managed print submission** — a platform-specific file-transfer and
-     job-start capability for every supported printer type. Each adapter needs
+     approved supervised hardware validation. The inherited Bambu lifecycle
+     routes now write operation-only C4 audit records, with prior owner
+     confirmation limited to the configured P1P; this does not generalize to
+     other models or firmware. C4.4 is complete only for the configured P1P
+     historical owner confirmation and the exact validated Elegoo CC1 and
+     Moonraker configurations, including acknowledgement-loss, reconnect,
+     restart, and concurrent-state cases. None may gain a broader model,
+     firmware, or source claim from another printer's result. Elegoo and
+     Moonraker must not advertise or exercise a control until their own exact
+     gates are met. The staged, all-platform activation plan is recorded in
+     [C4 job lifecycle controls](C4_JOB_LIFECYCLE_CONTROLS_PLAN.md).
+   - **C5: Managed print submission** — C5.0's default-off typed local-intent
+     and operation-only audit foundation is complete; no transfer or start
+     capability is exposed. Bambu C5 submission work is deferred to a future
+     release. The remaining work is a platform-specific file-transfer and
+     job-start capability for the in-scope printer types.
+     Each adapter needs
      an exact documented transport contract, bounded upload and integrity
      rules, owner/target confirmation, audit and recovery semantics,
      deterministic fixtures, and separately approved hardware validation.
      Existing slicer/vendor submission paths do not establish a Goo Buddy
-     upload or start-print capability for another platform.
+     upload or start-print capability for another platform. The staged,
+     all-platform delivery plan is recorded in
+     [C5 managed print submission](C5_MANAGED_PRINT_SUBMISSION_PLAN.md).
+   - **C6: Camera and media capability integration** — platform-specific,
+     evidence-backed camera observation and presentation for every supported
+     printer type. A camera surface requires an exact transport, authentication
+     boundary, freshness/error contract, deterministic fixtures, and separately
+     approved supervised hardware validation. A reachable port, model name, or
+     vendor assumption never establishes stream, snapshot, recording, or
+     control capability. The staged delivery plan is recorded in
+     [C6 camera and media capabilities](C6_CAMERA_MEDIA_CAPABILITY_PLAN.md).
 
 ## Approved design direction: Goo Buddy Workshop
 

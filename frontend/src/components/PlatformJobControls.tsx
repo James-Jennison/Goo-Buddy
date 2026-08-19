@@ -31,7 +31,7 @@ const CONTROL_COPY = {
 function availabilityReason({ phase, freshness, state, capabilities, canControl }: Omit<PlatformJobControlsProps, 'platformLabel' | 'printerName' | 'submit'>): string | null {
   if (!canControl) return 'Your role does not have permission to control printers.';
   if (phase !== 'ready' || freshness !== 'current') return 'Wait for a fresh, ready printer observation before using job controls.';
-  if (!capabilities?.includes('job_control')) return 'This saved driver has not reported the job-control capability.';
+  if (!capabilities?.includes('job-control')) return 'This saved driver has not reported the job-control capability.';
   if (state !== 'printing' && state !== 'paused') return 'Job controls are unavailable because the printer is not printing or paused.';
   return null;
 }

@@ -268,6 +268,7 @@ async def init_db():
         orca_base_cache,
         pending_upload,
         pipeline_run,
+        platform_submission_intent,
         print_batch,
         print_log,
         print_queue,
@@ -503,10 +504,32 @@ async def _migrate_elegoo_sdcp_sources(conn) -> None:
         f"id {source_id_column}, display_name VARCHAR(100) NOT NULL, "
         "private_ipv4 VARCHAR(15) NOT NULL UNIQUE, is_enabled BOOLEAN DEFAULT 0 NOT NULL, "
         "read_only_acknowledged BOOLEAN DEFAULT 0 NOT NULL, "
+        "control_enabled BOOLEAN DEFAULT 0 NOT NULL, "
+        "control_acknowledged_revision INTEGER, control_acknowledged_model VARCHAR(100), "
+        "control_acknowledged_firmware VARCHAR(100), control_acknowledged_operations VARCHAR(128), "
+        "submission_enabled BOOLEAN DEFAULT 0 NOT NULL, submission_acknowledged_revision INTEGER, "
+        "submission_acknowledged_model VARCHAR(100), submission_acknowledged_firmware VARCHAR(100), "
+        "submission_acknowledged_contract VARCHAR(64), "
         "configuration_revision INTEGER DEFAULT 1 NOT NULL, "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
         ")",
     )
+    # Existing read-only sources must never become control-capable through an
+    # upgrade. The additive default deliberately keeps every row disabled.
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN control_enabled BOOLEAN DEFAULT 0 NOT NULL")
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN control_acknowledged_revision INTEGER")
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN control_acknowledged_model VARCHAR(100)")
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN control_acknowledged_firmware VARCHAR(100)")
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN control_acknowledged_operations VARCHAR(128)")
+    await _safe_execute(
+        conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN submission_enabled BOOLEAN DEFAULT 0 NOT NULL"
+    )
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN submission_acknowledged_revision INTEGER")
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN submission_acknowledged_model VARCHAR(100)")
+    await _safe_execute(
+        conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN submission_acknowledged_firmware VARCHAR(100)"
+    )
+    await _safe_execute(conn, "ALTER TABLE elegoo_sdcp_sources ADD COLUMN submission_acknowledged_contract VARCHAR(64)")
 
 
 async def _migrate_elegoo_sdcp_discovery_configuration(conn) -> None:
@@ -538,7 +561,13 @@ async def _migrate_moonraker_sources(conn) -> None:
         "port INTEGER NOT NULL DEFAULT 7125, scheme VARCHAR(5) NOT NULL DEFAULT 'http', "
         "camera_proxy_port INTEGER, camera_proxy_scheme VARCHAR(5), camera_proxy_path VARCHAR(512), "
         "api_key VARCHAR(2048), is_enabled BOOLEAN NOT NULL DEFAULT FALSE, "
-        "read_only_acknowledged BOOLEAN NOT NULL DEFAULT FALSE, configuration_revision INTEGER NOT NULL DEFAULT 1, "
+        "read_only_acknowledged BOOLEAN NOT NULL DEFAULT FALSE, control_enabled BOOLEAN NOT NULL DEFAULT FALSE, "
+        "control_acknowledged_revision INTEGER, control_acknowledged_model VARCHAR(100), "
+        "control_acknowledged_firmware VARCHAR(100), control_acknowledged_operations VARCHAR(128), "
+        "submission_enabled BOOLEAN NOT NULL DEFAULT FALSE, submission_acknowledged_revision INTEGER, "
+        "submission_acknowledged_model VARCHAR(100), submission_acknowledged_firmware VARCHAR(100), "
+        "submission_acknowledged_contract VARCHAR(64), "
+        "configuration_revision INTEGER NOT NULL DEFAULT 1, "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
     )
     # A Mainsail webcam proxy may be on a different local port than Moonraker.
@@ -547,10 +576,20 @@ async def _migrate_moonraker_sources(conn) -> None:
     await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_port INTEGER")
     await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_scheme VARCHAR(5)")
     await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN camera_proxy_path VARCHAR(512)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN control_enabled BOOLEAN DEFAULT 0 NOT NULL")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN control_acknowledged_revision INTEGER")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN control_acknowledged_model VARCHAR(100)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN control_acknowledged_firmware VARCHAR(100)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN control_acknowledged_operations VARCHAR(128)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN submission_enabled BOOLEAN DEFAULT 0 NOT NULL")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN submission_acknowledged_revision INTEGER")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN submission_acknowledged_model VARCHAR(100)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN submission_acknowledged_firmware VARCHAR(100)")
+    await _safe_execute(conn, "ALTER TABLE moonraker_sources ADD COLUMN submission_acknowledged_contract VARCHAR(64)")
 
 
 async def _migrate_platform_control_commands(conn) -> None:
-    """Add a closed, additive audit ledger for non-Bambu control commands.
+    """Add a closed, additive audit ledger for lifecycle-control commands.
 
     Source identity remains a ``driver`` / ``source_id`` pair rather than an
     FK because the two source tables deliberately have independent ID spaces.
@@ -563,7 +602,7 @@ async def _migrate_platform_control_commands(conn) -> None:
         conn,
         "CREATE TABLE platform_control_commands ("
         f"id {command_id_column}, "
-        "driver VARCHAR(32) NOT NULL CHECK (driver IN ('elegoo.sdcp-v3', 'moonraker')), "
+        "driver VARCHAR(32) NOT NULL CHECK (driver IN ('bambu', 'elegoo.sdcp-v3', 'moonraker')), "
         "source_id INTEGER NOT NULL CHECK (source_id > 0), "
         "configuration_revision INTEGER NOT NULL CHECK (configuration_revision > 0), "
         "operation VARCHAR(32) NOT NULL CHECK (operation IN ('pause_job', 'resume_job', 'cancel_job')), "
@@ -578,6 +617,128 @@ async def _migrate_platform_control_commands(conn) -> None:
         conn,
         "CREATE INDEX IF NOT EXISTS ix_platform_control_commands_source_requested "
         "ON platform_control_commands (driver, source_id, requested_at)",
+    )
+
+
+async def _migrate_platform_control_command_driver_contract(conn) -> None:
+    """Widen the additive ledger's closed driver constraint for Bambu.
+
+    Earlier C4 revisions created a SQLite check constraint that admitted only
+    the two isolated source drivers. SQLite cannot alter that constraint in
+    place, so preserve every existing audit row while rebuilding only this
+    small ledger table. PostgreSQL can replace the named column check in
+    place. Neither path introduces a payload, endpoint, or command column.
+    """
+
+    from sqlalchemy import text
+
+    if is_sqlite():
+        ddl = (
+            await conn.execute(
+                text("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'platform_control_commands'")
+            )
+        ).scalar_one_or_none()
+        if not isinstance(ddl, str) or "'bambu'" in ddl:
+            return
+        async with conn.begin_nested():
+            await conn.execute(
+                text(
+                    "CREATE TABLE platform_control_commands_v2 ("
+                    "id INTEGER PRIMARY KEY, "
+                    "driver VARCHAR(32) NOT NULL CHECK (driver IN ('bambu', 'elegoo.sdcp-v3', 'moonraker')), "
+                    "source_id INTEGER NOT NULL CHECK (source_id > 0), "
+                    "configuration_revision INTEGER NOT NULL CHECK (configuration_revision > 0), "
+                    "operation VARCHAR(32) NOT NULL CHECK (operation IN ('pause_job', 'resume_job', 'cancel_job')), "
+                    "status VARCHAR(16) NOT NULL DEFAULT 'queued' "
+                    "CHECK (status IN ('queued', 'dispatching', 'acknowledged', 'failed', 'cancelled')), "
+                    "idempotency_key VARCHAR(32) NOT NULL UNIQUE, "
+                    "requested_by INTEGER REFERENCES users(id) ON DELETE SET NULL, "
+                    "requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, dispatched_at TIMESTAMP, "
+                    "completed_at TIMESTAMP, error_code VARCHAR(64)"
+                    ")"
+                )
+            )
+            await conn.execute(
+                text(
+                    "INSERT INTO platform_control_commands_v2 "
+                    "SELECT id, driver, source_id, configuration_revision, operation, status, idempotency_key, "
+                    "requested_by, requested_at, dispatched_at, completed_at, error_code "
+                    "FROM platform_control_commands"
+                )
+            )
+            await conn.execute(text("DROP TABLE platform_control_commands"))
+            await conn.execute(text("ALTER TABLE platform_control_commands_v2 RENAME TO platform_control_commands"))
+            await conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_platform_control_commands_source_requested "
+                    "ON platform_control_commands (driver, source_id, requested_at)"
+                )
+            )
+        return
+
+    await _safe_execute(
+        conn, "ALTER TABLE platform_control_commands DROP CONSTRAINT IF EXISTS platform_control_commands_driver_check"
+    )
+    await _safe_execute(
+        conn, "ALTER TABLE platform_control_commands DROP CONSTRAINT IF EXISTS ck_platform_control_commands_driver"
+    )
+    await _safe_execute(
+        conn,
+        "ALTER TABLE platform_control_commands ADD CONSTRAINT ck_platform_control_commands_driver "
+        "CHECK (driver IN ('bambu', 'elegoo.sdcp-v3', 'moonraker'))",
+    )
+
+
+async def _migrate_platform_submission_intents(conn) -> None:
+    """Add C5's inert, operation-only submission audit table.
+
+    It deliberately has no printer path, URL, payload, file bytes, or command
+    column. C5.0 creates no API route or transport that could populate it.
+    """
+
+    intent_id_column = "INTEGER PRIMARY KEY" if is_sqlite() else "SERIAL PRIMARY KEY"
+    await _safe_execute(
+        conn,
+        "CREATE TABLE platform_submission_intents ("
+        f"id {intent_id_column}, "
+        "driver VARCHAR(32) NOT NULL CHECK (driver IN ('bambu', 'elegoo.sdcp-v3', 'moonraker')), "
+        "source_id INTEGER NOT NULL CHECK (source_id > 0), "
+        "configuration_revision INTEGER NOT NULL CHECK (configuration_revision > 0), "
+        "target_label VARCHAR(100) NOT NULL, "
+        "artifact_kind VARCHAR(16) NOT NULL CHECK (artifact_kind IN ('archive', 'library-file')), "
+        "artifact_id INTEGER NOT NULL CHECK (artifact_id > 0), "
+        "artifact_hash VARCHAR(64) NOT NULL, "
+        "status VARCHAR(16) NOT NULL DEFAULT 'draft' "
+        "CHECK (status IN ('draft', 'queued', 'transferring', 'starting', 'confirmed', 'failed', 'cancelled')), "
+        "idempotency_key VARCHAR(32) NOT NULL UNIQUE, requested_by INTEGER REFERENCES users(id) ON DELETE SET NULL, "
+        "requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, completed_at TIMESTAMP, error_code VARCHAR(64)"
+        ")",
+    )
+    await _safe_execute(
+        conn,
+        "CREATE INDEX IF NOT EXISTS ix_platform_submission_intents_source_requested "
+        "ON platform_submission_intents (driver, source_id, requested_at)",
+    )
+
+
+async def _reconcile_interrupted_platform_submission_intents(conn) -> None:
+    """Never replay an upload or start after a process restart.
+
+    A future C5 adapter will persist its state before each physical operation.
+    If the process exits in a pre-completion state, the printer may already
+    have received some or all of that operation. Mark the audit row failed and
+    require a new explicit owner action; retrying could duplicate a transfer
+    or start a second job.
+    """
+
+    from sqlalchemy import text
+
+    await conn.execute(
+        text(
+            "UPDATE platform_submission_intents "
+            "SET status = 'failed', error_code = 'restart_interrupted', completed_at = CURRENT_TIMESTAMP "
+            "WHERE status IN ('queued', 'transferring', 'starting')"
+        )
     )
 
 
@@ -1049,7 +1210,10 @@ async def run_migrations(conn):
     await _migrate_elegoo_sdcp_discovery_configuration(conn)
     await _migrate_moonraker_sources(conn)
     await _migrate_platform_control_commands(conn)
+    await _migrate_platform_control_command_driver_contract(conn)
+    await _migrate_platform_submission_intents(conn)
     await _reconcile_interrupted_platform_control_commands(conn)
+    await _reconcile_interrupted_platform_submission_intents(conn)
 
     # Migration: Add parent_run_id column to pipeline_runs (#1425 PR C).
     # Links a retry-failed run back to its parent so the dashboard can show

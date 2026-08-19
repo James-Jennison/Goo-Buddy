@@ -303,7 +303,10 @@ jobs:
 
   docker-test:
     name: Docker Build
-    runs-on: ubuntu-latest
+    # Only trusted pushes and organization-owned PRs use E2. Fork PRs and
+    # manually dispatched refs remain on GitHub-hosted infrastructure.
+    runs-on: >-
+      ${{ (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && 'e2' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.user.login != github.repository_owner
     # The Debian 13 Trixie production image validates OpenCV natively.
     timeout-minutes: 45

@@ -99,3 +99,5 @@ security/
 
 test_pipeline_archive_source.3mf
 test_pipeline_run_1.3mf
+archives/X1C/source/print.3mf
+archives/test/source/real_print.3mf

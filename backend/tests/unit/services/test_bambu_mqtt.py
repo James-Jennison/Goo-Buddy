@@ -6,8 +6,53 @@ These tests focus on timelapse tracking during prints.
 
 import json
 import time
+from unittest.mock import MagicMock
 
 import pytest
+
+
+class TestLifecycleControlWireContract:
+    """Pin inherited lifecycle messages without contacting a printer.
+
+    This is C4.1 evidence for the existing Bambu route, not a new activation
+    path.  The fixture uses only an in-memory MQTT client mock.
+    """
+
+    @pytest.fixture
+    def mqtt_client(self):
+        from backend.app.services.bambu_mqtt import BambuMQTTClient
+
+        client = BambuMQTTClient(
+            ip_address="192.168.1.100",
+            serial_number="TEST-C4-LIFECYCLE",
+            access_code="12345678",
+        )
+        client._client = MagicMock()
+        client.state.connected = True
+        return client
+
+    @pytest.mark.parametrize(
+        ("method_name", "command"),
+        [
+            ("pause_print", "pause"),
+            ("resume_print", "resume"),
+            ("stop_print", "stop"),
+        ],
+    )
+    def test_lifecycle_operation_uses_only_its_inherited_fixed_mqtt_command(
+        self, mqtt_client, method_name: str, command: str
+    ):
+        assert getattr(mqtt_client, method_name)() is True
+        mqtt_client._client.publish.assert_called_once()
+        _topic, payload = mqtt_client._client.publish.call_args.args[:2]
+        assert json.loads(payload) == {"print": {"command": command, "sequence_id": "0"}}
+        assert mqtt_client._client.publish.call_args.kwargs["qos"] == 1
+
+    @pytest.mark.parametrize("method_name", ["pause_print", "resume_print", "stop_print"])
+    def test_lifecycle_operation_never_publishes_while_disconnected(self, mqtt_client, method_name: str):
+        mqtt_client.state.connected = False
+        assert getattr(mqtt_client, method_name)() is False
+        mqtt_client._client.publish.assert_not_called()
 
 
 class TestTimelapseTracking:

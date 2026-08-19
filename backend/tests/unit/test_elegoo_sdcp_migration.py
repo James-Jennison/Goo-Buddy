@@ -23,9 +23,11 @@ async def test_elegoo_source_migration_is_idempotent_and_generates_sqlite_ids(mo
                 )
             )
             row = (
-                await conn.execute(text("SELECT id, is_enabled, read_only_acknowledged FROM elegoo_sdcp_sources"))
+                await conn.execute(
+                    text("SELECT id, is_enabled, read_only_acknowledged, control_enabled FROM elegoo_sdcp_sources")
+                )
             ).one()
-        assert row == (1, 0, 1)
+        assert row == (1, 0, 1, 0)
     finally:
         await engine.dispose()
 
@@ -40,8 +42,8 @@ async def test_elegoo_source_migration_uses_postgres_generated_id_form(monkeypat
     monkeypatch.setattr(database, "is_sqlite", lambda: False)
     monkeypatch.setattr(database, "_safe_execute", capture_ddl)
     await database._migrate_elegoo_sdcp_sources(object())
-    assert len(statements) == 1
     assert "id SERIAL PRIMARY KEY" in statements[0]
+    assert any("control_enabled BOOLEAN DEFAULT 0 NOT NULL" in statement for statement in statements)
 
 
 @pytest.mark.asyncio

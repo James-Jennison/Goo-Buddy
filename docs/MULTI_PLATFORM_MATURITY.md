@@ -13,6 +13,16 @@ does **not** authorize a test run against a physical printer, a release,
 publication, discovery, or a widening of network exposure. Those actions need
 their own explicit approval.
 
+The detailed C4 activation sequence is in
+[C4 job lifecycle controls](C4_JOB_LIFECYCLE_CONTROLS_PLAN.md). The checked
+automated-delivery items below record the shared non-Bambu control foundation
+as it existed when this maturity gate was written; they are not a claim that a
+platform is activated, owner-authorized, or hardware-validated. In particular,
+Elegoo SDCP v3 and Moonraker remain monitoring-only until their individual C4
+activation rules are met. Bambu's inherited control path must be brought into
+the same C4 evidence/audit/reconciliation review before it is treated as a
+cross-platform result.
+
 ## Non-negotiable safety contract
 
 - Sources remain manual and opt-in. Goo Buddy never discovers printers or

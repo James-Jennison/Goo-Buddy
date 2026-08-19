@@ -13,6 +13,10 @@ from backend.app.control.contract import (
     control_operation_is_available,
     new_platform_control_command,
 )
+from backend.app.control.reconciliation import (
+    lifecycle_reconciliation_contract,
+    observation_satisfies_reconciliation,
+)
 from backend.app.core import database
 from backend.app.drivers.contract import (
     Capability,
@@ -48,13 +52,13 @@ def test_platform_control_command_accepts_only_supported_drivers_and_operations(
     assert command.operation is PlatformControlOperation.PAUSE_JOB
     assert len(command.idempotency_key) == 32
 
-    with pytest.raises(ValueError, match="unsupported platform control driver"):
-        new_platform_control_command(
-            DriverKind.BAMBU,
-            source_id=7,
-            configuration_revision=2,
-            operation=PlatformControlOperation.PAUSE_JOB,
-        )
+    bambu = new_platform_control_command(
+        DriverKind.BAMBU,
+        source_id=7,
+        configuration_revision=1,
+        operation=PlatformControlOperation.PAUSE_JOB,
+    )
+    assert bambu.driver is DriverKind.BAMBU
     with pytest.raises(ValueError, match="unsupported platform control operation"):
         new_platform_control_command(
             DriverKind.MOONRAKER,
@@ -87,6 +91,139 @@ def test_control_operation_availability_rejects_arbitrary_values(operation: obje
     assert control_operation_is_available(operation, _ready_observation("printing")) is False
 
 
+def test_control_operation_availability_accepts_fresh_authoritative_state_without_print_info() -> None:
+    snapshot = NormalizedPrinterSnapshot(
+        identity=PrinterIdentity("fixture-printer", "Fixture printer"),
+        driver=DriverKind.ELEGOO_SDCP_V3,
+        observed_at=datetime.now(timezone.utc),
+        state="paused",
+        capabilities=frozenset({Capability.JOB_CONTROL}),
+        job=None,
+    )
+    observation = DriverObservation(ConnectionPhase.READY, snapshot.capabilities, current=snapshot)
+    assert control_operation_is_available(PlatformControlOperation.RESUME_JOB, observation)
+
+
+@pytest.mark.parametrize(
+    ("driver", "operation", "source_states", "success_states", "evidence_status"),
+    [
+        (DriverKind.BAMBU, PlatformControlOperation.PAUSE_JOB, {"RUNNING"}, {"PAUSE"}, "inherited-regression-covered"),
+        (DriverKind.BAMBU, PlatformControlOperation.RESUME_JOB, {"PAUSE"}, {"RUNNING"}, "inherited-regression-covered"),
+        (
+            DriverKind.BAMBU,
+            PlatformControlOperation.CANCEL_JOB,
+            {"PREPARE", "SLICING", "RUNNING", "PAUSE"},
+            {"IDLE", "FINISH", "FAILED"},
+            "inherited-regression-covered",
+        ),
+        (
+            DriverKind.ELEGOO_SDCP_V3,
+            PlatformControlOperation.PAUSE_JOB,
+            {"printing"},
+            {"paused"},
+            "dormant-adapter-only",
+        ),
+        (
+            DriverKind.ELEGOO_SDCP_V3,
+            PlatformControlOperation.RESUME_JOB,
+            {"paused"},
+            {"printing"},
+            "dormant-adapter-only",
+        ),
+        (
+            DriverKind.ELEGOO_SDCP_V3,
+            PlatformControlOperation.CANCEL_JOB,
+            {"printing", "paused"},
+            {"idle", "finished", "error"},
+            "dormant-adapter-only",
+        ),
+        (DriverKind.MOONRAKER, PlatformControlOperation.PAUSE_JOB, {"printing"}, {"paused"}, "dormant-adapter-only"),
+        (DriverKind.MOONRAKER, PlatformControlOperation.RESUME_JOB, {"paused"}, {"printing"}, "dormant-adapter-only"),
+        (
+            DriverKind.MOONRAKER,
+            PlatformControlOperation.CANCEL_JOB,
+            {"printing", "paused"},
+            {"idle", "finished", "error", "cancelled"},
+            "dormant-adapter-only",
+        ),
+    ],
+)
+def test_cross_platform_reconciliation_contracts_are_closed_and_evidence_scoped(
+    driver: DriverKind,
+    operation: PlatformControlOperation,
+    source_states: set[str],
+    success_states: set[str],
+    evidence_status: str,
+) -> None:
+    contract = lifecycle_reconciliation_contract(driver, operation)
+    assert contract is not None
+    assert contract.source_states == frozenset(source_states)
+    assert contract.success_states == frozenset(success_states)
+    assert contract.evidence_status == evidence_status
+
+
+@pytest.mark.parametrize("driver", [DriverKind.BAMBU, DriverKind.ELEGOO_SDCP_V3, DriverKind.MOONRAKER])
+def test_reconciliation_contract_rejects_unlisted_operations_and_drivers(driver: DriverKind) -> None:
+    assert lifecycle_reconciliation_contract(driver, "M112") is None
+    assert lifecycle_reconciliation_contract("raw", PlatformControlOperation.PAUSE_JOB) is None
+
+
+def test_normalized_reconciliation_requires_a_fresh_authoritative_success_state() -> None:
+    assert observation_satisfies_reconciliation(PlatformControlOperation.PAUSE_JOB, _ready_observation("paused"))
+    assert observation_satisfies_reconciliation(PlatformControlOperation.RESUME_JOB, _ready_observation("printing"))
+    assert observation_satisfies_reconciliation(PlatformControlOperation.CANCEL_JOB, _ready_observation("cancelled"))
+
+    idle = _ready_observation("idle")
+    assert idle.current is not None
+    idle = DriverObservation(
+        idle.phase,
+        idle.capabilities,
+        current=NormalizedPrinterSnapshot(
+            identity=idle.current.identity,
+            driver=idle.current.driver,
+            observed_at=idle.current.observed_at,
+            state="idle",
+            capabilities=idle.current.capabilities,
+            job=None,
+        ),
+    )
+    assert observation_satisfies_reconciliation(PlatformControlOperation.CANCEL_JOB, idle)
+
+    paused_without_print_info = DriverObservation(
+        ConnectionPhase.READY,
+        frozenset(),
+        current=NormalizedPrinterSnapshot(
+            identity=PrinterIdentity("fixture-printer", "Fixture printer"),
+            driver=DriverKind.ELEGOO_SDCP_V3,
+            observed_at=datetime.now(timezone.utc),
+            state="paused",
+            capabilities=frozenset(),
+            job=None,
+        ),
+    )
+    assert observation_satisfies_reconciliation(PlatformControlOperation.PAUSE_JOB, paused_without_print_info)
+
+    stale = DriverObservation(ConnectionPhase.STALE, idle.capabilities, retained=idle.current and None)
+    assert not observation_satisfies_reconciliation(PlatformControlOperation.CANCEL_JOB, stale)
+    assert not observation_satisfies_reconciliation(PlatformControlOperation.PAUSE_JOB, _ready_observation("printing"))
+
+    contradictory = _ready_observation("paused")
+    assert contradictory.current is not None
+    contradictory = DriverObservation(
+        contradictory.phase,
+        contradictory.capabilities,
+        current=NormalizedPrinterSnapshot(
+            identity=contradictory.current.identity,
+            driver=contradictory.current.driver,
+            observed_at=contradictory.current.observed_at,
+            state="printing",
+            capabilities=contradictory.current.capabilities,
+            job=contradictory.current.job,
+        ),
+    )
+    assert not observation_satisfies_reconciliation(PlatformControlOperation.PAUSE_JOB, contradictory)
+
+
 @pytest.mark.asyncio
 async def test_platform_control_migration_is_idempotent_and_rejects_unlisted_operations(monkeypatch):
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
@@ -95,7 +232,9 @@ async def test_platform_control_migration_is_idempotent_and_rejects_unlisted_ope
         async with engine.begin() as conn:
             await conn.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY)"))
             await database._migrate_platform_control_commands(conn)
+            await database._migrate_platform_control_command_driver_contract(conn)
             await database._migrate_platform_control_commands(conn)
+            await database._migrate_platform_control_command_driver_contract(conn)
             await conn.execute(
                 text(
                     "INSERT INTO platform_control_commands "
@@ -107,6 +246,13 @@ async def test_platform_control_migration_is_idempotent_and_rejects_unlisted_ope
                 await conn.execute(text("SELECT driver, source_id, operation, status FROM platform_control_commands"))
             ).one()
             assert row == ("moonraker", 4, "pause_job", PlatformControlState.QUEUED.value)
+            await conn.execute(
+                text(
+                    "INSERT INTO platform_control_commands "
+                    "(driver, source_id, configuration_revision, operation, status, idempotency_key) "
+                    "VALUES ('bambu', 5, 1, 'resume_job', 'queued', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')"
+                )
+            )
             with pytest.raises(IntegrityError):
                 await conn.execute(
                     text(
@@ -115,6 +261,59 @@ async def test_platform_control_migration_is_idempotent_and_rejects_unlisted_ope
                         "VALUES ('moonraker', 4, 1, 'raw_gcode', 'fedcba9876543210fedcba9876543210')"
                     )
                 )
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_platform_control_driver_contract_preserves_legacy_sqlite_audit_rows(monkeypatch):
+    """The Bambu ledger extension must not discard pre-existing C4 records."""
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    monkeypatch.setattr(database, "is_sqlite", lambda: True)
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY)"))
+            await conn.execute(
+                text(
+                    "CREATE TABLE platform_control_commands ("
+                    "id INTEGER PRIMARY KEY, "
+                    "driver VARCHAR(32) NOT NULL CHECK (driver IN ('elegoo.sdcp-v3', 'moonraker')), "
+                    "source_id INTEGER NOT NULL CHECK (source_id > 0), "
+                    "configuration_revision INTEGER NOT NULL CHECK (configuration_revision > 0), "
+                    "operation VARCHAR(32) NOT NULL CHECK (operation IN ('pause_job', 'resume_job', 'cancel_job')), "
+                    "status VARCHAR(16) NOT NULL DEFAULT 'queued' "
+                    "CHECK (status IN ('queued', 'dispatching', 'acknowledged', 'failed', 'cancelled')), "
+                    "idempotency_key VARCHAR(32) NOT NULL UNIQUE, "
+                    "requested_by INTEGER REFERENCES users(id) ON DELETE SET NULL, "
+                    "requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, dispatched_at TIMESTAMP, "
+                    "completed_at TIMESTAMP, error_code VARCHAR(64)"
+                    ")"
+                )
+            )
+            await conn.execute(
+                text(
+                    "INSERT INTO platform_control_commands "
+                    "(driver, source_id, configuration_revision, operation, status, idempotency_key) "
+                    "VALUES ('moonraker', 4, 1, 'pause_job', 'acknowledged', '0123456789abcdef0123456789abcdef')"
+                )
+            )
+
+            await database._migrate_platform_control_command_driver_contract(conn)
+
+            await conn.execute(
+                text(
+                    "INSERT INTO platform_control_commands "
+                    "(driver, source_id, configuration_revision, operation, status, idempotency_key) "
+                    "VALUES ('bambu', 5, 1, 'resume_job', 'queued', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')"
+                )
+            )
+            rows = (
+                await conn.execute(
+                    text("SELECT driver, source_id, status FROM platform_control_commands ORDER BY source_id")
+                )
+            ).all()
+            assert rows == [("moonraker", 4, "acknowledged"), ("bambu", 5, "queued")]
     finally:
         await engine.dispose()
 

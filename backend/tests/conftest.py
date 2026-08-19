@@ -146,6 +146,7 @@ async def test_engine():
         notification,
         notification_template,
         oidc_provider,
+        platform_submission_intent,
         print_log,
         print_queue,
         printer,

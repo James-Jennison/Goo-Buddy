@@ -1,4 +1,4 @@
-"""Closed, auditable control commands for non-Bambu printer sources.
+"""Closed, auditable lifecycle control commands for supported printers.
 
 This is intentionally not a transport abstraction.  It models only the small
 set of user-visible print-job operations that future protocol adapters may
@@ -35,7 +35,11 @@ class PlatformControlState(StrEnum):
     CANCELLED = "cancelled"
 
 
-_SUPPORTED_DRIVERS = frozenset({DriverKind.ELEGOO_SDCP_V3, DriverKind.MOONRAKER})
+class PlatformControlUnconfirmed(Exception):
+    """A fixed command was sent but no fresh expected state confirmed it."""
+
+
+_SUPPORTED_DRIVERS = frozenset({DriverKind.BAMBU, DriverKind.ELEGOO_SDCP_V3, DriverKind.MOONRAKER})
 _IDEMPOTENCY_KEY = re.compile(r"^[a-f0-9]{32}$")
 
 
@@ -100,10 +104,14 @@ def control_operation_is_available(operation: object, observation: DriverObserva
         observation.phase is not ConnectionPhase.READY
         or Capability.JOB_CONTROL not in observation.capabilities
         or observation.current is None
-        or observation.current.job is None
     ):
         return False
-    state = observation.current.job.state
+    state = observation.current.state
+    # SDCP can provide a fresh authoritative printer state without PrintInfo.
+    # That omission is not stale data, but a present contradictory job field
+    # must never be used to make an operation available.
+    if observation.current.job is not None and observation.current.job.state != state:
+        return False
     if operation is PlatformControlOperation.PAUSE_JOB:
         return state == "printing"
     if operation is PlatformControlOperation.RESUME_JOB:

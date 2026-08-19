@@ -60,7 +60,7 @@ describe('read-only printer cards', () => {
     expect(screen.getByTestId('current-location')).toHaveTextContent('/printers/-101');
   });
 
-  it('explains Moonraker authorization without exposing configuration and disables controls', async () => {
+  it('explains Moonraker authorization without exposing configuration or a dormant control surface', async () => {
     const publicId = -1_000_201;
     server.use(http.get('/api/v1/printers/moonraker/201/status', () => HttpResponse.json({
       phase: 'unauthorized', freshness: 'unavailable', retained: false, last_observation_at: null, error: 'unauthorized',
@@ -71,7 +71,8 @@ describe('read-only printer cards', () => {
     await waitFor(() => expect(screen.getByText(/Moonraker authentication needs attention/i)).toBeInTheDocument());
     expect(screen.getByText(/never displays the key/i)).toBeInTheDocument();
     expect(screen.getByText(/camera proxy, files, console, maintenance, and upload remain unavailable/i)).toBeInTheDocument();
-    expect(screen.getByText(/Wait for a fresh, ready printer observation/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Print controls for/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
     expect(screen.queryByText(/Synthetic preview only/i)).not.toBeInTheDocument();
   });
 
@@ -98,5 +99,41 @@ describe('read-only printer cards', () => {
     await waitFor(() => expect(screen.getByText(/Read-only G-code inventory is available in this printer workspace/i)).toBeInTheDocument());
     fireEvent.click(screen.getByText('Synthetic printer'));
     expect(screen.getByTestId('current-location')).toHaveTextContent(`/printers/${publicId}`);
+  });
+
+  it('requires owner confirmation before activating an exact validated Moonraker control set', async () => {
+    const publicId = -1_000_201;
+    let activationRequested = false;
+    server.use(
+      http.get('/api/v1/printers/moonraker/201/status', () => HttpResponse.json({
+        phase: 'ready', freshness: 'current', retained: false, last_observation_at: '2030-01-02T03:04:05Z', error: null,
+        state: 'cancelled', model: 'Klipper', firmware: 'v0.10.0-31-gd5ee171', temperatures: null,
+        job: { state: 'cancelled' }, capabilities: [],
+      })),
+      http.post('/api/v1/printers/moonraker/201/control/acknowledgement', () => {
+        activationRequested = true;
+        return HttpResponse.json({
+          status: 'acknowledged', configuration_revision: 1,
+          operations: ['cancel_job', 'pause_job', 'resume_job'],
+        });
+      }),
+    );
+
+    renderCard(<MoonrakerPrinterCard printer={readOnlyPrinter({
+      id: publicId,
+      platform: 'moonraker',
+      control_acknowledgement: {
+        status: 'owner-acknowledgement-required', configuration_revision: 1,
+        operations: ['cancel_job', 'pause_job', 'resume_job'],
+      },
+    })} />);
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Activate job controls' })).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Activate job controls' }));
+    expect(screen.getByText('Activate job controls for Synthetic printer?')).toBeInTheDocument();
+    expect(screen.getByText(/does not enable print start, files, camera, motion/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Activate controls' }));
+    await waitFor(() => expect(activationRequested).toBe(true));
   });
 });
