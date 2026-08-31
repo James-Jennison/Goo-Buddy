@@ -2,6 +2,20 @@
 
 All notable changes to Bambuddy will be documented in this file.
 
+## [0.3.0-alpha.6] - 2026-08-31
+
+### Added
+- **C4 lifecycle-control prerelease** — Carries the merged, capability-gated
+  C4 pause, resume, and cancel foundations for the exact validated Bambu,
+  Elegoo SDCP v3, and Moonraker evidence scopes. Non-Bambu sources remain
+  default-off until a fresh matching observation and separate owner
+  acknowledgement; this release does not broaden printer-control claims.
+
+### Fixed
+- **GHCR orphan cleanup targets the Goo Buddy package** — The scheduled
+  cleanup workflow now inspects `goo-buddy`, the package produced by the
+  guarded publication workflow, instead of the inherited `bambuddy` name.
+
 ## [1.2.5.1] - 2026-07-27
 
 ### Fixed

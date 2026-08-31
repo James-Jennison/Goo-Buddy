@@ -3,7 +3,7 @@
 Every Goo Buddy container release runs pinned Trivy scans for both native
 `linux/amd64` and `linux/arm64` images. The release workflow retains the raw
 JSON and human-readable output, SPDX SBOM, and generated upstream-base report
-as evidence artifacts. The current prerelease candidate is `0.3.0-alpha.5`.
+as evidence artifacts. The current prerelease candidate is `0.3.0-alpha.6`.
 
 The gate fails on every HIGH or CRITICAL application dependency finding and on
 every Debian OS finding for which Trivy reports a vendor fixed version unless

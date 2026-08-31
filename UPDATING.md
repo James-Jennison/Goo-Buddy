@@ -1,6 +1,6 @@
 # Updating Goo Buddy
 
-Goo Buddy publishes the `0.3.0-alpha.5` multi-architecture OCI image for
+Goo Buddy publishes the `0.3.0-alpha.6` multi-architecture OCI image for
 AMD64 and ARM64 hosts. The normal operator update path pulls a reviewed,
 immutable published image through `docker-compose.release.yml`; it does not
 rebuild the application on the host. This is an alpha distribution, not a

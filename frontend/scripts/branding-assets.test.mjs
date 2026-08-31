@@ -63,7 +63,7 @@ test('roadmap and operator update guidance match the published Goo Buddy state',
 
   assert.match(roadmap, /Goo Buddy branding migration and Goo Buddy Workshop UX[\s\S]{0,80}\*\*complete\*\*/);
   assert.match(roadmap, /first independently published alpha distribution \*\*complete\*\* at\s+`0\.3\.0-alpha\.5`/);
-  assert.match(updating, /Goo Buddy publishes the `0\.3\.0-alpha\.5` multi-architecture OCI image/);
+  assert.match(updating, /Goo Buddy publishes the `0\.3\.0-alpha\.6` multi-architecture OCI image/);
   assert.match(updating, /docker-compose\.release\.yml/);
   assert.doesNotMatch(updating, /does not yet publish a container image/i);
   assert.doesNotMatch(updating, /distribution is planned, not available now/i);
